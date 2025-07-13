@@ -25,18 +25,39 @@ _noodle_ relies on SD Card and memory-reuse for efficient implementation.
 void noodle_delete_buffer(float *buffer) 
 ```
 
- ### 
- ```cpp
-void noodle_grid_to_file(byte *grid, char *fn, uint16_t n)
+### 
+```cpp
+void noodle_grid_to_file(byte *grid, char *fn,
+                         uint16_t n)
+```
+### 
+```cpp
+void noodle_grid_to_file(byte *grid,
+                         char *fn, uint16_t n) 
 ```
 
-void noodle_grid_to_file(byte *grid, char *fn, uint16_t n) 
+### 
+```cpp
+float noodle_get_padded_x(byte *grid,
+                          int16_t i,
+                          int16_t j,
+                          int16_t W,
+                          int16_t P) 
+```
 
-float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P) 
-
+### 
+```cpp
 uint16_t noodle_do_bias(float *output, float bias, uint16_t n) 
+```
 
-uint16_t noodle_do_pooling(float *output, uint16_t W, uint16_t K, uint16_t S, char *fn) {
+### 
+```cpp
+uint16_t noodle_do_pooling(float *output,
+                           uint16_t W,
+                           uint16_t K,
+                           uint16_t S,
+                           char *fn) 
+```
 
 ##
 * Input size is `W x W`.
@@ -44,18 +65,28 @@ uint16_t noodle_do_pooling(float *output, uint16_t W, uint16_t K, uint16_t S, ch
 * The padding is `P` (uniform and zero padding).
 * The stride length is `S`.
 ```cpp
-uint16_t noodle_do_convolution(byte *grid, float *kernel, uint16_t K, uint16_t W, float *output_buffer, uint16_t P, uint16_t S) 
+uint16_t noodle_do_convolution(byte *grid,
+                               float *kernel,
+                               uint16_t K,
+                               uint16_t W,
+                               float *output_buffer,
+                               uint16_t P,
+                               uint16_t S) 
 ```
 
 ##
 Load a BYTE  square matrix from a file `(K x K)`. The matrix was previously stored linearly
 ```cpp
-void noodle_read_from_file(char *fn, byte *buffer, uint16_t K, bool transposed = false) 
+void noodle_read_from_file(char *fn,
+                           byte *buffer,
+                           uint16_t K,
+                           bool transposed = false) 
 ```
 
 ##
 ```cpp
-void noodle_reset_buffer(float *buffer, uint16_t n) {
+void noodle_reset_buffer(float *buffer,
+                         uint16_t n) {
 ```
 
 ##
@@ -86,7 +117,7 @@ uint16_t noodle_flat(float *output_buffer,
 ```
 
 ##
-From output_buffer to out_fn
+From RAM to SD Card
 ```cpp
 uint16_t noodle_fcn(float *output_buffer,
                     uint16_t n_inputs,
@@ -94,12 +125,12 @@ uint16_t noodle_fcn(float *output_buffer,
                     char *out_fn,
                     char *weight_fn,
                     char *bias_fn,
-                    CBFPtr progress_cb=NULL) {
+                    CBFPtr progress_cb=NULL) 
 ```
 
 ##
+From SD Card to RAM
 ```cpp
-// From in_fn to output_buffer
 uint16_t noodle_fcn(char *in_fn, 
                     uint16_t n_inputs, 
                     uint16_t n_outputs, 
