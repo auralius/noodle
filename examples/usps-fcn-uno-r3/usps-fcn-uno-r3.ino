@@ -238,9 +238,11 @@ void loop() {
       unsigned long st = micros();  // timer starts
 
       tft.println(F("NN #1 ..."));
-      uint16_t V = noodle_fcn(GRID, 256, 50, "out1.txt", "fcn-w1.txt", "fcn-w2.txt", progress_hnd);
+      // 256 input neurons, 64 hidden neurons
+      uint16_t V = noodle_fcn(GRID, 256, 64, "out1.txt", "fcn-w1.txt", "fcn-w2.txt", progress_hnd);
 
       tft.println(F("NN #2 ..."));
+      // 10 output neurons
       V = noodle_fcn("out1.txt", V, 10, OUTPUT_BUFFER, "fcn-w3.txt", "fcn-w4.txt", progress_hnd);
 
       float et = (float)(micros() - st) * 1e-6;  // timer stops
