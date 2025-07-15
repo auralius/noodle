@@ -251,7 +251,7 @@ void loop() {
       tft.println(F("Conv layer 2 ..."));
       V = noodle_conv(GRID, OUTPUT_BUFFER, 12, 12, "o1-x.txt", "o2-x.txt", "w3-x-x.txt", "w4.txt", V, 2, 5, 1, 2, 2, progress_hnd);
 
-      V = noodle_flat(OUTPUT_BUFFER, "o2-x.txt", V, 12);
+      V = noodle_flat("o2-x.txt", OUTPUT_BUFFER, V, 12);
 
       tft.println(F("NN layer 1 ..."));
       V = noodle_fcn(OUTPUT_BUFFER, V, 30, "o3.txt", "w5.txt", "w6.txt", progress_hnd);
