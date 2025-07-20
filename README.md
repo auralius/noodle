@@ -2,7 +2,11 @@
   <img src="./noodle.png" alt="Description" width="100"> 
 </p>
 
-<h1 align="center">Noodle 🍜≈🧠</h1>
+<h1 align="center">Noodle 🍜≈🧠
+  
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16239228.svg)](https://doi.org/10.5281/zenodo.16239228)
+  
+</h1>
 
 
 **Noodle** is a lightweight convolutional neural network (CNN) inference framework for embedded systems, optimized to operate with SD card storage and minimal RAM usage.
