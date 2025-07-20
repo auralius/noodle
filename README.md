@@ -25,7 +25,6 @@
   * [Two layer fully connected network](#two-layer-fully-connected-network)
   * [LeNet-1](#lenet-1)
   * [LeNet-4](#lenet-4)  
-* [License](#license)
 * [Authors](#authors)
 
 ## [API Reference](#api-reference)
@@ -272,10 +271,6 @@ V = noodle_fcn(OUTPUT_BUFFER, V, 120, "o3.txt", "w5.txt", "w6.txt", progress_hnd
 // - Output stored in OUTPUT_BUFFER
 V = noodle_fcn("o3.txt", V, 10, OUTPUT_BUFFER, "w7.txt", "w8.txt", progress_hnd);
 ```
-
-## [License](#license)
-
-[CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 ## [Authors](#authors)
 
