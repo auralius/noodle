@@ -4,8 +4,14 @@ SdFat SD;
 
 float noodle_read_float(File &f) {
   char s[20];
-  f.readBytesUntil('\n', (char *)s, sizeof(s));
+  size_t n = f.readBytesUntil('\n', (char *)s, sizeof(s));
+  s[n] = '\0';
   return atof(s);
+}
+
+void noodle_write_float(File &f, float d) {
+  f.println(d, 6);
+  //f.write("\0\n", 2);
 }
 
 void noodle_delete_file(char *fn) {
@@ -24,10 +30,8 @@ void noodle_grid_to_file(byte *grid, char *fn, uint16_t n) {
   noodle_delete_file(fn);
   File fo = SD.open(fn, FILE_WRITE);
   for (int16_t i = 0; i < n; i++)
-    for (int16_t j = 0; j < n; j++) {
-      fo.print(grid[i * n + j]);
-      fo.println('\0');
-    }
+    for (int16_t j = 0; j < n; j++) 
+      noodle_write_float(fo, (float)grid[i * n + j]);
   fo.close();
 }
 
@@ -60,10 +64,7 @@ uint16_t noodle_do_pooling(float *buffer, uint16_t W, uint16_t K, uint16_t S, ch
         for (int16_t l = 0; l < K; l++)
           if (v < buffer[(i * S + k) * W + (j * S + l)])
             v = buffer[(i * S + k) * W + (j * S + l)];
-
-      buffer[i * Wo + j] = v;
-      fo.print(buffer[i * Wo + j], 8);
-      fo.println('\0');
+      noodle_write_float(fo, v);
     }
   }
   fo.close();
@@ -127,7 +128,7 @@ uint16_t noodle_conv(byte *grid, float *output_buffer, uint16_t n_inputs, uint16
       noodle_read_from_file(w_fn, (float *)kernel, K, false);
       V = noodle_do_convolution(grid, (float *)kernel, K, W, output_buffer, P, S);
       if (progress_cb) progress_cb(progress);
-      progress += 1.0 / (float)(n_inputs * n_outputs) + 1.0;
+      progress += 1.0 / (float)(n_inputs * n_outputs - 1);
     }
     V = noodle_do_bias(output_buffer, bias, V);
     o_fn[3] = O + 'a';
@@ -152,7 +153,7 @@ uint16_t noodle_flat(char *in_fn, float *output_buffer, uint16_t V, uint16_t n_f
   return V * V * n_filters;
 }
 
-uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, CBFPtr progress_cb) {
+uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, bool with_relu, CBFPtr progress_cb) {
   float progress = 0;
   File fw = SD.open(weight_fn, FILE_READ);
   File fb = SD.open(bias_fn, FILE_READ);
@@ -163,11 +164,10 @@ uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, 
     float h = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       h += input_buffer[j] * noodle_read_float(fw);
-    if (h < 0.0) h = 0.0;
-    fo.print(h, 8);
-    fo.println('\0');
+    if ((h < 0.0) && with_relu) h = 0.0;
+    noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
-    progress += 1.0 / (float)n_outputs;
+    progress += 1.0 / ((float)n_outputs - 1);
   }
 
   fo.close();
@@ -176,7 +176,7 @@ uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, 
   return n_outputs;
 }
 
-uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, CBFPtr progress_cb) {
+uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, bool with_relu, CBFPtr progress_cb) {
   float progress = 0;
   File fw = SD.open(weight_fn, FILE_READ);
   File fb = SD.open(bias_fn, FILE_READ);
@@ -187,11 +187,10 @@ uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, c
     float h = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       h += (float)input_buffer[j] * noodle_read_float(fw);
-    if (h < 0.0) h = 0.0;
-    fo.print(h, 8);
-    fo.println('\0');
+    if ((h < 0.0) && with_relu) h = 0.0;
+    noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
-    progress += 1.0 / (float)n_outputs;
+    progress += 1.0 / (float)(n_outputs - 1);
   }
 
   fo.close();
@@ -201,7 +200,7 @@ uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, c
 }
 
 
-uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, CBFPtr progress_cb) {
+uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu, CBFPtr progress_cb) {
   float progress = 0;
   File fw = SD.open(weight_fn, FILE_READ);
   File fb = SD.open(bias_fn, FILE_READ);
@@ -210,9 +209,9 @@ uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, f
     output_buffer[k] = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       output_buffer[k] += (float)input_buffer[j] * noodle_read_float(fw);
-    if (output_buffer[k] < 0.0) output_buffer[k] = 0.0;
+    if ((output_buffer[k] < 0.0) && with_relu) output_buffer[k] = 0.0;
     if (progress_cb) progress_cb(progress);
-    progress += 1.0 / (float)n_outputs;
+    progress += 1.0 / (float)(n_outputs - 1);
   }
 
   fw.close();
@@ -220,7 +219,7 @@ uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, f
   return n_outputs;
 }
 
-uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, CBFPtr progress_cb) {
+uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu, CBFPtr progress_cb) {
   float progress = 0;
   File fw = SD.open(weight_fn, FILE_READ);
   File fb = SD.open(bias_fn, FILE_READ);
@@ -229,9 +228,9 @@ uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, 
     output_buffer[k] = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       output_buffer[k] += input_buffer[j] * noodle_read_float(fw);
-    if (output_buffer[k] < 0.0) output_buffer[k] = 0.0;
+    if ((output_buffer[k] < 0.0) && with_relu) output_buffer[k] = 0.0;
     if (progress_cb) progress_cb(progress);
-    progress += 1.0 / (float)n_outputs;
+    progress += 1.0 / (float)(n_outputs - 1);
   }
 
   fw.close();
@@ -239,7 +238,7 @@ uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, 
   return n_outputs;
 }
 
-uint16_t noodle_fcn(char *in_fn, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, CBFPtr progress_cb) {
+uint16_t noodle_fcn(char *in_fn, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu, CBFPtr progress_cb) {
   float progress = 0;
   File fi, fw, fb;
   fw = SD.open(weight_fn, FILE_READ);
@@ -250,12 +249,33 @@ uint16_t noodle_fcn(char *in_fn, uint16_t n_inputs, uint16_t n_outputs, float *o
     fi = SD.open(in_fn, FILE_READ);
     for (uint16_t k = 0; k < n_inputs; k++)
       output_buffer[j] += noodle_read_float(fi) * noodle_read_float(fw);
+    if ((output_buffer[j] < 0.0) && with_relu) output_buffer[j] = 0.0;
     fi.close();
     if (progress_cb) progress_cb(progress);
-    progress += 1.0 / (float)n_outputs;
+    progress += 1.0 / (float)(n_outputs - 1);
   }
 
   fw.close();
   fb.close();
   return n_outputs;
+}
+
+
+uint16_t noodle_soft_max(float *input_output, uint16_t n) {
+  float max_val = input_output[0];
+  for (int i = 1; i < n; i++) {
+    if (input_output[i] > max_val)
+      max_val = input_output[i];
+  }
+
+  float sum = 0.0;
+  for (int i = 0; i < n; i++) {
+    input_output[i] = expf(input_output[i] - max_val);
+    sum += input_output[i];
+  }
+
+  for (int i = 0; i < n; i++) {
+    input_output[i] /= sum;
+  }
+  return n;
 }

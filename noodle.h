@@ -30,6 +30,13 @@ extern SdFat SD;
 typedef void (*CBFPtr)(float);
 
 /**
+ * @brief Writes a float value to a file.
+ * @param f Reference to the file.
+ * @param d Value to write.
+ */
+void noodle_write_float(File &f, float d); 
+
+/**
  * @brief Reads a float value from a file.
  * @param f Reference to the file.
  * @return Parsed float value.
@@ -171,10 +178,11 @@ uint16_t noodle_flat(char *in_fn, float *output_buffer, uint16_t V, uint16_t n_f
  * @param out_fn Output filename.
  * @param weight_fn Weight filename.
  * @param bias_fn Bias filename.
+ * @param with_relu Use ReLu at the end.
  * @param progress_cb Optional progress callback.
  * @return Number of outputs.
  */
-uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
 
 /**
  * @brief Fully connected layer computation from buffer to file for byte input.
@@ -184,10 +192,11 @@ uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, 
  * @param out_fn Output filename.
  * @param weight_fn Weight filename.
  * @param bias_fn Bias filename.
+ * @param with_relu Use ReLu at the end.
  * @param progress_cb Optional progress callback.
  * @return Number of outputs.
  */
-uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
 
 /**
  * @brief Fully connected layer computation from buffer to buffer for byte input.
@@ -197,10 +206,11 @@ uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, c
  * @param output_buffer Output buffer.
  * @param weight_fn Weight filename.
  * @param bias_fn Bias filename.
+ * @param with_relu Use ReLu at the end.
  * @param progress_cb Optional progress callback.
  * @return Number of outputs.
  */
-uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, CBFPtr progress_cb);
+uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
 
 /**
  * @brief Fully connected layer computation from buffer to buffer for float input.
@@ -210,10 +220,11 @@ uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, f
  * @param output_buffer Output buffer.
  * @param weight_fn Weight filename.
  * @param bias_fn Bias filename.
+ * @param with_relu Use ReLu at the end.
  * @param progress_cb Optional progress callback.
  * @return Number of outputs.
  */
-uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, CBFPtr progress_cb);
+uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
 
 /**
  * @brief Fully connected layer computation from file input to buffer.
@@ -223,7 +234,16 @@ uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, 
  * @param output_buffer Output buffer.
  * @param weight_fn Weight filename.
  * @param bias_fn Bias filename.
+ * @param with_relu Use ReLu at the end.
  * @param progress_cb Optional progress callback.
  * @return Number of outputs.
  */
-uint16_t noodle_fcn(char *in_fn, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(char *in_fn, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
+
+/**
+ * @brief Applies the Softmax function in-place to an array of floats.
+ * @param input_output Pointer to an array of floats (input and output buffer).
+ * @param n The number of elements in the array (e.g., 10 for classification).
+ * @return The number of elements processed (same as @p n).
+ */
+uint16_t noodle_soft_max(float *input_output, uint16_t n);
