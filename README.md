@@ -114,6 +114,7 @@ All support optional ReLU and progress callback.
 ## [Examples](#examples)
 
 ### [Linear SVM](#linear-svm)
+* With USPS dataset.
 * Create and train the model, see [this Jupyter notebook.](https://deepnote.com/workspace/Noodle-7dbaf2d8-af0b-4fce-b6c2-3aa7fe49d539/project/NOODLE-93189612-1fd4-4b4d-beb6-ccb71c26052b/notebook/linear-svm-9f5e9548f30f4b65905aff8d546f3c06?utm_source=share-modal&utm_medium=product-shared-content&utm_campaign=notebook&utm_content=93189612-1fd4-4b4d-beb6-ccb71c26052b)
 * Copy the weights and biases to the SD Card.
 
@@ -127,6 +128,7 @@ uint16_t V = noodle_fcn(GRID, 256, 10, OUTPUT_BUFFER, "svm-w.txt", "svm-b.txt", 
 ---
 
 ### [Two layer fully connected network](#two-layer-fully-connected-network)
+* With USPS dataset.
 * Create and train the model, see [this Jupyter notebook.](https://deepnote.com/workspace/Noodle-7dbaf2d8-af0b-4fce-b6c2-3aa7fe49d539/project/NOODLE-93189612-1fd4-4b4d-beb6-ccb71c26052b/notebook/two-layer-fcn-b7010c875dae443ca39c0d68a9a7ea06?utm_source=share-modal&utm_medium=product-shared-content&utm_campaign=notebook&utm_content=93189612-1fd4-4b4d-beb6-ccb71c26052b)
 * Copy the weights and biases to the SD Card.
 
@@ -154,6 +156,7 @@ V = noodle_fcn("out1.txt", V, 10, OUTPUT_BUFFER, "fcn-w3.txt", "fcn-w4.txt", pro
 ---
 
 ### [LeNet-1](#lenet-1)
+* With USPS dataset.
 * Create and train the model, see [this Jupyter notebook.](https://deepnote.com/workspace/Noodle-7dbaf2d8-af0b-4fce-b6c2-3aa7fe49d539/project/NOODLE-93189612-1fd4-4b4d-beb6-ccb71c26052b/notebook/lenet-1-aaa1331bd09a4f578e7bb74ffa9576f3?utm_source=share-modal&utm_medium=product-shared-content&utm_campaign=notebook&utm_content=93189612-1fd4-4b4d-beb6-ccb71c26052)
 * Copy the weights and biases to the SD Card.
 
@@ -210,6 +213,7 @@ V = noodle_soft_max(OUTPUT_BUFFER, V);
 ---
   
 ### [LeNet-4](#lenet-4)  
+* With MNIST dataset.
 * Create and train the model, see [this Jupyter notebook.](https://deepnote.com/workspace/Noodle-7dbaf2d8-af0b-4fce-b6c2-3aa7fe49d539/project/NOODLE-93189612-1fd4-4b4d-beb6-ccb71c26052b/notebook/lenet-4-1202f3f64cc24a1dac3207cd35c7cf96?utm_source=share-modal&utm_medium=product-shared-content&utm_campaign=notebook&utm_content=93189612-1fd4-4b4d-beb6-ccb71c26052b)
 * Copy the weights and biases to the SD Card.
 
