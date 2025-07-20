@@ -275,7 +275,7 @@ V = noodle_fcn("o3.txt", V, 10, OUTPUT_BUFFER, "w7.txt", "w8.txt", progress_hnd)
 
 ## [License](#license)
 
-[MIT License](https://mit-license.org/)
+[CC BY-NC-ND 4.0 license](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
 ## [Authors](#authors)
 
