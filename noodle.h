@@ -3,14 +3,7 @@
  * @brief Header file for lightweight CNN-style operations using SD card file storage on embedded systems.
  *
  * This module defines functions for performing convolution, pooling, flattening,
- * and fully connected neural network operations. It is optimized for use in
- * resource-constrained environments like Arduino or embedded systems.
- *
- * Features:
- * - File-based I/O using SdFat
- * - Support for float and byte data
- * - Functions for padding, convolution, bias/ReLU, max pooling, and FCN
- * - Optional progress callbacks for tracking computation
+ * and fully connected neural network operations. 
  *
  * @authors
  * - Auralius Manurung -- Universitas Telkom, Bandung (auralius.manurung@ieee.org)
@@ -23,227 +16,356 @@
 
 #include <SdFat.h>
 
-/// SD card object
-extern SdFat SD;
-
 /// Callback function pointer type for progress reporting
 typedef void (*CBFPtr)(float);
 
+// --- File Utilities ---
 /**
- * @brief Writes a float value to a file.
- * @param f Reference to the file.
- * @param d Value to write.
+ * @brief Initialze SD functionalities.
+ * @param cs_pin SPI enable pin.
  */
-void noodle_write_float(File &f, float d); 
+bool noodle_sd_init(uint8_t csPin);
 
 /**
- * @brief Reads a float value from a file.
- * @param f Reference to the file.
- * @return Parsed float value.
+ * @brief Write a float value to a file.
+ * @param f File object to write to.
+ * @param d Float value to write.
+ */
+void noodle_write_float(File &f, float d);
+
+/**
+ * @brief Read a float value from a file.
+ * @param f File object to read from.
+ * @return The float value read from the file.
  */
 float noodle_read_float(File &f);
 
 /**
- * @brief Deletes a file from the SD card.
+ * @brief Delete a file from the SD card.
  * @param fn Filename to delete.
  */
-void noodle_delete_file(char *fn);
+void noodle_delete_file(const char *fn);
+
+// --- Memory Management ---
 
 /**
- * @brief Allocates a buffer for float data.
- * @param size Number of float elements.
+ * @brief Allocate a buffer of float values.
+ * @param size Number of floats to allocate.
  * @return Pointer to the allocated buffer.
  */
 float *noodle_create_buffer(uint16_t size);
 
 /**
- * @brief Frees a previously allocated buffer.
+ * @brief Free a previously allocated float buffer.
  * @param buffer Pointer to the buffer to free.
  */
 void noodle_delete_buffer(float *buffer);
 
 /**
- * @brief Writes a grid of byte data to a file.
- * @param grid Byte array.
- * @param fn Filename to write to.
- * @param n Width/height of the square grid.
- */
-void noodle_grid_to_file(byte *grid, char *fn, uint16_t n);
-
-/**
- * @brief Gets a padded grid value.
- * @param grid Input byte grid.
- * @param i Row index.
- * @param j Column index.
- * @param W Width of the grid.
- * @param P Padding size.
- * @return Padded float value.
- */
-float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P);
-
-/**
- * @brief Applies bias and ReLU activation to the output.
- * @param output Pointer to output buffer.
- * @param bias Bias value to apply.
- * @param n Width/height of the square output.
- * @return Output size.
- */
-uint16_t noodle_do_bias(float *output, float bias, uint16_t n);
-
-/**
- * @brief Applies max pooling from an input buffer and stores the result in a file.
- * @param buffer Pointer to input buffer.
- * @param W Width of the input.
- * @param K Pooling kernel size.
- * @param S Pooling stride.
- * @param fn Output filename.
- * @return Output width.
- */
-uint16_t noodle_do_pooling(float *buffer, uint16_t W, uint16_t K, uint16_t S, char *fn);
-
-/**
- * @brief Performs 2D convolution on a byte grid.
- * @param grid Input byte grid.
- * @param kernel Convolution kernel.
- * @param K Kernel size.
- * @param W Input width.
- * @param output_buffer Buffer to store output.
- * @param P Padding size.
- * @param S Stride length.
- * @return Output size.
- */
-uint16_t noodle_do_convolution(byte *grid, float *kernel, uint16_t K, uint16_t W, float *output_buffer, uint16_t P, uint16_t S);
-
-/**
- * @brief Reads a byte matrix from file.
- * @param fn Filename to read from.
- * @param buffer Buffer to load data into.
- * @param K Width/height of the square matrix.
- * @param transposed Whether to transpose during reading.
- */
-void noodle_read_from_file(char *fn, byte *buffer, uint16_t K, bool transposed = false);
-
-/**
- * @brief Reads a float matrix from file.
- * @param fn Filename to read from.
- * @param buffer Buffer to load data into.
- * @param K Width/height of the square matrix.
- * @param transposed Whether to transpose during reading.
- */
-void noodle_read_from_file(char *fn, float *buffer, uint16_t K, bool transposed = false);
-
-/**
- * @brief Resets a float buffer to zero.
- * @param buffer Buffer to reset.
- * @param n Number of elements.
+ * @brief Reset a float buffer to zeros.
+ * @param buffer Pointer to the buffer.
+ * @param n Number of elements to reset.
  */
 void noodle_reset_buffer(float *buffer, uint16_t n);
 
+// --- Input/Output Grid Handling ---
+
 /**
- * @brief Performs full convolution + bias + ReLU + pooling pipeline.
- * @param grid Input byte grid.
- * @param output_buffer Output buffer.
- * @param n_inputs Number of input feature maps.
- * @param n_outputs Number of ouput channels/filters.
+ * @brief Save a 2D byte grid to file.
+ * @param grid Pointer to the byte grid.
+ * @param fn Output filename.
+ * @param n Grid dimension (n x n).
+ */
+void noodle_grid_to_file(byte *grid, 
+                         const char *fn, 
+                         uint16_t n);
+
+/**
+ * @brief Get a value from a padded grid.
+ * @param grid Pointer to the byte grid.
+ * @param i Row index.
+ * @param j Column index.
+ * @param W Grid width.
+ * @param P Padding size.
+ * @return Padded float value.
+ */
+float noodle_get_padded_x(byte *grid, 
+                          int16_t i, 
+                          int16_t j, 
+                          int16_t W, 
+                          int16_t P);
+
+// --- File Reading ---
+
+/**
+ * @brief Read a byte matrix from file.
+ * @param fn Input filename.
+ * @param buffer Output buffer.
+ * @param K Matrix size (K x K).
+ * @param transposed Whether to transpose during read.
+ */
+void noodle_read_from_file(const char *fn, 
+                           byte *buffer, 
+                           uint16_t K, 
+                           bool transposed = false);
+
+/**
+ * @brief Read a float matrix from file.
+ * @param fn Input filename.
+ * @param buffer Output buffer.
+ * @param K Matrix size (K x K).
+ * @param transposed Whether to transpose during read.
+ */
+void noodle_read_from_file(const char *fn, 
+                           float *buffer, 
+                           uint16_t K, 
+                           bool transposed = false);
+
+// --- Convolution Operations ---
+
+/**
+ * @brief Perform 2D convolution over input byte grid.
+ * @param grid Input byte array.
+ * @param kernel Convolution kernel.
+ * @param K Kernel size.
+ * @param W Input width.
+ * @param output_buffer Output float buffer.
+ * @param P Padding.
+ * @param S Stride.
+ * @return Output feature map size.
+ */
+uint16_t noodle_do_conv(byte *grid, 
+                        float *kernel, 
+                        uint16_t K, 
+                        uint16_t W, 
+                        float *output_buffer, 
+                        uint16_t P, 
+                        uint16_t S);
+
+/**
+ * @brief Full 2D convolution pipeline with multiple inputs/outputs.
+ *
+ * Combines convolution, bias addition, ReLU activation, and max pooling over a set of input/output channels.
+ * Uses files for intermediate activations and weights.
+ *
+ * @param grid Temporary grid.
+ * @param output_buffer Output float buffer.
+ * @param n_inputs Number of input maps.
+ * @param n_outputs Number of output maps.
  * @param in_fn Input filename pattern.
  * @param out_fn Output filename pattern.
  * @param weight_fn Weight filename pattern.
  * @param bias_fn Bias filename.
  * @param W Input width.
- * @param P Padding size.
+ * @param P Padding.
  * @param K Kernel size.
- * @param S Stride length.
- * @param M Pooling kernel size.
- * @param T Pooling stride length.
- * @param progress_cb Optional progress callback.
- * @return Output width.
+ * @param S Stride.
+ * @param M Pooling kernel.
+ * @param T Pooling stride.
+ * @param progress_cb Optional callback.
+ * @return Output feature map size.
  */
-uint16_t noodle_conv(byte *grid, float *output_buffer, uint16_t n_inputs, uint16_t n_outputs, char *in_fn, char *out_fn, char *weight_fn, char *bias_fn, uint16_t W, uint16_t P, uint16_t K, uint16_t S, uint16_t M, uint16_t T, CBFPtr progress_cb = NULL);
+uint16_t noodle_conv(byte *grid, 
+                     float *output_buffer, 
+                     uint16_t n_inputs, 
+                     uint16_t n_outputs, 
+                     const char *in_fn, 
+                     const char *out_fn, 
+                     const char *weight_fn, 
+                     const char *bias_fn, 
+                     uint16_t W, 
+                     uint16_t P, 
+                     uint16_t K, 
+                     uint16_t S, 
+                     uint16_t M, 
+                     uint16_t T, 
+                     CBFPtr progress_cb = NULL);
+
+// --- Bias & Activation ---
 
 /**
- * @brief Flattens pooled feature maps into a 1D vector.
-  *@param in_fn Input filename pattern.
+ * @brief Apply bias and ReLU to feature map.
+ * @param output Pointer to output buffer.
+ * @param bias Bias value.
+ * @param n Size of output map.
+ * @return Output map size.
+ */
+uint16_t noodle_do_bias(float *output, float bias, uint16_t n);
+
+// --- Pooling Operations ---
+
+/**
+ * @brief Perform 2D max pooling.
+ * @param buffer Input feature map.
+ * @param W Width of input.
+ * @param K Pooling kernel.
+ * @param S Stride.
+ * @param fn Output filename.
+ * @return Output width.
+ */
+uint16_t noodle_do_pooling(float *buffer, 
+                           uint16_t W, 
+                           uint16_t K, 
+                           uint16_t S, 
+                           const char *fn);
+
+/**
+ * @brief Perform 1D max pooling.
+ * @param buffer Input signal.
+ * @param W Length of signal.
+ * @param K Pooling kernel size.
+ * @param S Stride.
+ * @param fn Output filename.
+ * @return Output length.
+ */
+uint16_t noodle_do_pooling1d(float *buffer, 
+                             uint16_t W, 
+                             uint16_t K, 
+                             uint16_t S, 
+                             char *fn);
+
+// --- Flattening ---
+
+/**
+ * @brief Flatten multiple 2D maps into 1D.
+ * @param in_fn Input filename pattern.
  * @param output_buffer Output buffer.
  * @param V Width of pooled maps.
  * @param n_filters Number of filters.
- * @return Total flattened size.
+ * @return Total length of flat vector.
  */
-uint16_t noodle_flat(char *in_fn, float *output_buffer, uint16_t V, uint16_t n_filters);
+uint16_t noodle_flat(const char *in_fn, 
+                     float *output_buffer, 
+                     uint16_t V, 
+                     uint16_t n_filters);
+
+// --- Fully Connected Layers ---
 
 /**
- * @brief Fully connected layer computation from buffer to file for float input.
- * @param input_buffer Input data buffer.
- * @param n_inputs Number of input neurons.
- * @param n_outputs Number of output neurons.
- * @param out_fn Output filename.
- * @param weight_fn Weight filename.
- * @param bias_fn Bias filename.
- * @param with_relu Use ReLu at the end.
- * @param progress_cb Optional progress callback.
- * @return Number of outputs.
+ * @brief Compute a fully connected layer from float buffer input to file output.
  */
-uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(float *input_buffer, 
+                    uint16_t n_inputs, 
+                    uint16_t n_outputs, 
+                    const char *out_fn, 
+                    const char *weight_fn, 
+                    const char *bias_fn, 
+                    bool with_relu = true, 
+                    CBFPtr progress_cb = NULL);
 
 /**
- * @brief Fully connected layer computation from buffer to file for byte input.
- * @param input_buffer Byte input buffer.
- * @param n_inputs Number of inputs.
- * @param n_outputs Number of outputs.
- * @param out_fn Output filename.
- * @param weight_fn Weight filename.
- * @param bias_fn Bias filename.
- * @param with_relu Use ReLu at the end.
- * @param progress_cb Optional progress callback.
- * @return Number of outputs.
+ * @brief Compute a fully connected layer from byte buffer input to file output.
  */
-uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, char *out_fn, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(byte *input_buffer, 
+                    uint16_t n_inputs, 
+                    uint16_t n_outputs, 
+                    const char *out_fn, 
+                    const char *weight_fn, 
+                    const char *bias_fn, 
+                    bool with_relu = true, 
+                    CBFPtr progress_cb = NULL);
 
 /**
- * @brief Fully connected layer computation from buffer to buffer for byte input.
- * @param input_buffer Byte input buffer.
- * @param n_inputs Number of inputs.
- * @param n_outputs Number of outputs.
- * @param output_buffer Output buffer.
- * @param weight_fn Weight filename.
- * @param bias_fn Bias filename.
- * @param with_relu Use ReLu at the end.
- * @param progress_cb Optional progress callback.
- * @return Number of outputs.
+ * @brief Compute a fully connected layer from byte buffer input to float buffer output.
  */
-uint16_t noodle_fcn(byte *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(byte *input_buffer, 
+                    uint16_t n_inputs, 
+                    uint16_t n_outputs, 
+                    float *output_buffer, 
+                    const char *weight_fn, 
+                    const char *bias_fn, 
+                    bool with_relu = true, 
+                    CBFPtr progress_cb = NULL);
 
 /**
- * @brief Fully connected layer computation from buffer to buffer for float input.
- * @param input_buffer Byte input buffer.
- * @param n_inputs Number of inputs.
- * @param n_outputs Number of outputs.
- * @param output_buffer Output buffer.
- * @param weight_fn Weight filename.
- * @param bias_fn Bias filename.
- * @param with_relu Use ReLu at the end.
- * @param progress_cb Optional progress callback.
- * @return Number of outputs.
+ * @brief Compute a fully connected layer from float buffer input to float buffer output.
  */
-uint16_t noodle_fcn(float *input_buffer, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(float *input_buffer, 
+                    uint16_t n_inputs, 
+                    uint16_t n_outputs, 
+                    float *output_buffer, 
+                    const char *weight_fn, 
+                    const char *bias_fn, 
+                    bool with_relu = true, 
+                    CBFPtr progress_cb = NULL);
 
 /**
- * @brief Fully connected layer computation from file input to buffer.
- * @param in_fn Input filename.
- * @param n_inputs Number of inputs.
- * @param n_outputs Number of outputs.
- * @param output_buffer Output buffer.
- * @param weight_fn Weight filename.
- * @param bias_fn Bias filename.
- * @param with_relu Use ReLu at the end.
- * @param progress_cb Optional progress callback.
- * @return Number of outputs.
+ * @brief Compute a fully connected layer from file input to float buffer output.
  */
-uint16_t noodle_fcn(char *in_fn, uint16_t n_inputs, uint16_t n_outputs, float *output_buffer, char *weight_fn, char *bias_fn, bool with_relu = true, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(const char *in_fn, 
+                    uint16_t n_inputs, 
+                    uint16_t n_outputs, 
+                    float *output_buffer, 
+                    const char *weight_fn, 
+                    const char *bias_fn, 
+                    bool with_relu = true, 
+                    CBFPtr progress_cb = NULL);
+
+// --- Softmax ---
 
 /**
- * @brief Applies the Softmax function in-place to an array of floats.
- * @param input_output Pointer to an array of floats (input and output buffer).
- * @param n The number of elements in the array (e.g., 10 for classification).
- * @return The number of elements processed (same as @p n).
+ * @brief Apply softmax to vector.
+ * @param input_output Input and output buffer.
+ * @param n Number of elements.
+ * @return n
  */
 uint16_t noodle_soft_max(float *input_output, uint16_t n);
+
+// --- 1D Convolution and Pooling ---
+
+/**
+ * @brief Perform 1D convolution over a signal.
+ * @param input Input signal.
+ * @param kernel Convolution kernel.
+ * @param W Length of signal.
+ * @param K Kernel size.
+ * @param output_buffer Output buffer.
+ * @param P Padding.
+ * @param S Stride.
+ * @return Output signal length.
+ */
+uint16_t noodle_do_conv1d(byte *input, 
+                          float *kernel, 
+                          uint16_t W, 
+                          uint16_t K, 
+                          float *output_buffer, 
+                          uint16_t P, 
+                          uint16_t S);
+
+/**
+ * @brief Full 1D convolution pipeline.
+ *
+ * This includes input loading from file, convolution, bias, ReLU, and max pooling.
+ *
+ * @param input Input signal buffer.
+ * @param output_buffer Output buffer.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param in_fn Input filename pattern.
+ * @param out_fn Output filename pattern.
+ * @param weight_fn Weight filename pattern.
+ * @param bias_fn Bias filename.
+ * @param W Input length.
+ * @param P Padding.
+ * @param K Kernel size.
+ * @param S Stride.
+ * @param M Pooling kernel size.
+ * @param T Pooling stride.
+ * @param progress_cb Optional callback.
+ * @return Output signal length.
+ */
+uint16_t noodle_conv1d(byte *input, 
+                       float *output_buffer, 
+                       uint16_t n_inputs, 
+                       uint16_t n_outputs, 
+                       const char *in_fn, 
+                       const char *out_fn, 
+                       const char *weight_fn, 
+                       const char *bias_fn, 
+                       uint16_t W, 
+                       uint16_t P, 
+                       uint16_t K, 
+                       uint16_t S, 
+                       uint16_t M, 
+                       uint16_t T, 
+                       CBFPtr progress_cb = NULL);
