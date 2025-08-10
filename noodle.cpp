@@ -1,5 +1,5 @@
 /**
- * @SdFile noodle.cpp
+ * @File noodle.cpp
  * @brief Implementations of noodle.h.
  *
  * @authors
@@ -11,9 +11,20 @@
 
 #include "noodle.h"
 
-SdFat SD;
+File openFileForWrite(const char* fn) {
+    // Create file if it doesn't exist
+    if (!SD_MMC.exists(fn)) {
+        File tmp = SD_MMC.open(fn, FILE_WRITE);
+        if (!tmp) return File();
+        tmp.close();
+    }
 
-size_t readBytesUntilSd(SdFile &file, char terminator, char *buffer, size_t length) {
+    // Now open for writing
+    return SD_MMC.open(fn, FILE_WRITE);
+}
+
+
+size_t readBytesUntilSd(File &file, char terminator, char *buffer, size_t length) {
   size_t count = 0;
   int c;
 
@@ -27,8 +38,9 @@ size_t readBytesUntilSd(SdFile &file, char terminator, char *buffer, size_t leng
   return count;
 }
 
-bool noodle_sd_init(uint8_t cs_pin) {
-  return SD.begin(cs_pin, SD_SCK_MHZ(8));
+bool noodle_sd_init(int clk_pin, int cmd_pin, int d0_pin) {
+  SD_MMC.setPins(clk_pin, cmd_pin, d0_pin);
+  return SD_MMC.begin("/sdcard", true, false, BOARD_MAX_SDMMC_FREQ, 5);
 }
 
 // Assumes input is between 1 and 26*26 = 676
@@ -40,30 +52,30 @@ void noodle_n2ll(uint16_t number, char *out) {
   out[1] = 'a' + second;
 }
 
-float noodle_read_float(SdFile &f) {
+float noodle_read_float(File &f) {
   char s[20];
   size_t n = readBytesUntilSd(f, '\n', (char *)s, sizeof(s));
   s[n] = '\0';
   return atof(s);
 }
 
-byte noodle_read_byte(SdFile &f) {
+byte noodle_read_byte(File &f) {
   char s[20];
   size_t n = readBytesUntilSd(f, '\n', (char *)s, sizeof(s));
   s[n] = '\0';
   return (byte)atoi(s);
 }
 
-void noodle_write_float(SdFile &f, float d) {
+void noodle_write_float(File &f, float d) {
   f.println(d, 6);
 }
 
-void noodle_write_byte(SdFile &f, byte d) {
+void noodle_write_byte(File &f, byte d) {
   f.println(d);
 }
 
 void noodle_delete_file(const char *fn) {
-  SD.remove(fn);
+  SD_MMC.remove(fn);
 }
 
 float *noodle_create_buffer(uint16_t size) {
@@ -75,16 +87,16 @@ void noodle_delete_buffer(float *buffer) {
 }
 
 void noodle_array_to_file(float *array, const char *fn, uint16_t n) {
-  SdFile fo;
-  fo.open(fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fo;
+  fo = openFileForWrite(fn);
   for (int16_t i = 0; i < n; i++)
     noodle_write_float(fo, array[i]);
   fo.close();
 }
 
 void noodle_grid_to_file(byte *grid, const char *fn, uint16_t n) {
-  SdFile fo;
-  fo.open(fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fo;
+  fo = openFileForWrite(fn);
   for (int16_t i = 0; i < n; i++) {
     for (int16_t j = 0; j < n; j++) {
       noodle_write_float(fo, (float)grid[i * n + j]);
@@ -122,8 +134,8 @@ uint16_t noodle_do_pooling(float *buffer,
                            uint16_t S,
                            const char *fn) {
   uint16_t Wo = (W - K) / S + 1;
-  SdFile fo;
-  fo.open(fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fo;
+  fo = openFileForWrite(fn);
 
   for (int16_t i = 0; i < Wo; i++) {
     for (int16_t j = 0; j < Wo; j++) {
@@ -167,8 +179,8 @@ uint16_t noodle_do_conv(byte *grid,
 void noodle_array_from_file(const char *fn,
                             float *buffer,
                             uint16_t K) {
-  SdFile fi;
-  fi.open(fn, O_READ);
+  File fi;
+  fi = SD_MMC.open(fn, FILE_READ);
   for (uint16_t i = 0; i < K; i++)
     buffer[i] = noodle_read_float(fi);
   fi.close();
@@ -178,8 +190,8 @@ void noodle_grid_from_file(const char *fn,
                            byte *buffer,
                            uint16_t K,
                            bool transposed) {
-  SdFile fi;
-  fi.open(fn, O_READ);
+  File fi;
+  fi = SD_MMC.open(fn, FILE_READ);
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
       buffer[transposed ? j * K + i : i * K + j] = noodle_read_float(fi);
@@ -192,8 +204,8 @@ void noodle_grid_from_file(const char *fn,
                            int8_t *buffer,
                            uint16_t K,
                            bool transposed) {
-  SdFile fi;
-  fi.open(fn, O_READ);
+  File fi;
+  fi = SD_MMC.open(fn, FILE_READ);
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
       buffer[transposed ? j * K + i : i * K + j] = noodle_read_float(fi);
@@ -206,8 +218,8 @@ void noodle_grid_from_file(const char *fn,
                            float *buffer,
                            uint16_t K,
                            bool transposed) {
-  SdFile fi;
-  fi.open(fn, O_READ);
+  File fi;
+  fi = SD_MMC.open(fn, FILE_READ);
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
       buffer[transposed ? j * K + i : i * K + j] = noodle_read_float(fi);
@@ -238,23 +250,23 @@ uint16_t noodle_conv(byte *grid,
                      uint16_t T,
                      CBFPtr progress_cb) {
   float progress = 0;
-  char i_fn[12], o_fn[12], w_fn[12];
+  char i_fn[20], o_fn[20], w_fn[20];
   strcpy(i_fn, in_fn);
   strcpy(o_fn, out_fn);
   strcpy(w_fn, weight_fn);
 
   float kernel[K][K];
-  SdFile fb;
-  fb.open(bias_fn, O_READ);
+  File fb;
+  fb = SD_MMC.open(bias_fn, FILE_READ);
   uint16_t V = 0;
 
   for (uint16_t O = 0; O < n_outputs; O++) {
     noodle_reset_buffer(output_buffer, W * W);
     float bias = noodle_read_float(fb);
     for (uint16_t I = 0; I < n_inputs; I++) {
-      noodle_n2ll(I, &i_fn[3]);
-      noodle_n2ll(I, &w_fn[3]);
-      noodle_n2ll(O, &w_fn[5]);
+      noodle_n2ll(I, &i_fn[4]);
+      noodle_n2ll(I, &w_fn[4]);
+      noodle_n2ll(O, &w_fn[6]);
       noodle_grid_from_file(i_fn, grid, W, false);
       noodle_grid_from_file(w_fn, (float *)kernel, K, false);
       V = noodle_do_conv(grid, (float *)kernel, K, W, output_buffer, P, S);
@@ -262,7 +274,7 @@ uint16_t noodle_conv(byte *grid,
       progress += 1.0 / (float)(n_inputs * n_outputs - 1);
     }
     V = noodle_do_bias(output_buffer, bias, V);
-    noodle_n2ll(O, &o_fn[3]);
+    noodle_n2ll(O, &o_fn[4]);
     V = noodle_do_pooling(output_buffer, V, M, T, o_fn);
   }
   fb.close();
@@ -275,12 +287,12 @@ uint16_t noodle_flat(const char *in_fn,
                      uint16_t n_filters) {
   char i_fn[12];
   strcpy(i_fn, in_fn);
-  SdFile fi;
+  File fi;
   noodle_reset_buffer(output_buffer, V * V * n_filters);
   for (uint16_t k = 0; k < n_filters; k++) {
-    noodle_n2ll(k, &i_fn[3]);
+    noodle_n2ll(k, &i_fn[4]);
 
-    fi.open(i_fn, O_READ);
+    fi = SD_MMC.open(i_fn, FILE_READ);
     for (uint16_t i = 0; i < (V * V); i++) {
       output_buffer[i * n_filters + k] = noodle_read_float(fi);
     }
@@ -298,14 +310,13 @@ uint16_t noodle_fcn(int8_t *input_buffer,
                     bool with_relu,
                     CBFPtr progress_cb) {
   float progress = 0.0;
-  SdFile fw, fb, fo;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
-  fo.open(out_fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fw, fb, fo;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
+  fo = openFileForWrite(out_fn);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = noodle_read_float(fb);
-    Serial.println(h);
     for (uint16_t j = 0; j < n_inputs; j++)
       h += (float)input_buffer[j] * noodle_read_float(fw);
     if ((h < 0.0) && with_relu) h = 0.0;
@@ -329,10 +340,10 @@ uint16_t noodle_fcn(float *input_buffer,
                     bool with_relu,
                     CBFPtr progress_cb) {
   float progress = 0.0;
-  SdFile fw, fb, fo;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
-  fo.open(out_fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fw, fb, fo;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
+  fo = openFileForWrite(out_fn);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = noodle_read_float(fb);
@@ -359,10 +370,10 @@ uint16_t noodle_fcn(byte *input_buffer,
                     bool with_relu,
                     CBFPtr progress_cb) {
   float progress = 0;
-  SdFile fw, fb, fo;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
-  fo.open(out_fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fw, fb, fo;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
+  fo = openFileForWrite(out_fn);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = noodle_read_float(fb);
@@ -390,9 +401,9 @@ uint16_t noodle_fcn(byte *input_buffer,
                     bool with_relu,
                     CBFPtr progress_cb) {
   float progress = 0;
-  SdFile fw, fb;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
+  File fw, fb;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     output_buffer[k] = noodle_read_float(fb);
@@ -417,9 +428,9 @@ uint16_t noodle_fcn(float *input_buffer,
                     bool with_relu,
                     CBFPtr progress_cb) {
   float progress = 0;
-  SdFile fw, fb;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
+  File fw, fb;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     output_buffer[k] = noodle_read_float(fb);
@@ -444,13 +455,13 @@ uint16_t noodle_fcn(const char *in_fn,
                     bool with_relu,
                     CBFPtr progress_cb) {
   float progress = 0;
-  SdFile fi, fw, fb;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
+  File fi, fw, fb;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
 
   for (uint16_t j = 0; j < n_outputs; j++) {
     output_buffer[j] = noodle_read_float(fb);
-    fi.open(in_fn, O_READ);
+    fi = SD_MMC.open(in_fn, FILE_READ);
     for (uint16_t k = 0; k < n_inputs; k++)
       output_buffer[j] += noodle_read_float(fi) * noodle_read_float(fw);
     if ((output_buffer[j] < 0.0) && with_relu) output_buffer[j] = 0.0;
@@ -474,9 +485,9 @@ uint16_t noodle_fcn(int8_t *input_buffer,
                     bool with_relu,
                     CBFPtr progress_cb) {
   float progress = 0;
-  SdFile fw, fb;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
+  File fw, fb;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
 
   for (uint16_t j = 0; j < n_outputs; j++) {
     output_buffer[j] = noodle_read_float(fb);
@@ -502,14 +513,14 @@ uint16_t noodle_fcn(const char *in_fn,
                     CBFPtr progress_cb) {
   float progress = 0;
 
-  SdFile fw, fb, fo, fi;
-  fw.open(weight_fn, O_READ);
-  fb.open(bias_fn, O_READ);
-  fo.open(out_fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fw, fb, fo, fi;
+  fw = SD_MMC.open(weight_fn, FILE_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
+  fo = openFileForWrite(out_fn);
 
   for (uint16_t j = 0; j < n_outputs; j++) {
     float h = noodle_read_float(fb);
-    fi.open(in_fn, O_READ);
+    fi = SD_MMC.open(in_fn, FILE_READ);
     for (uint16_t k = 0; k < n_inputs; k++)
       h += noodle_read_float(fi) * noodle_read_float(fw);
     if ((h < 0.0) && with_relu) h = 0.0;
@@ -578,8 +589,8 @@ uint16_t noodle_do_pooling1d(float *buffer,
                              uint16_t K,
                              uint16_t S,
                              const char *fn) {
-  SdFile fo;
-  fo.open(fn, O_WRITE | O_CREAT | O_TRUNC);
+  File fo;
+  fo = openFileForWrite(fn);
 
   uint16_t Wo = (W - K) / S + 1;
   for (uint16_t i = 0; i < Wo; i++) {
@@ -617,26 +628,26 @@ uint16_t noodle_conv1d(float *input,
   strcpy(w_fn, weight_fn);
 
   float kernel[K];
-  SdFile fi, fb, fw;
+  File fi, fb, fw;
 
   uint16_t V = 0;
-  fb.open(bias_fn, O_READ);
+  fb = SD_MMC.open(bias_fn, FILE_READ);
   for (uint16_t O = 0; O < n_outputs; O++) {
     noodle_reset_buffer(output_buffer, W);
     float bias = noodle_read_float(fb);
 
     for (uint16_t I = 0; I < n_inputs; I++) {
-      noodle_n2ll(I, &i_fn[3]);
-      noodle_n2ll(I, &w_fn[3]);
-      noodle_n2ll(O, &w_fn[5]);
+      noodle_n2ll(I, &i_fn[4]);
+      noodle_n2ll(I, &w_fn[4]);
+      noodle_n2ll(O, &w_fn[6]);
 
-      fi.open(i_fn, O_READ);
+      fi = SD_MMC.open(i_fn, FILE_READ);
       for (uint16_t i = 0; i < W; i++) {
         input[i] = noodle_read_float(fi);
       }
       fi.close();
 
-      fw.open(w_fn, O_READ);
+      fw = SD_MMC.open(w_fn, FILE_READ);
       for (uint16_t i = 0; i < K; i++) {
         kernel[i] = noodle_read_float(fw);
       }
@@ -653,7 +664,7 @@ uint16_t noodle_conv1d(float *input,
       if ((output_buffer[i]) < 0.0 && with_relu) output_buffer[i] = 0.0;
     }
 
-    noodle_n2ll(O, &o_fn[3]);
+    noodle_n2ll(O, &o_fn[4]);
     V = noodle_do_pooling1d(output_buffer, V, M, T, o_fn);
   }
 
@@ -683,27 +694,27 @@ uint16_t noodle_conv1d(float *input,
   strcpy(w_fn, weight_fn);
 
   float kernel[K];
-  SdFile fb;
-  fb.open(bias_fn, O_READ);
+  File fb;
+  fb = SD_MMC.open(bias_fn, FILE_READ);
   uint16_t V = 0;
 
-  SdFile fi, fw;
+  File fi, fw;
 
   for (uint16_t O = 0; O < n_outputs; O++) {
     noodle_reset_buffer(output_buffer, W);
     float bias = noodle_read_float(fb);
     for (uint16_t I = 0; I < n_inputs; I++) {
-      noodle_n2ll(I, &i_fn[3]);
-      noodle_n2ll(I, &w_fn[3]);
-      noodle_n2ll(O, &w_fn[5]);
+      noodle_n2ll(I, &i_fn[4]);
+      noodle_n2ll(I, &w_fn[4]);
+      noodle_n2ll(O, &w_fn[6]);
 
-      fi.open(i_fn, O_READ);
+      fi = SD_MMC.open(i_fn, FILE_READ);
       for (uint16_t i = 0; i < W; i++) {
         input[i] = noodle_read_float(fi);
       }
       fi.close();
 
-      fw.open(w_fn, O_READ);
+      fw = SD_MMC.open(w_fn, FILE_READ);
       for (uint16_t i = 0; i < K; i++) {
         kernel[i] = noodle_read_float(fw);
       }
@@ -720,7 +731,7 @@ uint16_t noodle_conv1d(float *input,
       if ((output_buffer[i]) < 0.0 && with_relu) output_buffer[i] = 0.0;
     }
 
-    noodle_n2ll(O, &o_fn[3]);
+    noodle_n2ll(O, &o_fn[4]);
     noodle_array_to_file(output_buffer, o_fn, V);
   }
 
