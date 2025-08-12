@@ -13,7 +13,7 @@
 
 SdFat SD;
 
-size_t readBytesUntilSd(SdFile &file, char terminator, char *buffer, size_t length) {
+size_t noodle_read_bytes_until(SdFile &file, char terminator, char *buffer, size_t length) {
   size_t count = 0;
   int c;
 
@@ -42,14 +42,14 @@ void noodle_n2ll(uint16_t number, char *out) {
 
 float noodle_read_float(SdFile &f) {
   char s[20];
-  size_t n = readBytesUntilSd(f, '\n', (char *)s, sizeof(s));
+  size_t n = noodle_read_bytes_until(f, '\n', (char *)s, sizeof(s));
   s[n] = '\0';
   return atof(s);
 }
 
 byte noodle_read_byte(SdFile &f) {
   char s[20];
-  size_t n = readBytesUntilSd(f, '\n', (char *)s, sizeof(s));
+  size_t n = noodle_read_bytes_until(f, '\n', (char *)s, sizeof(s));
   s[n] = '\0';
   return (byte)atoi(s);
 }

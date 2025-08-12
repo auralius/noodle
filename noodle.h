@@ -19,9 +19,18 @@
 /// Callback function pointer type for progress reporting
 typedef void (*CBFPtr)(float);
 
-size_t readBytesUntilSd(SdFile &file, char terminator, char *buffer, size_t length);
-
 // --- SdFile Utilities ---
+
+/**
+ * @brief Read bytes from an SdFile until a terminator is found or buffer is full.
+ * @param file       Open SdFile to read from.
+ * @param terminator Character marking the end of reading.
+ * @param buffer     Output buffer (null-terminated on success).
+ * @param length     Maximum number of bytes to read (including null terminator).
+ * @return Number of bytes read (excluding null terminator).
+ */
+size_t noodle_read_bytes_until(SdFile &file, char terminator, char *buffer, size_t length);
+
 /**
  * @brief Initialize SD functionalities.
  * @param cs_pin SPI enable pin.
@@ -130,6 +139,7 @@ float noodle_get_padded_x(byte *grid,
                           int16_t P);
 
 // --- SdFile Reading ---
+
 void noodle_array_from_file(const char *fn,
                             float *buffer,
                             uint16_t K);
