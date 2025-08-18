@@ -30,7 +30,7 @@ typedef void (*CBFPtr)(float);
  * @param fn Filename to open.
  * @return File object opened in write mode.
  */
-File openFileForWrite(const char* fn);
+File noodle_open_file_for_write(const char* fn);
 
 /**
  * @brief Read characters from file until a terminator or max length is reached.
@@ -40,7 +40,7 @@ File openFileForWrite(const char* fn);
  * @param length Max number of bytes to store (including null terminator).
  * @return Number of bytes read (excluding null terminator).
  */
-size_t readBytesUntilSd(File &file, char terminator, char *buffer, size_t length);
+size_t noodle_read_bytes_until(File &file, char terminator, char *buffer, size_t length);
 
 /**
  * @brief Initialize SD_MMC interface.
@@ -50,6 +50,7 @@ size_t readBytesUntilSd(File &file, char terminator, char *buffer, size_t length
  * @return true if initialization succeeds, false otherwise.
  */
 bool noodle_sd_init(int clk_pin, int cmd_pin, int d0_pin);
+bool noodle_sd_init();
 
 /**
  * @brief Map a number to a two-letter lowercase string ("aa" to "zz").
