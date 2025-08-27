@@ -1,6 +1,7 @@
 #include "noodle.h"
 #include <math.h>
-#include <string.h>
+#include <float.h>
+#include <stdint.h>
 
 #if defined(NOODLE_USE_SDFAT)
 SdFat NOODLE_FS;   // define the SdFat object declared in noodle_fs.h
@@ -167,17 +168,21 @@ uint16_t noodle_do_pooling(float *buffer,
                            uint16_t W,
                            uint16_t K,
                            uint16_t S,
-                           const char *fn) {
-  uint16_t Wo = (W - K) / S + 1;
+                           const char *fn)
+{
+  const uint16_t Wo = (uint16_t)((W - K) / S + 1);
   fo = noodle_open_file_for_write(fn);
 
-  for (int16_t i = 0; i < Wo; i++) {
-    for (int16_t j = 0; j < Wo; j++) {
-      float v = 0;
-      for (int16_t k = 0; k < K; k++) {
-        for (int16_t l = 0; l < K; l++) {
-          if (v < buffer[(i * S) * W + (j * S)])
-            v = buffer[(i * S) * W + (j * S)];
+  for (uint16_t i = 0; i < Wo; i++) {
+    for (uint16_t j = 0; j < Wo; j++) {
+      float v = -FLT_MAX;  // correct for negative activations too
+      for (uint16_t k = 0; k < K; k++) {
+        for (uint16_t l = 0; l < K; l++) {
+          // correct indexing into the KxK window
+          const uint16_t y = (uint16_t)(i * S + k);
+          const uint16_t x = (uint16_t)(j * S + l);
+          const float val = buffer[y * W + x];
+          if (val > v) v = val;
         }
       }
       noodle_write_float(fo, v);
@@ -188,23 +193,28 @@ uint16_t noodle_do_pooling(float *buffer,
   return Wo;
 }
 
-uint16_t noodle_do_pooling(float *buffer,
+// Max pooling only (safe for W < 128)
+uint16_t noodle_do_pooling(const float *buffer,
                            uint16_t W,
                            uint16_t K,
                            uint16_t S,
-                           float *out_mem) {
-  uint16_t Wo = (W - K) / S + 1;
+                           float *out_mem)
+{
+  const uint16_t Wo = (W - K) / S + 1;
 
-  for (int16_t i = 0; i < Wo; i++) {
-    for (int16_t j = 0; j < Wo; j++) {
-      float v = 0;
-      for (int16_t k = 0; k < K; k++) {
-        for (int16_t l = 0; l < K; l++) {
-          if (v < buffer[(i * S) * W + (j * S)])
-            v = buffer[(i * S) * W + (j * S)];
+  for (uint16_t i = 0; i < Wo; i++) {
+    for (uint16_t j = 0; j < Wo; j++) {
+      float vmax = -FLT_MAX;
+      for (uint16_t k = 0; k < K; k++) {
+        for (uint16_t l = 0; l < K; l++) {
+          // all math fits in uint16_t since W < 128
+          uint16_t y = (i * S + k);
+          uint16_t x = (j * S + l);
+          float v = buffer[y * W + x];
+          if (v > vmax) vmax = v;
         }
       }
-      out_mem[i * Wo + j] = v;
+      out_mem[i * Wo + j] = vmax;
     }
   }
   return Wo;
@@ -856,9 +866,10 @@ uint16_t noodle_do_pooling1d(float *buffer,
 
   uint16_t Wo = (W - K) / S + 1;
   for (uint16_t i = 0; i < Wo; i++) {
-    float v = 0.0;
-    for (uint16_t k = 1; k < K; k++) {
-      if (v < buffer[i * S + k]) v = buffer[i * S + k];
+    float v = -FLT_MAX;
+    const uint16_t base = (uint16_t)(i * S);
+    for (uint16_t k = 0; k < K; k++) {
+      if (v < buffer[base + k]) v = buffer[base + k];
     }
     noodle_write_float(fo, v);
   }

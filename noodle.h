@@ -140,9 +140,9 @@ uint16_t noodle_conv_float(float *input,
 uint16_t noodle_do_bias(float *output, float bias, uint16_t n);
 
 // Pooling
-uint16_t noodle_do_pooling(float *buffer, uint16_t W, uint16_t K,
+uint16_t noodle_do_pooling(const float *buffer, uint16_t W, uint16_t K,
                            uint16_t S, const char *fn);
-uint16_t noodle_do_pooling(float *buffer, uint16_t W, uint16_t K,
+uint16_t noodle_do_pooling(const float *buffer, uint16_t W, uint16_t K,
                            uint16_t S, float *out_mem);
 uint16_t noodle_do_pooling1d(float *buffer, uint16_t W, uint16_t K,
                              uint16_t S, const char *fn);
