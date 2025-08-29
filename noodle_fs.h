@@ -14,16 +14,9 @@
  */
 #pragma once
 
-// Optional user override header (lives in the sketch folder)
-#if defined(__has_include)
-#  if __has_include("noodle_fs_backend.h")
-#    include "noodle_fs_backend.h"
-#  endif
-#endif
-
 // Fallback default ONLY if nothing was chosen by the user
 #if !defined(NOODLE_USE_SDFAT) && !defined(NOODLE_USE_SD_MMC) && !defined(NOODLE_USE_FFAT)
-  #define NOODLE_USE_SD_MMC   // pick your preferred default
+  #error "Select file backend!"
 #endif
 
 #if defined(NOODLE_USE_SDFAT)
