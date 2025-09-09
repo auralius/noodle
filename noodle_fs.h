@@ -1,38 +1,44 @@
 /**
  * @file noodle_fs.h
- * @brief Backend selector for Noodle: SdFat, SD_MMC, or FFat.
+ * @brief Backend selector for Noodle: SdFat, SD_MMC, FFat, or LittleFS.
  *
- * Define exactly one of:
+ * Define exactly ONE of:
  *   - NOODLE_USE_SDFAT
- *   - NOODLE_USE_SD_MMC 
+ *   - NOODLE_USE_SD_MMC
  *   - NOODLE_USE_FFAT
+ *   - NOODLE_USE_LITTLEFS
  *
  * Exposes:
  *   - NDL_File (FsFile for SdFat, File otherwise)
- *   - NOODLE_FS (SdFat/SD_MMC/FFat object)
+ *   - NOODLE_FS (SdFat object for SdFat; FFat/SD_MMC/LittleFS singleton otherwise)
  *   - noodle_fs_open_read / noodle_fs_open_write / noodle_fs_remove
  */
 #pragma once
 
-// Fallback default ONLY if nothing was chosen by the user
-#if !defined(NOODLE_USE_SDFAT) && !defined(NOODLE_USE_SD_MMC) && !defined(NOODLE_USE_FFAT)
-  #error "Select file backend!"
+#if !defined(NOODLE_USE_SDFAT) && !defined(NOODLE_USE_SD_MMC) && !defined(NOODLE_USE_FFAT) && !defined(NOODLE_USE_LITTLEFS)
+# error "Select file backend! Define exactly one of NOODLE_USE_SDFAT, NOODLE_USE_SD_MMC, NOODLE_USE_FFAT, NOODLE_USE_LITTLEFS"
 #endif
 
 #if defined(NOODLE_USE_SDFAT)
   #include <SdFat.h>
-  extern SdFat NOODLE_FS;          // defined in noodle.cpp for SdFat builds
   using NDL_File = FsFile;
+  extern SdFat NOODLE_FS;  // defined in noodle.cpp
 
 #elif defined(NOODLE_USE_FFAT)
   #include <FFat.h>
   #define NOODLE_FS FFat
   using NDL_File = File;
 
+#elif defined(NOODLE_USE_LITTLEFS)
+  #include <LittleFS.h>
+  #define NOODLE_FS LittleFS
+  using NDL_File = File;
+
 #elif defined(NOODLE_USE_SD_MMC)
   #include <SD_MMC.h>
   #define NOODLE_FS SD_MMC
   using NDL_File = File;
+
 #endif
 
 inline NDL_File noodle_fs_open_read(const char* path) {

@@ -13,9 +13,9 @@ static void *temp_buff1 = NULL;
 static void *temp_buff2 = NULL;
 
 
-float *noodle_slice(float *flat,
-                    size_t W,
-                    size_t z) {
+static inline float *noodle_slice(float *flat,
+                                  size_t W,
+                                  size_t z) {
   return flat + z * W * W;
 }
 
@@ -61,13 +61,10 @@ bool noodle_sd_init(int clk_pin,
 }
 
 bool noodle_sd_init() {
-#if defined(NOODLE_USE_SDFAT)
-  return NOODLE_FS.begin();
-#elif defined(NOODLE_USE_FFAT)
-  return NOODLE_FS.begin();
-#else
-  // Original default: SD_MMC.begin(mountpoint, mode, format_if_fail, maxOpenFiles, allocationUnitSize)
+#if defined(NOODLE_USE_SD_MMC)
   return SD_MMC.begin("/sdcard", false, false, 20000, 5);
+#else
+  return NOODLE_FS.begin();
 #endif
 }
 
@@ -509,8 +506,8 @@ uint16_t noodle_conv_float(float *input,
                            const Conv &conv,
                            const Pool &pool,
                            CBFPtr progress_cb) {
-  float *in_buffer = (float *)temp_buff1;
-  float *out_buffer = (float *)temp_buff2;
+  float *in_buffer;
+  float *out_buffer = (float *)temp_buff1;
 
   float progress = 0;
   float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
@@ -552,8 +549,8 @@ uint16_t noodle_conv_float(float *input,
                            const Conv &conv,
                            const Pool &pool,
                            CBFPtr progress_cb) {
-  float *in_buffer = (float *)temp_buff1;
-  float *out_buffer = (float *)temp_buff2;
+  float *in_buffer;
+  float *out_buffer = (float *)temp_buff1;
 
   float progress = 0;
   float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
@@ -633,7 +630,7 @@ uint16_t noodle_fcn(const int8_t *input,
     float h = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       h += (float)input[j] * noodle_read_float(fw);
-    if ((h < 0.0) && fcn.act == ACT_RELU) h = 0.0;
+    if ((h < 0.0) && (fcn.act == ACT_RELU)) h = 0.0;
     noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -662,7 +659,7 @@ uint16_t noodle_fcn(const float *input,
     float h = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       h += input[j] * noodle_read_float(fw);
-    if ((h < 0.0) && fcn.act == ACT_RELU) h = 0.0;
+    if ((h < 0.0) && (fcn.act == ACT_RELU)) h = 0.0;
     noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -691,7 +688,7 @@ uint16_t noodle_fcn(const byte *input,
     float h = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       h += (float)input[j] * noodle_read_float(fw);
-    if ((h < 0.0) && fcn.act == ACT_RELU) h = 0.0;
+    if ((h < 0.0) && (fcn.act == ACT_RELU)) h = 0.0;
     noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -719,7 +716,7 @@ uint16_t noodle_fcn(const byte *input,
     output[k] = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       output[k] += (float)input[j] * noodle_read_float(fw);
-    if ((output[(output[k] < 0.0) && fcn.act == ACT_RELU] < 0.0) && fcn.act == ACT_RELU) output[k] = 0.0;
+    if ((fcn.act == ACT_RELU) && (output[k] < 0.f)) output[k] = 0.0f;
     if (progress_cb) progress_cb(progress);
     progress += 1.0 / ((float)(n_outputs - 1));
   }
@@ -748,7 +745,8 @@ uint16_t noodle_fcn(const float *input,
     output[k] = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
       output[k] += input[j] * noodle_read_float(fw);
-    if ((output[(output[k] < 0.0) && fcn.act == ACT_RELU] < 0.0) && fcn.act == ACT_RELU) output[k] = 0.0;
+    if ((fcn.act == ACT_RELU) && (output[k] < 0.f)) output[k] = 0.f;
+
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
   }
@@ -779,7 +777,7 @@ uint16_t noodle_fcn(const char *in_fn,
     fi.seek(0);
     for (uint16_t k = 0; k < n_inputs; k++)
       output[j] += noodle_read_float(fi) * noodle_read_float(fw);
-    if ((output[j] < 0.0) && fcn.act == ACT_RELU) output[j] = 0.0;
+    if ((output[j] < 0.0) && (fcn.act == ACT_RELU)) output[j] = 0.0;
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
   }
@@ -809,7 +807,7 @@ uint16_t noodle_fcn(const int8_t *input,
     output[j] = noodle_read_float(fb);
     for (uint16_t k = 0; k < n_inputs; k++)
       output[j] += (float)input[k] * noodle_read_float(fw);
-    if ((output[j] < 0.0) && fcn.act == ACT_RELU) output[j] = 0.0;
+    if ((output[j] < 0.0) && (fcn.act == ACT_RELU)) output[j] = 0.0;
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
   }
@@ -841,7 +839,7 @@ uint16_t noodle_fcn(const char *in_fn,
     fi.seek(0);
     for (uint16_t k = 0; k < n_inputs; k++)
       h += noodle_read_float(fi) * noodle_read_float(fw);
-    if ((h < 0.0) && fcn.act == ACT_RELU) h = 0.0;
+    if ((h < 0.0) && (fcn.act == ACT_RELU)) h = 0.0;
     noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -868,7 +866,7 @@ uint16_t noodle_fcn(const float *input,
     float h = fcn.bias[k];
     for (uint16_t j = 0; j < n_inputs; j++)
       h += input[j] * fcn.weight[l++];  // <-- was ++l
-    if (fcn.act == ACT_RELU && h < 0.f) h = 0.f;
+    if ((fcn.act == ACT_RELU) && (h < 0.f)) h = 0.f;
     output[k] = h;
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -1082,4 +1080,24 @@ uint16_t noodle_do_bias_act(float *output,
     }
   }
   return n;
+}
+
+void noodle_read_top_line(const char* fn, char *line, size_t maxlen) {
+  line[0] = '\0'; // empty by default
+
+  NDL_File f = noodle_fs_open_read(fn);
+  if (!f) {
+    return;
+  }
+
+  size_t i = 0;
+  while (f.available() && i < maxlen - 1) {
+    char c = f.read();
+    if (c == '\n' || c == '\r') {
+      break; // stop at first newline
+    }
+    line[i++] = c;
+  }
+  line[i] = '\0'; // null-terminate
+  f.close();
 }

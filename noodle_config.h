@@ -4,6 +4,8 @@
 //#define NOODLE_USE_SDFAT
 // or
 #define NOODLE_USE_FFAT
+// or
+//#define NOODLE_USE_LITTLEFS
 
 #define NOODLE_POOL_MAX   1
 #define NOODLE_POOL_MEAN  2

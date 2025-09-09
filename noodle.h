@@ -10,7 +10,7 @@
  * file-based APIs reuse two caller-supplied temporary buffers (see @ref noodle_setup_temp_buffers).
  *
  * ### Backends
- * Select exactly one of `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, or `NOODLE_USE_FFAT` before
+ * Select exactly one of `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, or `NOODLE_USE_FFAT`, or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS` before
  * including this header; see @ref noodle_fs.h for details.
  *
  * ### File naming convention (2-letter indices)
@@ -104,14 +104,14 @@ typedef void (*CBFPtr)(float progress);
  *  @param z    Plane index to slice.
  *  @return Pointer to the start of plane @p z (no bounds checks).
  */
-float* noodle_slice(float* flat, size_t W, size_t z);
+static inline float* noodle_slice(float* flat, size_t W, size_t z);
 
 /** Provide two reusable temporary buffers used internally by file-streaming ops.
  *  Must be called before conv/FCN variants that read from files.
  *  @param b1 Buffer #1 (input scratch). See size guidance above.
  *  @param b2 Buffer #2 (float accumulator). See size guidance above.
  */
-void   noodle_setup_temp_buffers(void *b1, void *b2);
+void   noodle_setup_temp_buffers(void *b1, void *b2 = NULL);
 
 // ============================================================================
 // Filesystem helpers
@@ -527,6 +527,12 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  */
 
 
+uint16_t noodle_fcn(const float *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    float *output,
+                    const FCNFile &fcn,
+                    CBFPtr progress_cb); 
 
 uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_filters);
 
@@ -538,3 +544,5 @@ uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_fi
  *  @return V×V×n_filters.
  */
 uint16_t noodle_flat(float *input, float *output, uint16_t V, uint16_t n_filters);
+
+void noodle_read_top_line(const char* fn, char *line, size_t maxlen);
