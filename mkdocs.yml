@@ -1,4 +1,6 @@
 site_name: Noodle - The Documentation
+site_url: https://auralius.github.io/noodle/
+repo_url: https://github.com/auralius/noodle/
 
 theme:
   name: material
