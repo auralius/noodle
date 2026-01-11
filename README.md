@@ -10,7 +10,8 @@
 
 
 **Noodle** is a lightweight convolutional neural network inference library designed for MCUs with **very small RAM**.  
-It streams activations and weights from **SD/FFat/SD_MMC** filesystems to overcome RAM limitations, while providing modular primitives for **convolution, pooling, FCN, and activations**. During the development, we typically test Noodle with Arduino UNO R3, UNO R4, and some ESP32 variants.
+
+It streams activations and weights from **SD/FFat/SD_MMC** filesystems to overcome RAM limitations. Noodle provides primitive modular functions for **convolution layer, dense layer, pooling and activations**. During the development, we typically test Noodle with Arduino UNO R3, UNO R4, and some ESP32 variants.
 
 ---
 
@@ -24,4 +25,5 @@ https://auralius.github.io/noodle/
 
 - Auralius Manurung — Universitas Telkom, Bandung  
 - Lisa Kristiana — ITENAS, Bandung
+
 
