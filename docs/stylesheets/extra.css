@@ -1,0 +1,32 @@
+/* 1. Justify Text (Updated for Material) */
+.md-typeset p {
+    text-align: justify !important;
+    text-justify: inter-word;
+}
+
+/* 2. Table Styling & Math Visibility */
+.md-typeset table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse;
+}
+
+.md-typeset td, .md-typeset th {
+    border: 1px solid #ddd !important;
+    padding: 12px !important;
+    overflow: visible !important;
+}
+
+/* 3. Center Images */
+.center {
+    display: block;
+    margin: 0 auto !important;
+    width: 50%;
+}
+
+/* 4. MathJax Version 3 specific fix */
+mjx-container {
+    display: inline-block !important;
+    margin: 0 !important;
+    vertical-align: middle;
+}

@@ -1,0 +1,20 @@
+site_name: Noodle - The Documentation
+
+theme:
+  name: material
+  logo: attachments/noodle.png
+  favicon: attachments/noodle.png
+  features:
+    - toc.integrate  # Moves TOC into the left sidebar
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.mark
+  - extra
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
