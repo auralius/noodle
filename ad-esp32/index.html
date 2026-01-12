@@ -8,23 +8,25 @@
       
       
       
-        <link rel="canonical" href="https://auralius.github.io/noodle/">
+        <link rel="canonical" href="https://auralius.github.io/noodle/ad-esp32/">
       
       
+        <link rel="prev" href="../api/">
       
-        <link rel="next" href="api/">
+      
+        <link rel="next" href="../lenet-5-esp32/">
       
       
-      <link rel="icon" href="attachments/noodle.png">
+      <link rel="icon" href="../attachments/noodle.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
     
     
       
-        <title>Noodle - The Documentation</title>
+        <title>Anomali Detection on ESP32 - Noodle - The Documentation</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.4af4bdda.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
       
       
 
@@ -43,9 +45,9 @@
       
     
     
-      <link rel="stylesheet" href="stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -64,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#welcome" class="md-skip">
+        <a href="#anomali-detection-on-esp32" class="md-skip">
           Skip to content
         </a>
       
@@ -80,9 +82,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
       
-  <img src="attachments/noodle.png" alt="logo">
+  <img src="../attachments/noodle.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -99,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Anomali Detection on ESP32
             
           </span>
         </div>
@@ -188,9 +190,9 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
       
-  <img src="attachments/noodle.png" alt="logo">
+  <img src="../attachments/noodle.png" alt="logo">
 
     </a>
     Noodle - The Documentation
@@ -214,6 +216,48 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -230,7 +274,7 @@
           
   
   <span class="md-ellipsis">
-    Home
+    Anomali Detection on ESP32
     
   </span>
   
@@ -238,11 +282,11 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="." class="md-nav__link md-nav__link--active">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    Home
+    Anomali Detection on ESP32
     
   </span>
   
@@ -265,27 +309,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#contents" class="md-nav__link">
+  <a href="#mlperf-anomaly-detection-model" class="md-nav__link">
     <span class="md-ellipsis">
-      Contents
+      MLPerf anomaly detection model
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#persistent-identifier" class="md-nav__link">
+  <a href="#extracting-the-weights-and-biases" class="md-nav__link">
     <span class="md-ellipsis">
-      Persistent identifier
+      Extracting the weights and biases
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#authors" class="md-nav__link">
+  <a href="#extracting-the-bin-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Authors
+      Extracting the .bin files
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#esp32-inference-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      ESP32 inference workflow
     </span>
   </a>
   
@@ -306,49 +359,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    API References
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="ad-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Anomali Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="lenet-5-esp32/" class="md-nav__link">
+      <a href="../lenet-5-esp32/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -381,24 +392,138 @@
   
 
 
-<h1 id="welcome">Welcome</h1>
-<p><strong>Noodle</strong> is a lightweight convolutional neural network inference library designed for MCUs with <strong>very small RAM</strong>.</p>
-<hr />
-<h2 id="contents">Contents</h2>
+<h1 id="anomali-detection-on-esp32">Anomali Detection on ESP32</h1>
+<h2 id="mlperf-anomaly-detection-model">MLPerf anomaly detection model</h2>
+<p>In this section, we will implement <a href="https://github.com/mlcommons/tiny.git">the anomali detection which is one of benchmark found in MLPer Tiny.</a> The network is entirely made of dense layers with ReLU activations (<em>Autoencoder Fully-Connected</em> or <em>AEFC</em>). </p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Layer #</th>
+<th>Type</th>
+<th style="text-align: right;">Input dim</th>
+<th style="text-align: right;">Output dim</th>
+<th>Activation</th>
+<th>Extracted weights and biases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Dense</td>
+<td style="text-align: right;">640</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w01.txt</code>, <code>w01.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w02.txt</code>, <code>w03.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w03.txt</code>, <code>w04.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w05.txt</code>, <code>w06.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">8</td>
+<td>ReLU</td>
+<td><code>w07.txt</code>, <code>w08.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>Dense</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w09.txt</code>, <code>w10.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w11.txt</code>, <code>w12.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w13.txt</code>, <code>w14.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">128</td>
+<td>ReLU</td>
+<td><code>w15.txt</code>, <code>w16.txt</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Dense</td>
+<td style="text-align: right;">128</td>
+<td style="text-align: right;">640</td>
+<td>None (Linear)</td>
+<td><code>w17.txt</code>, <code>w18.txt</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="extracting-the-weights-and-biases">Extracting the weights and biases</h2>
+<p>The repository provides weights and biases that we can use directly. For this purpose, we selected the trained network stored in <code>ad01_fp32.tflite</code>.</p>
+<h2 id="extracting-the-bin-files">Extracting the .bin files</h2>
+<p>For our benchmark test, we perform the same preprocessing pipeline used during training (<a href="https://github.com/mlcommons/tiny/tree/master/benchmark/training/anomaly_detection">as found in this part of the repository</a>), but offline on the host PC. The ESP32 never processes raw audio; it only consumes precomputed feature vectors stored as binary files. Each input <code>.wav</code> file is converted into multiple fixed-length feature vectors using the following steps:</p>
 <ul>
-<li>API References</li>
-<li><a href="ad-esp32/">Anomali Detection on ESP32</a></li>
-<li><a href="lenet-5-esp32/">LeNet-5 on ESP32</a></li>
+<li>Load WAV file: the audio file is loaded using its native sampling rate (no resampling). The WAV file is 11 seconds with 342 frames.</li>
+<li>Feature extraction: a log-mel spectrogram is computed using the same parameters defined in <code>baseline.yaml</code>:<ul>
+<li><code>n_mels = 128</code></li>
+<li><code>frames = 5</code></li>
+<li><code>n_fft = 1024</code></li>
+<li><code>hop_length = 512</code></li>
+<li><code>power = 2.0</code></li>
 </ul>
-<hr />
-<h2 id="persistent-identifier">Persistent identifier</h2>
-<p><a href="https://doi.org/10.5281/zenodo.16239228"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.16239228.svg" /></a></p>
-<hr />
-<h2 id="authors">Authors</h2>
+</li>
+<li>Temporal cropping: only the central portion of the spectrogram is kept: <code>frames 50 to 250 → 200</code> frames total.</li>
+<li>Sliding window segmentation: a sliding window of length frames = 5 is applied across the cropped spectrogram, producing: <code>200 − 5 + 1 = 196</code> feature vectors per WAV file.</li>
+<li>Flattening and storage: each window is flattened into a 1-D vector of size: <code>inputDim = n_mels × frames = 320</code> and stored as a <code>float32</code> binary file:</li>
+</ul>
+<pre><code>&lt;wav_name&gt;_part000.bin
+&lt;wav_name&gt;_part001.bin
+…
+&lt;wav_name&gt;_part195.bin
+</code></pre>
+<p>These .bin files represent the actual inputs to the autoencoder and match exactly the data format used during training and evaluation in the original baseline implementation.</p>
+<h2 id="esp32-inference-workflow">ESP32 inference workflow</h2>
+<p>On the ESP32, we will perform the following inference proceedures:</p>
 <ul>
-<li>Auralius Manurung — Universitas Telkom, Bandung (auralius.manurung@ieee.org)</li>
-<li>Lisa Kristiana — ITENAS, Bandung (lisa@itenas.ac.id)</li>
+<li>For a given WAV sample, all corresponding *_partXXX.bin files are loaded sequentially from SD card (or FFAT).</li>
+<li>Each .bin file is read into a float[320] input buffer.</li>
+<li>The input vector is passed through the autoencoder implemented using Noodle, producing a reconstructed output vector of the same size.</li>
+<li>The mean squared reconstruction error (MSE) between input and output is computed for that window.</li>
+<li>Errors are accumulated across all 196 windows.</li>
+<li>The final anomaly score for the WAV file is computed as the average reconstruction error: <code>score = mean(MSE_part_0 … MSE_part_195)</code></li>
 </ul>
+<p>We will only retain the final scalar score and discard the individually reconstructed vectors immediately to minimize memory usage.</p>
 
 
 
@@ -445,12 +570,12 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["toc.integrate"], "search": "assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.c8b220af.min.js"></script>
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
       
-        <script src="javascripts/mathjax.js"></script>
+        <script src="../javascripts/mathjax.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
