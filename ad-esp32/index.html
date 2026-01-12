@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#anomali-detection-on-esp32" class="md-skip">
+        <a href="#anomaly-detection-on-esp32" class="md-skip">
           Skip to content
         </a>
       
@@ -327,9 +327,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#extracting-the-bin-files" class="md-nav__link">
+  <a href="#generating-txt-from-wav-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Extracting the .bin files
+      Generating .txt from .wav files
     </span>
   </a>
   
@@ -341,6 +341,75 @@
       ESP32 inference workflow
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing scenario
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-on-the-esp-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code on the ESP side
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compare-esp32-and-google-colab" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compare ESP32 and Google Colab
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference-parity-esp32-vs-colab" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inference parity: ESP32 vs Colab
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Inference parity: ESP32 vs Colab">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#anomaly-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anomaly set
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#normal-set" class="md-nav__link">
+    <span class="md-ellipsis">
+      Normal set
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -392,9 +461,9 @@
   
 
 
-<h1 id="anomali-detection-on-esp32">Anomali Detection on ESP32</h1>
+<h1 id="anomaly-detection-on-esp32">Anomaly Detection on ESP32</h1>
 <h2 id="mlperf-anomaly-detection-model">MLPerf anomaly detection model</h2>
-<p>In this section, we will implement <a href="https://github.com/mlcommons/tiny.git">the anomali detection which is one of benchmark found in MLPer Tiny.</a> The network is entirely made of dense layers with ReLU activations (<em>Autoencoder Fully-Connected</em> or <em>AEFC</em>). </p>
+<p>In this section, we will implement <a href="https://github.com/mlcommons/tiny.git">the anomali detection which is one of benchmark found in MLPerf Tiny.</a> The network is entirely made of dense layers with ReLU activations (<em>Auto-encoder Fully-Connected</em> or <em>AEFC</em>). </p>
 <table>
 <thead>
 <tr>
@@ -413,7 +482,7 @@
 <td style="text-align: right;">640</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w01.txt</code>, <code>w01.txt</code></td>
+<td><code>w01.txt</code>, <code>w02.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">2</td>
@@ -421,7 +490,7 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w02.txt</code>, <code>w03.txt</code></td>
+<td><code>w03.txt</code>, <code>w04.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">3</td>
@@ -429,7 +498,7 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w03.txt</code>, <code>w04.txt</code></td>
+<td><code>w05.txt</code>, <code>w06.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">4</td>
@@ -437,7 +506,7 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w05.txt</code>, <code>w06.txt</code></td>
+<td><code>w07.txt</code>, <code>w08.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">5</td>
@@ -445,7 +514,7 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">8</td>
 <td>ReLU</td>
-<td><code>w07.txt</code>, <code>w08.txt</code></td>
+<td><code>w09.txt</code>, <code>w10.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">6</td>
@@ -453,7 +522,7 @@
 <td style="text-align: right;">8</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w09.txt</code>, <code>w10.txt</code></td>
+<td><code>w11.txt</code>, <code>w12.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">7</td>
@@ -461,7 +530,7 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w11.txt</code>, <code>w12.txt</code></td>
+<td><code>w13.txt</code>, <code>w14.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">8</td>
@@ -469,7 +538,7 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w13.txt</code>, <code>w14.txt</code></td>
+<td><code>w15.txt</code>, <code>w16.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">9</td>
@@ -477,7 +546,7 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">128</td>
 <td>ReLU</td>
-<td><code>w15.txt</code>, <code>w16.txt</code></td>
+<td><code>w17.txt</code>, <code>w18.txt</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">10</td>
@@ -485,14 +554,14 @@
 <td style="text-align: right;">128</td>
 <td style="text-align: right;">640</td>
 <td>None (Linear)</td>
-<td><code>w17.txt</code>, <code>w18.txt</code></td>
+<td><code>w19.txt</code>, <code>w20.txt</code></td>
 </tr>
 </tbody>
 </table>
 <h2 id="extracting-the-weights-and-biases">Extracting the weights and biases</h2>
 <p>The repository provides weights and biases that we can use directly. For this purpose, we selected the trained network stored in <code>ad01_fp32.tflite</code>.</p>
-<h2 id="extracting-the-bin-files">Extracting the .bin files</h2>
-<p>For our benchmark test, we perform the same preprocessing pipeline used during training (<a href="https://github.com/mlcommons/tiny/tree/master/benchmark/training/anomaly_detection">as found in this part of the repository</a>), but offline on the host PC. The ESP32 never processes raw audio; it only consumes precomputed feature vectors stored as binary files. Each input <code>.wav</code> file is converted into multiple fixed-length feature vectors using the following steps:</p>
+<h2 id="generating-txt-from-wav-files">Generating <code>.txt</code> from <code>.wav</code> files</h2>
+<p>For our benchmark test, we perform the same preprocessing pipeline used during training (<a href="https://github.com/mlcommons/tiny/tree/master/benchmark/training/anomaly_detection">as found in this part of the repository</a>). However, we will run the test offline and with viewer data. The ESP32 never processes raw audio. It only consumes precomputed feature vectors stored as text files. Each input <code>.wav</code> file is converted into multiple fixed-length feature vectors using the following steps:</p>
 <ul>
 <li>Load WAV file: the audio file is loaded using its native sampling rate (no resampling). The WAV file is 11 seconds with 342 frames.</li>
 <li>Feature extraction: a log-mel spectrogram is computed using the same parameters defined in <code>baseline.yaml</code>:<ul>
@@ -505,25 +574,230 @@
 </li>
 <li>Temporal cropping: only the central portion of the spectrogram is kept: <code>frames 50 to 250 → 200</code> frames total.</li>
 <li>Sliding window segmentation: a sliding window of length frames = 5 is applied across the cropped spectrogram, producing: <code>200 − 5 + 1 = 196</code> feature vectors per WAV file.</li>
-<li>Flattening and storage: each window is flattened into a 1-D vector of size: <code>inputDim = n_mels × frames = 320</code> and stored as a <code>float32</code> binary file:</li>
+<li>Flattening and storage: each window is flattened into a 1-D vector of size: <code>inputDim = n_mels × frames = 128 × 5 = 640</code> and stored as a <code>float32</code> text file:</li>
 </ul>
-<pre><code>&lt;wav_name&gt;_part000.bin
-&lt;wav_name&gt;_part001.bin
+<pre><code>&lt;wav_name&gt;_part000.txt
+&lt;wav_name&gt;_part001.txt
 …
-&lt;wav_name&gt;_part195.bin
+&lt;wav_name&gt;_part195.txt
 </code></pre>
-<p>These .bin files represent the actual inputs to the autoencoder and match exactly the data format used during training and evaluation in the original baseline implementation.</p>
-<h2 id="esp32-inference-workflow">ESP32 inference workflow</h2>
-<p>On the ESP32, we will perform the following inference proceedures:</p>
 <ul>
-<li>For a given WAV sample, all corresponding *_partXXX.bin files are loaded sequentially from SD card (or FFAT).</li>
-<li>Each .bin file is read into a float[320] input buffer.</li>
-<li>The input vector is passed through the autoencoder implemented using Noodle, producing a reconstructed output vector of the same size.</li>
+<li>Take 5 parts from the an anomaly set and name them <code>anom1.txt</code> to <code>anom5.txt</code>. </li>
+<li>Take 5 parts from the a normal set and name them <code>norm1.txt</code> to <code>norm5.txt</code>. </li>
+</ul>
+<p>These <code>.txt</code> files represent the actual inputs to the auto-encoder and match exactly the data format used during training and evaluation in the original baseline implementation.</p>
+<h2 id="esp32-inference-workflow">ESP32 inference workflow</h2>
+<p>On the ESP32, we will perform the following inference procedures:</p>
+<ul>
+<li>For a given WAV sample, all corresponding <code>*_partXXX.bin</code> files are loaded sequentially from SD card (or FFAT).</li>
+<li>Each .bin file is read into a <code>float[640]</code> input buffer.</li>
+<li>The input vector is passed through the auto-encoder implemented using Noodle, producing a reconstructed output vector of the same size.</li>
 <li>The mean squared reconstruction error (MSE) between input and output is computed for that window.</li>
 <li>Errors are accumulated across all 196 windows.</li>
 <li>The final anomaly score for the WAV file is computed as the average reconstruction error: <code>score = mean(MSE_part_0 … MSE_part_195)</code></li>
 </ul>
 <p>We will only retain the final scalar score and discard the individually reconstructed vectors immediately to minimize memory usage.</p>
+<h2 id="hardware">Hardware</h2>
+<p>For this benchmark, we will use <em>ESP32-S3-N16R8</em> which gives us plenty of space in the flash.</p>
+<h2 id="testing-scenario">Testing scenario</h2>
+<ul>
+<li>Apply 5 parts from an anomaly dataset ➜ 5/196 of a full WAV.</li>
+<li>Apply 5 parts from a normal dataset ➜ 5/196 of a full WAV.</li>
+<li>Each part is <code>float32[640]</code> values (2560 bytes).</li>
+<li>ESP32 returns <code>mse</code> and elapsed time (<code>us</code>) for each part.</li>
+</ul>
+<h2 id="code-on-the-esp-side">Code on the ESP side</h2>
+<pre><code class="language-cpp">static constexpr uint16_t INPUT_DIM = 640;
+static constexpr uint16_t HIDDEN_DIM = 128;
+static constexpr uint16_t BOTTLENECK_DIM = 8;
+
+// Ping-pong buffers
+static float BUF1[INPUT_DIM];
+static float BUF2[INPUT_DIM];
+
+// Copy of input for MSE
+static float X0[INPUT_DIM];
+
+FCNFile L1;  
+L1.weight_fn  = &quot;/w01.txt&quot;; L1.bias_fn  = &quot;/w02.txt&quot;; L1.act  = ACT_RELU;
+
+FCNFile L2;  
+L2.weight_fn  = &quot;/w03.txt&quot;; L2.bias_fn  = &quot;/w04.txt&quot;; L2.act  = ACT_RELU;
+
+FCNFile L3;  
+L3.weight_fn  = &quot;/w05.txt&quot;; L3.bias_fn  = &quot;/w06.txt&quot;; L3.act  = ACT_RELU;
+
+FCNFile L4;  
+L4.weight_fn  = &quot;/w07.txt&quot;; L4.bias_fn  = &quot;/w08.txt&quot;; L4.act  = ACT_RELU;
+
+FCNFile L5;  
+L5.weight_fn  = &quot;/w09.txt&quot;; L5.bias_fn  = &quot;/w10.txt&quot;; L5.act  = ACT_RELU;
+
+FCNFile L6;  
+L6.weight_fn  = &quot;/w11.txt&quot;; L6.bias_fn  = &quot;/w12.txt&quot;; L6.act  = ACT_RELU;
+
+FCNFile L7;  
+L7.weight_fn  = &quot;/w13.txt&quot;; L7.bias_fn  = &quot;/w14.txt&quot;; L7.act  = ACT_RELU;
+
+FCNFile L8;  
+L8.weight_fn  = &quot;/w15.txt&quot;; L8.bias_fn  = &quot;/w16.txt&quot;; L8.act  = ACT_RELU;
+
+FCNFile L9;  
+L9.weight_fn  = &quot;/w17.txt&quot;; L9.bias_fn  = &quot;/w18.txt&quot;; L9.act  = ACT_RELU;
+
+FCNFile L10; 
+L10.weight_fn = &quot;/w19.txt&quot;; L10.bias_fn = &quot;/w20.txt&quot;; L10.act = ACT_NONE;
+
+uint16_t V = INPUT_DIM;
+
+// 640 -&gt; 128 -&gt; 128 -&gt; 128 -&gt; 128 -&gt; 8 -&gt; 128 -&gt; 128 -&gt; 128 -&gt; 128 -&gt; 640
+V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L1,  NULL);
+V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L2,  NULL);
+V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L3,  NULL);
+V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L4,  NULL);
+V = noodle_fcn(BUF1, V, BOTTLENECK_DIM,  BUF2, L5,  NULL);
+V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L6,  NULL);
+V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L7,  NULL);
+V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L8,  NULL);
+V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L9,  NULL);
+V = noodle_fcn(BUF2, V, INPUT_DIM,       BUF1, L10, NULL);
+</code></pre>
+<h2 id="compare-esp32-and-google-colab">Compare ESP32 and Google Colab</h2>
+<p><strong>ESP 32</strong></p>
+<pre><code>=== anom set ===
+anom1: mse=9.17803478 us=23812318
+anom2: mse=8.465662 us=23812164
+anom3: mse=8.66184902 us=23812145
+anom4: mse=9.07823086 us=23812145
+anom5: mse=8.99418163 us=23812144
+Mean anom MSE = 8.87559128
+
+=== norm set ===
+norm1: mse=10.8290482 us=23812112
+norm2: mse=11.2695885 us=23812183
+norm3: mse=11.530509 us=23812167
+norm4: mse=11.6987247 us=23812152
+norm5: mse=11.0928583 us=23812148
+Mean norm MSE = 11.2841454
+
+DONE (processed anom1..5 + norm1..5)
+</code></pre>
+<p><strong>Google Colab</strong></p>
+<ul>
+<li><a href="https://colab.research.google.com/drive/1DLk1hxnl8GVVHyxxxnE-STnxQ50AkTLY?usp=sharing">Google Colab link</a></li>
+<li><a href="https://drive.google.com/file/d/1738ZNQD_WDJlxzYc_VnPcVB_vi7KO9H1/view?usp=sharing">Weights, biases and test datasets</a></li>
+</ul>
+<pre><code>Input : input_1 shape= [  1 640] dtype= &lt;class 'numpy.float32'&gt;
+Output: Identity shape= [  1 640] dtype= &lt;class 'numpy.float32'&gt;
+
+--- ANOM ---
+[TFLite] /content/sample_data/anom1.txt: mse=9.17908482
+[TFLite] /content/sample_data/anom2.txt: mse=8.46575602
+[TFLite] /content/sample_data/anom3.txt: mse=8.6624254
+[TFLite] /content/sample_data/anom4.txt: mse=9.07872793
+[TFLite] /content/sample_data/anom5.txt: mse=8.99621678
+
+--- NORM ---
+[TFLite] /content/sample_data/norm1.txt: mse=10.82921
+[TFLite] /content/sample_data/norm2.txt: mse=11.2699071
+[TFLite] /content/sample_data/norm3.txt: mse=11.5304345
+[TFLite] /content/sample_data/norm4.txt: mse=11.6980121
+[TFLite] /content/sample_data/norm5.txt: mse=11.0927933
+
+--- SUMMARY ---
+norm mean=11.2840714 std=0.344865398 min=10.82921 max=11.6980121
+anom mean=8.87644219 std=0.300551306 min=8.46575602 max=9.17908482
+anom/norm mean ratio = 0.786634706
+
+Done.
+</code></pre>
+<h2 id="inference-parity-esp32-vs-colab">Inference parity: ESP32 vs Colab</h2>
+<h3 id="anomaly-set">Anomaly set</h3>
+<table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>ESP32 MSE</th>
+<th>TFLite MSE</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>anom1.txt</code></td>
+<td>9.1780</td>
+<td>9.1791</td>
+<td>~0.001</td>
+</tr>
+<tr>
+<td><code>anom2.txt</code></td>
+<td>8.4657</td>
+<td>8.4658</td>
+<td>~0.0001</td>
+</tr>
+<tr>
+<td><code>anom3.txt</code></td>
+<td>8.6618</td>
+<td>8.6624</td>
+<td>~0.0006</td>
+</tr>
+<tr>
+<td><code>anom4.txt</code></td>
+<td>9.0782</td>
+<td>9.0787</td>
+<td>~0.0005</td>
+</tr>
+<tr>
+<td><code>anom5.txt</code></td>
+<td>8.9942</td>
+<td>8.9962</td>
+<td>~0.002</td>
+</tr>
+</tbody>
+</table>
+<h3 id="normal-set">Normal set</h3>
+<table>
+<thead>
+<tr>
+<th>Sample</th>
+<th>ESP32 MSE</th>
+<th>TFLite MSE</th>
+<th>Δ (abs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>norm1.txt</code></td>
+<td>10.82897</td>
+<td>10.82921</td>
+<td>≈ 0.00024</td>
+</tr>
+<tr>
+<td><code>norm2.txt</code></td>
+<td>11.27035</td>
+<td>11.26991</td>
+<td>≈ 0.00044</td>
+</tr>
+<tr>
+<td><code>norm3.txt</code></td>
+<td>11.53070</td>
+<td>11.53043</td>
+<td>≈ 0.00027</td>
+</tr>
+<tr>
+<td><code>norm4.txt</code></td>
+<td>11.69870</td>
+<td>11.69801</td>
+<td>≈ 0.00069</td>
+</tr>
+<tr>
+<td><code>norm5.txt</code></td>
+<td>11.09396</td>
+<td>11.09279</td>
+<td>≈ 0.00117</td>
+</tr>
+</tbody>
+</table>
 
 
 

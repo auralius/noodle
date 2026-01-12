@@ -542,7 +542,7 @@
 <p>The CYD is an ESP32-based development board with an integrated LCD display and touchscreen. The display measures <strong>2.8 inches</strong> with a <strong>320×240 pixel resolution</strong>. Due to its low cost and decent performance, the CYD has gained popularity in the ESP32 community, with several public repositories and example projects available, such as <a href="https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display">ESP32-Cheap-Yellow-Display</a>.</p>
 <p><img alt="" src="../attachments/cyd.png" /></p>
 <p>The CYD uses SPI for both the display and the touch controller. These are typically wired with separate chip-select lines (and on some CYD variants, separate SPI buses), which helps when tracking continuous touch input for handwriting.</p>
-<p>As an alternative, you can use displays where the TFT uses a parallel bus (or SPI) while the touch uses analog inputs, such as <a href="https://github.com/prenticedavid/MCUFRIEND_kbv">MCUFRIEND_kbv UNO shields</a>.</p>
+<p>As an alternative, we can also use displays where the TFT uses a parallel bus (or SPI) while the touch uses analog inputs, such as <a href="https://github.com/prenticedavid/MCUFRIEND_kbv">MCUFRIEND_kbv UNO shields</a>.</p>
 <hr />
 <h2 id="original-architecture-1998">Original architecture (1998)</h2>
 <p>The following figure and table describe the original LeNet-5 architecture.</p>
@@ -700,9 +700,10 @@
 </table>
 <hr />
 <h2 id="training-keras-pytorch">Training (Keras / PyTorch)</h2>
+<p>Noodle does not provide training capability. We will perform training on a computer, extract the training results and deploy them to the ESP32. In this section, we use Google Colab (Keras and Python) for training.</p>
 <ul>
-<li><a href="https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing">Google Colab notebook</a>    </li>
 <li><a href="https://drive.google.com/file/d/1rvQixKpxU0dBhDQ8B9gZxADqttoxJPK5/view?usp=drive_link">Dataset link</a></li>
+<li><a href="https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing">Google Colab notebook</a>    </li>
 </ul>
 <hr />
 <h2 id="naming-convention-txt">Naming convention (<code>.txt</code>)</h2>
@@ -778,9 +779,8 @@ struct FCNMem {
   const float *bias   = nullptr;
   Activation act = ACT_RELU;
 };
-
 </code></pre>
-<p>If weights/biases are in memory, use <code>FCNMem</code>. If they are stored as files, use <code>FCNFile</code>.</p>
+<p>If weights/biases are in memory, we use <code>FCNMem</code>. If they are stored as files, we use <code>FCNFile</code>.</p>
 <hr />
 <h3 id="convolution-kernel-filename-pattern">Convolution kernel filename pattern (<code>####</code>)</h3>
 <p>For convolution layers, NOODLE loads per-(input, output) kernels from files named:<br />
@@ -886,7 +886,6 @@ V = noodle_flat(BUFFER1, BUFFER3, V, 16);
 V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn1, nullptr);
 V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn2, nullptr);
 V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn3, nullptr);
-
 </code></pre>
 <p>This implementation requires three buffers:</p>
 <ul>
@@ -905,13 +904,13 @@ Dense #3           BUFFER3 → BUFFER1
 </code></pre>
 <hr />
 <h2 id="visual-code-with-platformio">Visual Code with PlatformIO</h2>
-<p>We use Visual Studio Code with PlatformIO instead of the Arduino IDE primarily because it provides first-class support for filesystem images on ESP32 devices. All files intended for the ESP32 filesystem are placed in the project’s <code>data/</code> directory.</p>
+<p>We use Visual Studio Code with PlatformIO instead of the Arduino IDE primarily because it provides better support for file-system images on ESP32 devices (when compared to Arduino IDE). All files intended for the ESP32 filesystem are placed in the project’s <code>data/</code> directory.</p>
 <p><img alt="" src="../attachments/vscode.png" /></p>
 <p>The workflows are as follows.</p>
 <ul>
-<li>Builds a file-system image from the contents of <code>data/</code> (all files in <code>data</code> directory to one image file:  <code>fatfs.bin</code>)</li>
-<li>Uploads image file to the file-system partition in flash</li>
-<li>Leaves the application firmware unchanged</li>
+<li>Build a file-system image from the contents of <code>data/</code> (all files in <code>data</code> directory to one image file:  <code>fatfs.bin</code>).</li>
+<li>Upload image file to the file-system partition in flash.</li>
+<li>Leave the application firmware unchanged.</li>
 </ul>
 
 
