@@ -309,9 +309,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#mlperf-anomaly-detection-model" class="md-nav__link">
+  <a href="#preface" class="md-nav__link">
     <span class="md-ellipsis">
-      MLPerf anomaly detection model
+      Preface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mlperf-tiny-anomaly-detection-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      MLPerf Tiny anomaly detection model
     </span>
   </a>
   
@@ -462,7 +471,20 @@
 
 
 <h1 id="anomaly-detection-on-esp32">Anomaly Detection on ESP32</h1>
-<h2 id="mlperf-anomaly-detection-model">MLPerf anomaly detection model</h2>
+<h2 id="preface">Preface</h2>
+<ul>
+<li><strong>Author:</strong>  <ul>
+<li>Auralius Manurung (auralius.manurung@ieee.org)  </li>
+</ul>
+</li>
+<li><strong>Repositories:</strong> <ul>
+<li><a href="https://drive.google.com/file/d/1od4ztXoW8vuG_Chqs0oaFd7L5IHgriXM/view?usp=sharing">Download the whole project files here (Visual Code and PlatformIO).</a></li>
+<li><a href="https://colab.research.google.com/drive/1DLk1hxnl8GVVHyxxxnE-STnxQ50AkTLY?usp=sharing">Google Colab link.</a> This is used to extract stored weights and biases from <code>ad01_fp32.tflite</code>.</li>
+<li><a href="https://drive.google.com/file/d/1738ZNQD_WDJlxzYc_VnPcVB_vi7KO9H1/view?usp=sharing">Weights, biases and test datasets.</a> These are extracted from the provided <code>ad01_fp32.tflite</code>.</li>
+</ul>
+</li>
+</ul>
+<h2 id="mlperf-tiny-anomaly-detection-model">MLPerf Tiny anomaly detection model</h2>
 <p>In this section, we will implement <a href="https://github.com/mlcommons/tiny.git">the anomali detection which is one of benchmark found in MLPerf Tiny.</a> The network is entirely made of dense layers with ReLU activations (<em>Auto-encoder Fully-Connected</em> or <em>AEFC</em>). </p>
 <table>
 <thead>
