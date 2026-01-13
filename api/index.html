@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-references" class="md-skip">
+        <a href="#brief-api-references" class="md-skip">
           Skip to content
         </a>
       
@@ -249,6 +249,18 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -259,6 +271,253 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      1) Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1) Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-filesystem-backend-selection-noodle_configh-noodle_fsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1 Filesystem backend selection (noodle_config.h / noodle_fs.h)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-pooling-mode-noodle_configh" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2 Pooling mode (noodle_config.h)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-naming-convention-for-streamed-channel-files-two-letter-indices" class="md-nav__link">
+    <span class="md-ellipsis">
+      2) Naming convention for streamed channel files (two-letter indices)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2) Naming convention for streamed channel files (two-letter indices)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convolution-kernels-4d-tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Convolution kernels (4D tensors)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dense-weights-2d-tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dense weights (2D tensors)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bias-vectors-1d-tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bias vectors (1D tensors)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      3) Types
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3) Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-activation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.1 Activation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-conv-shared-params-for-1d2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.2 Conv (shared params for 1D/2D)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-pool" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.3 Pool
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-progress-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.4 Progress callback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-fcn-parameter-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      3.5 FCN parameter blocks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-initialization-scratch-buffers" class="md-nav__link">
+    <span class="md-ellipsis">
+      4) Initialization &amp; scratch buffers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4) Initialization &amp; scratch buffers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-temporary-buffers-required-for-some-streamed-ops" class="md-nav__link">
+    <span class="md-ellipsis">
+      4.1 Temporary buffers (required for some streamed ops)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-filesystem-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      5) Filesystem utilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5) Filesystem utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-open-for-write-delete-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.1 Open for write (delete first)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-read-bytes-until-terminator" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.2 Read bytes until terminator
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-backend-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.3 Backend init
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-delete-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      5.4 Delete file
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-scalar-io-helpers-text-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      6) Scalar I/O helpers (text files)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-memory-helpers" class="md-nav__link">
+    <span class="md-ellipsis">
+      7) Memory helpers
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -325,7 +584,351 @@
   
 
 
-<h1 id="api-references">API References</h1>
+<h1 id="brief-api-references">Brief API References</h1>
+<hr />
+<p>Tiny, file-streamed CNN/ML primitives for microcontrollers with <em>very</em> small RAM budgets.  </p>
+<p>Noodle supports in-memory and file-system-streamed (SD/FFat/SD_MMC/LittleFS/SdFat) execution for:</p>
+<ul>
+<li>2D/1D convolution (+ optional pooling)</li>
+<li>bias + activation</li>
+<li>flatten</li>
+<li>fully connected (FCN)</li>
+<li>softmax / sigmoid</li>
+</ul>
+<p>This reference is generated from <code>noodle.h</code>, <code>noodle_config.h</code>, and <code>noodle_fs.h</code>.</p>
+<hr />
+<h2 id="1-configuration">1) Configuration</h2>
+<h3 id="11-filesystem-backend-selection-noodle_configh-noodle_fsh">1.1 Filesystem backend selection (<code>noodle_config.h</code> / <code>noodle_fs.h</code>)</h3>
+<p>Define <strong>exactly one</strong> before including <code>noodle.h</code>:</p>
+<ul>
+<li><code>NOODLE_USE_SDFAT</code></li>
+<li><code>NOODLE_USE_SD_MMC</code></li>
+<li><code>NOODLE_USE_FFAT</code></li>
+<li><code>NOODLE_USE_LITTLEFS</code></li>
+</ul>
+<p><code>noodle_fs.h</code> exposes:</p>
+<ul>
+<li><code>using NDL_File = ...</code>  </li>
+<li><code>FsFile</code> for SdFat, otherwise Arduino <code>File</code></li>
+<li><code>NOODLE_FS</code> handle  </li>
+<li><code>SdFat NOODLE_FS</code> (extern, defined in <code>noodle.cpp</code>) or the FS singleton (<code>FFat</code>, <code>SD_MMC</code>, <code>LittleFS</code>)</li>
+<li>Backend-neutral open/remove helpers:</li>
+<li><code>NDL_File noodle_fs_open_read(const char* path)</code></li>
+<li><code>NDL_File noodle_fs_open_write(const char* path)</code></li>
+<li><code>bool noodle_fs_remove(const char* path)</code></li>
+</ul>
+<h3 id="12-pooling-mode-noodle_configh">1.2 Pooling mode (<code>noodle_config.h</code>)</h3>
+<p>Compile-time pooling mode for 2D pooling:</p>
+<ul>
+<li><code>#define NOODLE_POOL_MAX  1</code></li>
+<li><code>#define NOODLE_POOL_MEAN 2</code></li>
+<li><code>#define NOODLE_POOL_MODE NOODLE_POOL_MAX</code> <strong>or</strong> <code>NOODLE_POOL_MEAN</code></li>
+</ul>
+<hr />
+<h2 id="2-naming-convention-for-streamed-channel-files-two-letter-indices">2) Naming convention for streamed channel files (two-letter indices)</h2>
+<h3 id="convolution-kernels-4d-tensors">Convolution kernels (4D tensors)</h3>
+<p><strong>Filename format:</strong><br />
+<code>w&lt;NN&gt;&lt;in&gt;&lt;out&gt;.txt</code></p>
+<p>Where:</p>
+<ul>
+<li><code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>weight tensor</strong></li>
+<li><code>&lt;in&gt;</code> is a two-letter code for the input-channel index (<code>aa</code>, <code>ab</code>, …, <code>zz</code>)</li>
+<li><code>&lt;out&gt;</code> is a two-letter code for the output-channel index</li>
+</ul>
+<p><strong>Example:</strong><br />
+<code>w01aaab.txt</code></p>
+<p>Each file contains one flattened spatial kernel for a single <code>(input channel, output channel)</code> pair.</p>
+<h3 id="dense-weights-2d-tensors">Dense weights (2D tensors)</h3>
+<p><strong>Filename format:</strong><br />
+<code>w&lt;NN&gt;.txt</code></p>
+<p>Where:</p>
+<ul>
+<li><code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>weight tensor</strong></li>
+</ul>
+<p><strong>Example:</strong><br />
+<code>w03.txt</code></p>
+<p>Dense weights are exported as a transposed, flattened array, one value per line.</p>
+<h3 id="bias-vectors-1d-tensors">Bias vectors (1D tensors)</h3>
+<p><strong>Filename format:</strong><br />
+<code>b&lt;NN&gt;.txt</code></p>
+<p>Where:</p>
+<ul>
+<li><code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>bias vector</strong></li>
+</ul>
+<p><strong>Example:</strong> 
+<code>b02.txt</code></p>
+<p>Each file contains flattened bias values, one value per line.</p>
+<hr />
+<h2 id="3-types">3) Types</h2>
+<h3 id="31-activation">3.1 Activation</h3>
+<pre><code class="language-cpp">enum Activation : uint8_t { ACT_NONE = 0, ACT_RELU = 1, ACT_SOFTMAX = 2 };
+</code></pre>
+<h3 id="32-conv-shared-params-for-1d2d">3.2 <code>Conv</code> (shared params for 1D/2D)</h3>
+<pre><code class="language-cpp">struct Conv {
+  uint16_t K;              // kernel size (2D: KxK, 1D: K)
+  uint16_t P = 0;          // padding
+  uint16_t S = 1;          // stride
+  const char *weight_fn;   // file template for weights
+  const char *bias_fn;     // bias filename
+  Activation act = ACT_RELU;
+};
+</code></pre>
+<h3 id="33-pool">3.3 <code>Pool</code></h3>
+<pre><code class="language-cpp">struct Pool {
+  uint16_t M = 2;  // pool kernel
+  uint16_t T = 2;  // pool stride
+};
+</code></pre>
+<h3 id="34-progress-callback">3.4 Progress callback</h3>
+<pre><code class="language-cpp">typedef void (*CBFPtr)(float progress);  // progress in [0,1]
+</code></pre>
+<h3 id="35-fcn-parameter-blocks">3.5 FCN parameter blocks</h3>
+<pre><code class="language-cpp">struct FCN     
+{ 
+  const char *weight_fn; 
+  const char *bias_fn; 
+  Activation act = ACT_RELU; 
+};
+
+struct FCNFile 
+{ 
+  const char *weight_fn; 
+  const char *bias_fn; 
+  Activation act = ACT_RELU; 
+};
+
+struct FCNMem {
+  const float *weight;  // row-major [n_outputs, n_inputs]
+  const float *bias;    // length n_outputs
+  Activation act = ACT_RELU;
+};
+</code></pre>
+<hr />
+<h2 id="4-initialization-scratch-buffers">4) Initialization &amp; scratch buffers</h2>
+<h3 id="41-temporary-buffers-required-for-some-streamed-ops">4.1 Temporary buffers (required for some streamed ops)</h3>
+<pre><code class="language-cpp">void noodle_setup_temp_buffers(void *b1, void *b2 = NULL);
+</code></pre>
+<p>Provides two reusable scratch buffers used internally by file-streaming convolution/FCN variants.</p>
+<p>Typical guidance (from header docs):
+- temp buffer #1: ≥ <code>W*W*sizeof(input_element)</code>
+- temp buffer #2: ≥ <code>W*W*sizeof(float)</code> (accumulator)</p>
+<hr />
+<h2 id="5-filesystem-utilities">5) Filesystem utilities</h2>
+<h3 id="51-open-for-write-delete-first">5.1 Open for write (delete first)</h3>
+<pre><code class="language-cpp">NDL_File noodle_open_file_for_write(const char* fn);
+</code></pre>
+<h3 id="52-read-bytes-until-terminator">5.2 Read bytes until terminator</h3>
+<pre><code class="language-cpp">size_t noodle_read_bytes_until(NDL_File &amp;file, char terminator, char *buffer, size_t length);
+</code></pre>
+<p>Reads into <code>buffer</code> (always NUL-terminated), stops at <code>terminator</code> or <code>length-1</code>.</p>
+<h3 id="53-backend-init">5.3 Backend init</h3>
+<pre><code class="language-cpp">bool noodle_sd_init(int clk_pin, int cmd_pin, int d0_pin);
+bool noodle_sd_init();
+</code></pre>
+<p>Pins variant is meaningful for SD_MMC; default form uses backend defaults.</p>
+<h3 id="54-delete-file">5.4 Delete file</h3>
+<pre><code class="language-cpp">void noodle_delete_file(const char *fn);
+</code></pre>
+<hr />
+<h2 id="6-scalar-io-helpers-text-files">6) Scalar I/O helpers (text files)</h2>
+<pre><code class="language-cpp">void  noodle_write_float(NDL_File &amp;f, float d);
+float noodle_read_float(NDL_File &amp;f);
+
+byte  noodle_read_byte(NDL_File &amp;f);
+void  noodle_write_byte(NDL_File &amp;f, byte d);
+</code></pre>
+<hr />
+<h2 id="7-memory-helpers">7) Memory helpers</h2>
+<pre><code class="language-cpp">float* noodle_create_buffer(uint16_t size); 
+void   noodle_delete_buffer(float *buffer);
+void   noodle_reset_buffer(float *buffer, uint16_t n); 
+</code></pre>
+<hr />
+<h1 id="8-array-grid-io-text-files">8) Array / grid I/O (text files)</h1>
+<h3 id="81-write">8.1 Write</h3>
+<pre><code class="language-cpp">void noodle_array_to_file(float *array, const char *fn, uint16_t n);
+void noodle_grid_to_file(byte  *grid,  const char *fn, uint16_t n); /
+void noodle_grid_to_file(float *grid,  const char *fn, uint16_t n);
+</code></pre>
+<h3 id="82-read">8.2 Read</h3>
+<pre><code class="language-cpp">void noodle_array_from_file(const char *fn, float *buffer, uint16_t K);
+
+void noodle_grid_from_file(const char *fn, byte   *buffer, uint16_t K);
+void noodle_grid_from_file(const char *fn, int8_t *buffer, uint16_t K);
+void noodle_grid_from_file(const char *fn, float  *buffer, uint16_t K);
+</code></pre>
+<h3 id="83-padded-accessors">8.3 Padded accessors</h3>
+<pre><code class="language-cpp">float noodle_get_padded_x(byte  *grid, int16_t i, int16_t j, int16_t W, int16_t P);
+float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P);
+</code></pre>
+<p>Returns 0 outside bounds, otherwise grid value as float.</p>
+<hr />
+<h2 id="9-convolution-pooling-primitives">9) Convolution &amp; pooling primitives</h2>
+<h3 id="91-2d-convolution-in-memory-primitive">9.1 2D convolution (in-memory primitive)</h3>
+<p>Output spatial size: <code>V = (W - K + 2P)/S + 1</code></p>
+<pre><code class="language-cpp">uint16_t noodle_do_conv(byte  *grid, float *kernel, uint16_t K, uint16_t W,
+                        float *output, uint16_t P, uint16_t S);
+
+uint16_t noodle_do_conv(float *grid, float *kernel, uint16_t K, uint16_t W,
+                        float *output, uint16_t P, uint16_t S);
+</code></pre>
+<h3 id="92-bias-optional-activation">9.2 Bias (+ optional activation)</h3>
+<pre><code class="language-cpp">uint16_t noodle_do_bias(float *output, float bias, uint16_t n);  // legacy: bias + ReLU
+
+uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation act);
+</code></pre>
+<h3 id="93-2d-pooling-mode-selected-by-noodle_pool_mode">9.3 2D pooling (mode selected by <code>NOODLE_POOL_MODE</code>)</h3>
+<p>Output spatial size: <code>V_out = (V - K)/S + 1</code></p>
+<pre><code class="language-cpp">uint16_t noodle_do_pooling(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
+uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t S, float *output);
+</code></pre>
+<h3 id="94-1d-pooling-file-output">9.4 1D pooling (file output)</h3>
+<pre><code class="language-cpp">uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
+</code></pre>
+<h3 id="95-1d-convolution-primitive">9.5 1D convolution primitive</h3>
+<p>Output length: <code>V = (W - K + 2P)/S + 1</code></p>
+<pre><code class="language-cpp">uint16_t noodle_do_conv1d(float *input, float *kernel, uint16_t W, uint16_t K,
+                          float *output, uint16_t P, uint16_t S);
+</code></pre>
+<hr />
+<h2 id="10-streamed-convolution-apis">10) Streamed Convolution APIs</h2>
+<p>These functions use the filename tokenization convention (two-letter indices) where applicable.</p>
+<h3 id="101-2d-convolution-optional-pooling">10.1 2D convolution (+ optional pooling)</h3>
+<p><strong>File → File (BYTE input feature maps)</strong></p>
+<pre><code class="language-cpp">uint16_t noodle_conv_byte(const char *in_fn,
+                          uint16_t n_inputs,
+                          uint16_t n_outputs,
+                          const char *out_fn,
+                          uint16_t W,
+                          const Conv &amp;conv,
+                          const Pool &amp;pool,
+                          CBFPtr progress_cb = NULL);
+</code></pre>
+<p><strong>File → File (FLOAT input feature maps)</strong></p>
+<pre><code class="language-cpp">uint16_t noodle_conv_float(const char *in_fn,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           const char *out_fn,
+                           uint16_t W,
+                           const Conv &amp;conv,
+                           const Pool &amp;pool,
+                           CBFPtr progress_cb = NULL);
+</code></pre>
+<p><strong>File → Memory (FLOAT inputs, output tensor <code>[O, Wo, Wo]</code>)</strong></p>
+<pre><code class="language-cpp">uint16_t noodle_conv_float(const char *in_fn,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           float *output,
+                           uint16_t W,
+                           const Conv &amp;conv,
+                           const Pool &amp;pool,
+                           CBFPtr progress_cb = NULL);
+</code></pre>
+<p><strong>Memory → File (FLOAT inputs)</strong></p>
+<pre><code class="language-cpp">uint16_t noodle_conv_float(float *input,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           const char *out_fn,
+                           uint16_t W,
+                           const Conv &amp;conv,
+                           const Pool &amp;pool,
+                           CBFPtr progress_cb = NULL);
+</code></pre>
+<p><strong>Memory → Memory (FLOAT inputs)</strong></p>
+<pre><code class="language-cpp">uint16_t noodle_conv_float(float *input,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           float *output,
+                           uint16_t W,
+                           const Conv &amp;conv,
+                           const Pool &amp;pool,
+                           CBFPtr progress_cb = NULL);
+</code></pre>
+<p>Return value is the output spatial size after pooling (if enabled by your <code>Pool</code> settings).</p>
+<h3 id="102-1d-convolution-streamed-tokenized-filenames">10.2 1D convolution (streamed, tokenized filenames)</h3>
+<p><strong>File → File, with pooling</strong></p>
+<pre><code class="language-cpp">uint16_t noodle_conv1d(float *input, float *output,
+                       uint16_t n_inputs, uint16_t n_outputs,
+                       const char *in_fn, const char *out_fn,
+                       uint16_t W, const Conv &amp;conv, const Pool &amp;pool,
+                       CBFPtr progress_cb = NULL);
+</code></pre>
+<p><strong>File → File, no pooling</strong></p>
+<pre><code class="language-cpp">uint16_t noodle_conv1d(float *input, float *output,
+                       uint16_t n_inputs, uint16_t n_outputs,
+                       const char *in_fn, const char *out_fn,
+                       uint16_t W, const Conv &amp;conv,
+                       CBFPtr progress_cb = NULL);
+</code></pre>
+<hr />
+<h2 id="11-fully-connected-fcn">11) Fully Connected (FCN)</h2>
+<p>All FCN variants compute:
+- <code>y = W·x + b</code>
+- then apply activation (<code>ACT_NONE</code> or <code>ACT_RELU</code> in typical usage; <code>ACT_SOFTMAX</code> exists but softmax is usually applied separately)</p>
+<h3 id="111-memory-int8-file-params-from-files">11.1 Memory (int8) → File (params from files)</h3>
+<pre><code class="language-cpp">uint16_t noodle_fcn(const int8_t *input, uint16_t n_inputs, uint16_t n_outputs,
+                    const char *out_fn, const FCNFile &amp;fcn,
+                    CBFPtr progress_cb = NULL);
+</code></pre>
+<h3 id="112-file-float-text-file-params-from-files">11.2 File (float text) → File (params from files)</h3>
+<pre><code class="language-cpp">uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
+                    const char *out_fn, const FCNFile &amp;fcn,
+                    CBFPtr progress_cb = NULL);
+</code></pre>
+<h3 id="113-memory-float-memory-in-memory-params">11.3 Memory (float) → Memory (in-memory params)</h3>
+<pre><code class="language-cpp">uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
+                    float *output, const FCNMem &amp;fcn,
+                    CBFPtr progress_cb = NULL);
+</code></pre>
+<h3 id="114-memory-byte-memory-params-from-files">11.4 Memory (byte) → Memory (params from files)</h3>
+<pre><code class="language-cpp">uint16_t noodle_fcn(const byte *input, uint16_t n_inputs, uint16_t n_outputs,
+                    float *output, const FCNFile &amp;fcn,
+                    CBFPtr progress_cb = NULL);
+</code></pre>
+<h3 id="115-memory-int8-memory-params-from-files">11.5 Memory (int8) → Memory (params from files)</h3>
+<pre><code class="language-cpp">uint16_t noodle_fcn(const int8_t *input, uint16_t n_inputs, uint16_t n_outputs,
+                    float *output, const FCNFile &amp;fcn,
+                    CBFPtr progress_cb = NULL);
+</code></pre>
+<h3 id="116-file-float-text-memory-params-from-files">11.6 File (float text) → Memory (params from files)</h3>
+<pre><code class="language-cpp">uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
+                    float *output, const FCNFile &amp;fcn,
+                    CBFPtr progress_cb = NULL);
+</code></pre>
+<h3 id="117-memory-float-memory-params-from-files">11.7 Memory (float) → Memory (params from files)</h3>
+<pre><code class="language-cpp">uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
+                    float *output, const FCNFile &amp;fcn,
+                    CBFPtr progress_cb);
+</code></pre>
+<hr />
+<h2 id="12-flatten">12) Flatten</h2>
+<h3 id="121-file-memory-flatten">12.1 File → Memory flatten</h3>
+<pre><code class="language-cpp">uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_filters);
+</code></pre>
+<p>Reads <code>n_filters</code> feature maps from files named by <code>in_fn</code> template and writes a vector of length <code>V*V*n_filters</code>.</p>
+<h3 id="122-memory-memory-flatten">12.2 Memory → Memory flatten</h3>
+<pre><code class="language-cpp">uint16_t noodle_flat(float *input, float *output, uint16_t V, uint16_t n_filters);
+</code></pre>
+<hr />
+<h2 id="13-activations">13) Activations</h2>
+<pre><code class="language-cpp">uint16_t noodle_soft_max(float *input_output, uint16_t n);
+uint16_t noodle_sigmoid(float *input_output, uint16_t n);
+</code></pre>
+<hr />
+<h2 id="14-misc-utilities">14) Misc utilities</h2>
+<h3 id="141-tensor-slicing-helper">14.1 Tensor slicing helper</h3>
+<pre><code class="language-cpp">static inline float* noodle_slice(float* flat, size_t W, size_t z);
+</code></pre>
+<p>Slices a stacked <code>[Z, W, W]</code> tensor stored as contiguous planes.</p>
+<h3 id="142-read-first-line-of-a-text-file">14.2 Read first line of a text file</h3>
+<pre><code class="language-cpp">void noodle_read_top_line(const char* fn, char *line, size_t maxlen);
+</code></pre>
+<hr />
+<h2 id="notes">Notes</h2>
+<ul>
+<li><strong>Text file format:</strong> Tensor/weight/bias I/O uses <em>human-readable text</em>, “one float per line”.</li>
+<li><strong>Filename templates are mutated in-place:</strong> pass writable <code>char[]</code> buffers.</li>
+</ul>
 
 
 
