@@ -27,3 +27,6 @@ https://auralius.github.io/noodle/
 - Lisa Kristiana — ITENAS, Bandung
 
 
+## Copyright and license
+
+Code released under the MIT License. Docs released under Creative Commons.
