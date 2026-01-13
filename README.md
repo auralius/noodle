@@ -13,12 +13,10 @@
 
 It streams activations and weights from **SD/FFat/SD_MMC** filesystems to overcome RAM limitations. Noodle provides primitive modular functions for **convolution layer, dense layer, pooling and activations**. During the development, we typically test Noodle with Arduino UNO R3, UNO R4, and some ESP32 variants.
 
----
-
 
 ## Documentation
 
-https://auralius.github.io/noodle/
+Please check this GitHub Pages: https://auralius.github.io/noodle/
 
 
 ## Authors
@@ -30,3 +28,4 @@ https://auralius.github.io/noodle/
 ## Copyright and license
 
 Code released under the MIT License. Docs released under Creative Commons.
+
