@@ -2,11 +2,7 @@
   <img src="./noodle.png" alt="Description" width="100"> 
 </p>
 
-<h1 align="center">Noodle 🍜≈🧠
-  
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16239228.svg)](https://doi.org/10.5281/zenodo.16239228)
-  
-</h1>
+<h1 align="center">Noodle 🍜≈🧠</h1>
 
 
 **Noodle** is a lightweight convolutional neural network inference library designed for MCUs with **very small RAM**.  
@@ -28,4 +24,5 @@ Please check this GitHub Pages: https://auralius.github.io/noodle/
 ## Copyright and license
 
 Code released under the MIT License. Docs released under Creative Commons.
+
 
