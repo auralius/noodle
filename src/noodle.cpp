@@ -13,7 +13,7 @@ static void *temp_buff1 = NULL;
 static void *temp_buff2 = NULL;
 
 
-static inline float *noodle_slice(float *flat,
+inline float *noodle_slice(float *flat,
                                   size_t W,
                                   size_t z) {
   return flat + z * W * W;
@@ -64,6 +64,19 @@ bool noodle_sd_init() {
 #if defined(NOODLE_USE_SD_MMC)
   return SD_MMC.begin("/sdcard", false, false, 20000, 5);
 #else
+  return NOODLE_FS.begin();
+#endif
+}
+
+bool noodle_sd_init(uint8_t cs_pin) {
+#if defined(NOODLE_USE_SDFAT)
+  return NOODLE_FS.begin(cs_pin);
+#elif defined(NOODLE_USE_SD_MMC)
+  (void)cs_pin;
+  return SD_MMC.begin("/sdcard", false, false, 20000, 5);
+#else
+  // FFat / LittleFS typically don't use CS pins
+  (void)cs_pin;
   return NOODLE_FS.begin();
 #endif
 }
@@ -620,7 +633,7 @@ uint16_t noodle_fcn(const int8_t *input,
                     const FCNFile &fcn,
                     CBFPtr progress_cb) {
   float progress = 0.0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress_step = 1.0f / (float)(n_outputs - 1);
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
@@ -649,7 +662,7 @@ uint16_t noodle_fcn(const float *input,
                     const FCNFile &fcn,
                     CBFPtr progress_cb) {
   float progress = 0.0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress_step = 1.0f / (float)(n_outputs - 1);
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
@@ -678,7 +691,7 @@ uint16_t noodle_fcn(const byte *input,
                     const FCNFile &fcn,
                     CBFPtr progress_cb) {
   float progress = 0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress_step = 1.0f / (float)(n_outputs - 1);
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
@@ -707,7 +720,7 @@ uint16_t noodle_fcn(const byte *input,
                     const FCNFile &fcn,
                     CBFPtr progress_cb) {
   float progress = 0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress_step = 1.0f / (float)(n_outputs - 1);
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
@@ -718,7 +731,7 @@ uint16_t noodle_fcn(const byte *input,
       output[k] += (float)input[j] * noodle_read_float(fw);
     if ((fcn.act == ACT_RELU) && (output[k] < 0.f)) output[k] = 0.0f;
     if (progress_cb) progress_cb(progress);
-    progress += 1.0 / ((float)(n_outputs - 1));
+    progress += progress_step;
   }
 
   fw.close();
@@ -736,7 +749,7 @@ uint16_t noodle_fcn(const float *input,
                     const FCNFile &fcn,
                     CBFPtr progress_cb) {
   float progress = 0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress_step = 1.0f / (float)(n_outputs - 1);
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
@@ -859,7 +872,7 @@ uint16_t noodle_fcn(const float *input,
                     const FCNMem &fcn,
                     CBFPtr progress_cb) {
   float progress = 0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress_step = 1.0f / (float)(n_outputs - 1);
 
   uint16_t l = 0;
   for (uint16_t k = 0; k < n_outputs; k++) {

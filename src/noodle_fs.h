@@ -21,7 +21,7 @@
 
 #if defined(NOODLE_USE_SDFAT)
   #include <SdFat.h>
-  using NDL_File = FsFile;
+  using NDL_File = File;
   extern SdFat NOODLE_FS;  // defined in noodle.cpp
 
 #elif defined(NOODLE_USE_FFAT)

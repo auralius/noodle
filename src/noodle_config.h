@@ -1,9 +1,9 @@
 // noodle_fs_backend.h  (in the sketch folder)
 //#define NOODLE_USE_SD_MMC
 // or
-//#define NOODLE_USE_SDFAT
+#define NOODLE_USE_SDFAT
 // or
-#define NOODLE_USE_FFAT
+//#define NOODLE_USE_FFAT
 // or
 //#define NOODLE_USE_LITTLEFS
 

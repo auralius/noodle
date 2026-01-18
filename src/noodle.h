@@ -7,10 +7,12 @@
  * routines that operate either entirely in memory or by streaming tensors/parameters to
  * and from a filesystem (SD/FFat/SD_MMC). Backends are selected in @ref noodle_fs.h via
  * preprocessor flags. The library is designed for extremely small RAM budgets, so most
- * file-based APIs reuse two caller-supplied temporary buffers (see @ref noodle_setup_temp_buffers).
+ * file-based APIs reuse two caller-supplied temporary buffers 
+ * (see @ref noodle_setup_temp_buffers).
  *
  * ### Backends
- * Select exactly one of `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, or `NOODLE_USE_FFAT`, or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS` before
+ * Select exactly one of `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, or `NOODLE_USE_FFAT`, 
+ * or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS` before
  * including this header; see @ref noodle_fs.h for details.
  *
  * ### File naming convention (2-letter indices)
@@ -104,7 +106,7 @@ typedef void (*CBFPtr)(float progress);
  *  @param z    Plane index to slice.
  *  @return Pointer to the start of plane @p z (no bounds checks).
  */
-static inline float* noodle_slice(float* flat, size_t W, size_t z);
+inline float* noodle_slice(float* flat, size_t W, size_t z);
 
 /** Provide two reusable temporary buffers used internally by file-streaming ops.
  *  Must be called before conv/FCN variants that read from files.
@@ -133,6 +135,8 @@ size_t   noodle_read_bytes_until(NDL_File &file, char terminator, char *buffer, 
 bool noodle_sd_init(int clk_pin, int cmd_pin, int d0_pin);
 /** Initialize SD/FS backend with default pins/settings. */
 bool noodle_sd_init();
+/** Initialize SD/FS backend with a specific CS_PIN. */
+bool noodle_sd_init(uint8_t cs_pin);
 
 /** Convert an integer 0..675 into a two-letter base-26 code ("aa".."zz").
  *  @param number Index to encode.
@@ -516,6 +520,24 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNFile &fcn,
                     CBFPtr progress_cb = NULL);
 
+/** Memory→Memory fully-connected layer (float output; params from files).
+ *  Reads inputs from @p input for each output neuron O, computing y[O] = dot(W[O], x) + b[O],
+ *  then applies activation.
+ *  @param input       Float array of length @p n_inputs.
+ *  @param n_inputs    Number of inputs.
+ *  @param n_outputs   Number of outputs.
+ *  @param output      Float array of length @p n_outputs (written).
+ *  @param fcn         Filenames for weights/bias.
+ *  @param progress_cb Optional progress callback.
+ *  @return n_outputs.
+ */
+uint16_t noodle_fcn(const float *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    float *output,
+                    const FCNFile &fcn,
+                    CBFPtr progress_cb); 
+
 /** File→Memory flatten: reads @p n_filters feature maps from files named by @p in_fn
  *  (tokenized by O via ::noodle_n2ll at positions 4/6 as appropriate) and writes a vector
  *  of length V×V×n_filters in row-major [i* n_filters + k].
@@ -525,15 +547,6 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  *  @param n_filters  Number of channels (O).
  *  @return V×V×n_filters.
  */
-
-
-uint16_t noodle_fcn(const float *input,
-                    uint16_t n_inputs,
-                    uint16_t n_outputs,
-                    float *output,
-                    const FCNFile &fcn,
-                    CBFPtr progress_cb); 
-
 uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_filters);
 
 /** Memory→Memory flatten: flattens [O, V, V] into a vector of length V×V×n_filters.
@@ -545,4 +558,9 @@ uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_fi
  */
 uint16_t noodle_flat(float *input, float *output, uint16_t V, uint16_t n_filters);
 
+/** Read the first line of a given text file.
+ * @param fn          File name to read.
+ * @param line        Reading result.
+ * @param maxlen      Maximum character length to read.
+ */
 void noodle_read_top_line(const char* fn, char *line, size_t maxlen);
