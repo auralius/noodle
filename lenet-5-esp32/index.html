@@ -1,0 +1,995 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-esp32/">
+      
+      
+        <link rel="prev" href="../ad-esp32/">
+      
+      
+        <link rel="next" href="../usps-fcn-uno/">
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>LeNet-5 on ESP32 - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lenet-5-on-esp32" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              LeNet-5 on ESP32
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Anomali Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    LeNet-5 on ESP32
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on ESP32
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#preface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cheap-yellow-display-cyd" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cheap Yellow Display (CYD)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#original-architecture-1998" class="md-nav__link">
+    <span class="md-ellipsis">
+      Original architecture (1998)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#slightly-modified-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Slightly modified architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-keras-pytorch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training (Keras / PyTorch)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#naming-convention-txt" class="md-nav__link">
+    <span class="md-ellipsis">
+      Naming convention (.txt)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Naming convention (.txt)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convolution-kernels-4d-tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Convolution kernels (4D tensors)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dense-weights-2d-tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dense weights (2D tensors)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bias-vectors-1d-tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bias vectors (1D tensors)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-the-esp32-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      On the ESP32 side
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="On the ESP32 side">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convolution-kernel-filename-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      Convolution kernel filename pattern (####)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameter-placement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameter placement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-by-layer-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layer-by-layer implementation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-code-with-platformio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visual Code with PlatformIO
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usps-fcn-uno/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Two-Layer FCN for Digit Recognition on UNO R3
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="lenet-5-on-esp32">LeNet-5 on ESP32</h1>
+<h2 id="preface">Preface</h2>
+<ul>
+<li><strong>Author:</strong>  <ul>
+<li>Auralius Manurung (auralius.manurung@ieee.org)  </li>
+</ul>
+</li>
+<li><strong>Repositories:</strong> <ul>
+<li><a href="https://drive.google.com/file/d/15W501O_LasyiQtoWS02d_JDbA1lgaIQo/view?usp=sharing">Download the whole project files here (Visual Code and PlatformIO)</a>.</li>
+<li><a href="https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing">Google Colab notebook</a>    </li>
+<li><a href="https://drive.google.com/file/d/1rvQixKpxU0dBhDQ8B9gZxADqttoxJPK5/view?usp=drive_link">Dataset link</a></li>
+</ul>
+</li>
+<li><strong>Video demonstration :</strong></li>
+</ul>
+<p><img alt="" src="../attachments/demo-lenet-5.gif" /></p>
+<h2 id="plan">Plan</h2>
+<p>We aim to implement a <strong>slightly modified LeNet-5 network</strong> that runs entirely on-device on an ESP32. To reflect a realistic inference scenario, user input will be captured via a <strong>touchscreen interface</strong>. This means the project involves not only the neural network itself, but also a <strong>preprocessing pipeline</strong> that converts raw touch input into a digitized 28×28 representation suitable for inference.</p>
+<p>In short, the system consists of:</p>
+<ul>
+<li>on-device CNN inference</li>
+<li>touchscreen-based data acquisition</li>
+<li>preprocessing and normalization tailored to embedded constraints</li>
+</ul>
+<p>In this documentation, we skip the preprocessing pipeline and focus on the neural network implementation using the <strong>NOODLE</strong> framework.</p>
+<p>Implementation steps:</p>
+<ol>
+<li>Design the network and train it (e.g., in Google Colab).</li>
+<li>Export weights and biases.</li>
+<li>Decide where each parameter lives:<ul>
+<li><strong>File storage</strong>: SD card (SPI/SDIO), or flash filesystem (FFat/LittleFS)</li>
+<li><strong>In-memory storage</strong>: <code>const</code> in flash, or SRAM/PSRAM</li>
+</ul>
+</li>
+<li>Implement the network layer-by-layer using NOODLE</li>
+</ol>
+<hr />
+<h2 id="cheap-yellow-display-cyd">Cheap Yellow Display (CYD)</h2>
+<p>The CYD is an ESP32-based development board with an integrated LCD display and touchscreen. The display measures <strong>2.8 inches</strong> with a <strong>320×240 pixel resolution</strong>. Due to its low cost and decent performance, the CYD has gained popularity in the ESP32 community, with several public repositories and example projects available, such as <a href="https://github.com/witnessmenow/ESP32-Cheap-Yellow-Display">ESP32-Cheap-Yellow-Display</a>.</p>
+<p><img alt="" src="../attachments/cyd.png" /></p>
+<p>The CYD uses SPI for both the display and the touch controller. These are typically wired with separate chip-select lines (and on some CYD variants, separate SPI buses), which helps when tracking continuous touch input for handwriting.</p>
+<p>As an alternative, we can also use displays where the TFT uses a parallel bus (or SPI) while the touch uses analog inputs, such as <a href="https://github.com/prenticedavid/MCUFRIEND_kbv">MCUFRIEND_kbv UNO shields</a>.</p>
+<hr />
+<h2 id="original-architecture-1998">Original architecture (1998)</h2>
+<p>The following figure and table describe the original LeNet-5 architecture.</p>
+<p><img alt="" src="../attachments/lenet-5.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Type</th>
+<th>Kernel / Stride</th>
+<th>Input shape</th>
+<th>Output shape</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td>Convolution</td>
+<td>6×5×5</td>
+<td>1×32×32</td>
+<td>6×28×28</td>
+<td>tanh</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>Subsampling</td>
+<td>2×2 / 2</td>
+<td>6×28×28</td>
+<td>6×14×14</td>
+<td>average pooling (+ learnable scale/bias in classic LeNet)</td>
+</tr>
+<tr>
+<td>C3</td>
+<td>Convolution</td>
+<td>16×5×5</td>
+<td>6×14×14</td>
+<td>16×10×10</td>
+<td>tanh, sparse connection map</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Subsampling</td>
+<td>2×2 / 2</td>
+<td>16×10×10</td>
+<td>16×5×5</td>
+<td>average pooling</td>
+</tr>
+<tr>
+<td>C5</td>
+<td>Convolution</td>
+<td>120×5×5</td>
+<td>16×5×5</td>
+<td>120×1×1</td>
+<td>effectively fully connected</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>Fully connected</td>
+<td>—</td>
+<td>120</td>
+<td>84</td>
+<td>tanh</td>
+</tr>
+<tr>
+<td>Output</td>
+<td>Fully connected</td>
+<td>—</td>
+<td>84</td>
+<td>10</td>
+<td>Euclidean RBF</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="slightly-modified-architecture">Slightly modified architecture</h2>
+<p>Because the <strong>C5 (120×5×5)</strong> layer is equivalent to a dense layer from <strong>400 → 120</strong>, we implement it as flatten + FC:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Type</th>
+<th>Kernel / Stride</th>
+<th>Input shape</th>
+<th>Output shape</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td>Convolution</td>
+<td>6×5×5</td>
+<td>1×32×32</td>
+<td>6×28×28</td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>Subsampling</td>
+<td>2×2 / 2</td>
+<td>6×28×28</td>
+<td>6×14×14</td>
+<td>average pooling</td>
+</tr>
+<tr>
+<td>C3</td>
+<td>Convolution</td>
+<td>16×5×5</td>
+<td>6×14×14</td>
+<td>16×10×10</td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Subsampling</td>
+<td>2×2 / 2</td>
+<td>16×10×10</td>
+<td>16×5×5</td>
+<td>average pooling</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>Flatten</td>
+<td>—</td>
+<td>16×5×5</td>
+<td>400</td>
+<td>16×5×5 = 400</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>FC</td>
+<td>—</td>
+<td>400</td>
+<td>120</td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>F7</td>
+<td>FC</td>
+<td>—</td>
+<td>120</td>
+<td>84</td>
+<td>ReLU</td>
+</tr>
+<tr>
+<td>Output</td>
+<td>FC</td>
+<td>—</td>
+<td>84</td>
+<td>10</td>
+<td>Softmax</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="training-keras-pytorch">Training (Keras / PyTorch)</h2>
+<p>Noodle does not provide training capability. We will perform training on a computer, extract the training results and deploy them to the ESP32. In this section, we use Google Colab (Keras and Python) for training.</p>
+<ul>
+<li><a href="https://drive.google.com/file/d/1rvQixKpxU0dBhDQ8B9gZxADqttoxJPK5/view?usp=drive_link">Dataset link</a></li>
+<li><a href="https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing">Google Colab notebook</a>    </li>
+</ul>
+<hr />
+<h2 id="naming-convention-txt">Naming convention (<code>.txt</code>)</h2>
+<p>The provided Keras training program come with an automatic exporter function that will export weights and biases with the following naming convention.</p>
+<hr />
+<h3 id="convolution-kernels-4d-tensors">Convolution kernels (4D tensors)</h3>
+<p><strong>Filename format:</strong><br />
+<code>w&lt;NN&gt;&lt;in&gt;&lt;out&gt;.txt</code></p>
+<p>Where:</p>
+<ul>
+<li><code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>weight tensor</strong></li>
+<li><code>&lt;in&gt;</code> is a two-letter code for the input-channel index (<code>aa</code>, <code>ab</code>, …, <code>zz</code>)</li>
+<li><code>&lt;out&gt;</code> is a two-letter code for the output-channel index</li>
+</ul>
+<p><strong>Example:</strong><br />
+<code>w01aaab.txt</code></p>
+<p>Each file contains one flattened spatial kernel for a single <code>(input channel, output channel)</code> pair.</p>
+<hr />
+<h3 id="dense-weights-2d-tensors">Dense weights (2D tensors)</h3>
+<p><strong>Filename format:</strong><br />
+<code>w&lt;NN&gt;.txt</code></p>
+<p>Where:</p>
+<ul>
+<li><code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>weight tensor</strong></li>
+</ul>
+<p><strong>Example:</strong><br />
+<code>w03.txt</code></p>
+<p>Dense weights are exported as a transposed, flattened array, one value per line.</p>
+<hr />
+<h3 id="bias-vectors-1d-tensors">Bias vectors (1D tensors)</h3>
+<p><strong>Filename format:</strong><br />
+<code>b&lt;NN&gt;.txt</code></p>
+<p>Where:</p>
+<ul>
+<li><code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>bias vector</strong></li>
+</ul>
+<p><strong>Example:</strong> 
+<code>b02.txt</code></p>
+<p>Each file contains flattened bias values, one value per line.</p>
+<hr />
+<p>The exporter program will print the generated files. These are some examples for the LeNet-5.</p>
+<pre><code>.../lenet-5/w01aaaa.txt
+.../lenet-5/w01aaab.txt
+.../lenet-5/w01aaac.txt
+.../lenet-5/b01.txt
+
+.../lenet-5/w02aaaa.txt
+.../lenet-5/w02aaab.txt
+.../lenet-5/w02afap.txt
+.../lenet-5/b02.txt
+
+.../lenet-5/w03.txt
+.../lenet-5/b03.txt
+.../lenet-5/w04.txt
+.../lenet-5/b04.txt
+.../lenet-5/w05.txt
+.../lenet-5/b05.txt
+
+</code></pre>
+<hr />
+<h2 id="on-the-esp32-side">On the ESP32 side</h2>
+<p>For fully connected layers, NOODLE provides two parameter structures: <code>FCNMem</code> and <code>FCNFile</code>.</p>
+<pre><code class="language-cpp">/** FCN parameters (filenames; no tokenization). */
+struct FCNFile {
+  const char *weight_fn = nullptr;
+  const char *bias_fn   = nullptr;
+  Activation act = ACT_RELU;
+};
+
+/** FCN parameters for in-memory weights/bias (row-major weights [n_outputs, n_inputs]). */
+struct FCNMem {
+  const float *weight = nullptr;
+  const float *bias   = nullptr;
+  Activation act = ACT_RELU;
+};
+</code></pre>
+<p>If weights/biases are in memory, we use <code>FCNMem</code>. If they are stored as files, we use <code>FCNFile</code>.</p>
+<hr />
+<h3 id="convolution-kernel-filename-pattern">Convolution kernel filename pattern (<code>####</code>)</h3>
+<p>For convolution layers, NOODLE loads per-(input, output) kernels from files named:<br />
+<code>w&lt;KK&gt;&lt;in&gt;&lt;out&gt;.txt</code> (e.g. <code>w01aaab.txt</code>).</p>
+<p>In this documentation, we use the shorthand pattern:</p>
+<ul>
+<li><code>w01####.txt</code> meaning: <code>w01&lt;in&gt;&lt;out&gt;.txt</code></li>
+<li><code>w02####.txt</code> meaning: <code>w02&lt;in&gt;&lt;out&gt;.txt</code></li>
+</ul>
+<p>Where <code>&lt;in&gt;</code> and <code>&lt;out&gt;</code> are the two-letter channel codes produced by the exporter.</p>
+<hr />
+<h3 id="parameter-placement">Parameter placement</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Files</th>
+<th>Location</th>
+<th>In-memory (<code>const</code>)</th>
+<th>File-based</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td><code>w01####.txt</code>, <code>b01.txt</code></td>
+<td>FFat</td>
+<td></td>
+<td>✔</td>
+</tr>
+<tr>
+<td>C3</td>
+<td><code>w02####.txt</code>, <code>b02.txt</code></td>
+<td>FFat</td>
+<td></td>
+<td>✔</td>
+</tr>
+<tr>
+<td>F6</td>
+<td><code>w03.txt</code>, <code>b03.txt</code></td>
+<td>flash (<code>const</code>)</td>
+<td>✔</td>
+<td></td>
+</tr>
+<tr>
+<td>F7</td>
+<td><code>w04.txt</code>, <code>b04.txt</code></td>
+<td>flash (<code>const</code>)</td>
+<td>✔</td>
+<td></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>w05.txt</code>, <code>b05.txt</code></td>
+<td>flash (<code>const</code>)</td>
+<td>✔</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="layer-by-layer-implementation">Layer-by-layer implementation</h3>
+<pre><code class="language-cpp">Conv cnn1;
+cnn1.K = 5;
+cnn1.P = 2;
+cnn1.S = 1; // same padding
+cnn1.weight_fn = &quot;/w01####.txt&quot;;
+cnn1.bias_fn   = &quot;/b01.txt&quot;;
+
+Conv cnn2;
+cnn2.K = 5;
+cnn2.P = 0;
+cnn2.S = 1; // valid padding
+cnn2.weight_fn = &quot;/w02####.txt&quot;;
+cnn2.bias_fn   = &quot;/b02.txt&quot;;
+
+Pool pool;
+pool.M = 2;
+pool.T = 2;
+
+FCNMem fcn1;
+fcn1.weight = w03;
+fcn1.bias   = b03;
+fcn1.act    = ACT_RELU;
+
+FCNMem fcn2;
+fcn2.weight = w04;
+fcn2.bias   = b04;
+fcn2.act    = ACT_RELU;
+
+FCNMem fcn3;
+fcn3.weight = w05;
+fcn3.bias   = b05;
+fcn3.act    = ACT_SOFTMAX;
+
+uint16_t V;
+
+V = noodle_conv_float(BUFFER1, 1, 6,  BUFFER3, 28, cnn1, pool, nullptr);
+V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V,  cnn2, pool, nullptr);
+
+V = noodle_flat(BUFFER1, BUFFER3, V, 16);
+
+V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn1, nullptr);
+V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn2, nullptr);
+V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn3, nullptr);
+</code></pre>
+<p>This implementation requires three buffers:</p>
+<ul>
+<li><code>BUFFER1</code>: input buffer</li>
+<li><code>BUFFER2</code>: temporary/scratch buffer (set via <code>noodle_setup_temp_buffers()</code>)</li>
+<li><code>BUFFER3</code>: output buffer</li>
+</ul>
+<p>For the modified LeNet-5 implementation:</p>
+<pre><code class="language-less">Input image        → BUFFER1
+Conv + Pool #1     BUFFER1 → BUFFER3
+Conv + Pool #2     BUFFER3 → BUFFER1
+Flatten            BUFFER1 → BUFFER3
+Dense #1           BUFFER3 → BUFFER1
+Dense #2           BUFFER1 → BUFFER3
+Dense #3           BUFFER3 → BUFFER1
+</code></pre>
+<hr />
+<h2 id="visual-code-with-platformio">Visual Code with PlatformIO</h2>
+<p>We use Visual Studio Code with PlatformIO instead of the Arduino IDE primarily because it provides better support for file-system images on ESP32 devices (when compared to Arduino IDE). All files intended for the ESP32 filesystem are placed in the project’s <code>data/</code> directory.</p>
+<p><img alt="" src="../attachments/vscode.png" /></p>
+<p>The workflows are as follows.</p>
+<ul>
+<li>Build a file-system image from the contents of <code>data/</code> (all files in <code>data</code> directory to one image file:  <code>fatfs.bin</code>).</li>
+<li>Upload image file to the file-system partition in flash.</li>
+<li>Leave the application firmware unchanged.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

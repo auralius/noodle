@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://auralius.github.io/noodle/</loc>
+         <lastmod>2026-01-21</lastmod>
+    </url>
+    <url>
+         <loc>https://auralius.github.io/noodle/ad-esp32/</loc>
+         <lastmod>2026-01-21</lastmod>
+    </url>
+    <url>
+         <loc>https://auralius.github.io/noodle/api/</loc>
+         <lastmod>2026-01-21</lastmod>
+    </url>
+    <url>
+         <loc>https://auralius.github.io/noodle/lenet-5-esp32/</loc>
+         <lastmod>2026-01-21</lastmod>
+    </url>
+    <url>
+         <loc>https://auralius.github.io/noodle/usps-fcn-uno/</loc>
+         <lastmod>2026-01-21</lastmod>
+    </url>
+</urlset>
