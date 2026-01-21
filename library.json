@@ -1,0 +1,17 @@
+{
+  "name": "Noodle",
+  "keywords": "CNN, embedded AI, on-chip AI, FCN, NN",
+  "description": "Lightweight neural network inference engine with file streaming support.",
+  "url": "https://github.com/auralius/noodle",
+  "authors": [
+    {
+      "name": "Auralius Manurung"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/auralius/noodle.git"
+  },
+  "frameworks": "arduino",
+  "platforms": "*"
+}
