@@ -1,0 +1,9 @@
+
+This directory is intended for project header files.
+
+Header files for weights and biases are put in this directory.
+
+TFT_eSPI for CYD requres specific setup: User_Setup.h
+
+Refer to this tutorial for more details: https://randomnerdtutorials.com/cheap-yellow-display-esp32-2432s028r/
+
