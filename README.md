@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/attachments/noodle.png" alt="Description" width="100"> 
+  <img src="./noodle.png" alt="Description" width="100"> 
 </p>
 <h1 align="center">Noodle 🍜≈🧠</h1>
 <h4 align="center">Lightweight neural network inference engine with file streaming support</h4>
