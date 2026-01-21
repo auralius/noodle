@@ -1,0 +1,31 @@
+site_name: Noodle - The Documentation
+site_url: https://auralius.github.io/noodle/
+repo_url: https://github.com/auralius/noodle/
+
+nav:
+  - Home: index.md
+  - API References: api.md
+  - Anomali Detection on ESP32: ad-esp32.md
+  - LeNet-5 on ESP32: lenet-5-esp32.md
+  - Two-Layer FCN for Digit Recognition on UNO R3: usps-fcn-uno.md
+  
+theme:
+  name: material
+  logo: attachments/noodle.png
+  favicon: attachments/noodle.png
+  features:
+    - toc.integrate
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences
+  - pymdownx.mark
+  - extra
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+extra_css:
+  - stylesheets/extra.css
