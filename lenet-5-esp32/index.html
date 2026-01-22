@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-esp32/">
       
       
-        <link rel="prev" href="../ad-esp32/">
+        <link rel="prev" href="../vww-esp32/">
       
       
         <link rel="next" href="../usps-fcn-uno/">
@@ -279,6 +279,27 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../vww-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Visual Wake Word on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -436,15 +457,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#convolution-kernel-filename-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      Convolution kernel filename pattern (####)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#parameter-placement" class="md-nav__link">
     <span class="md-ellipsis">
       Parameter placement
@@ -532,7 +544,7 @@
 </ul>
 </li>
 <li><strong>Repositories:</strong> <ul>
-<li><a href="https://drive.google.com/file/d/15W501O_LasyiQtoWS02d_JDbA1lgaIQo/view?usp=sharing">Download the whole project files here (Visual Code and PlatformIO)</a>.</li>
+<li><a href="https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32">GitHub (Visual Code and PlatformIO)</a>.</li>
 <li><a href="https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing">Google Colab notebook</a>    </li>
 <li><a href="https://drive.google.com/file/d/1rvQixKpxU0dBhDQ8B9gZxADqttoxJPK5/view?usp=drive_link">Dataset link</a></li>
 </ul>
@@ -733,17 +745,13 @@
 <p>The provided Keras training program come with an automatic exporter function that will export weights and biases with the following naming convention.</p>
 <hr />
 <h3 id="convolution-kernels-4d-tensors">Convolution kernels (4D tensors)</h3>
-<p><strong>Filename format:</strong><br />
-<code>w&lt;NN&gt;&lt;in&gt;&lt;out&gt;.txt</code></p>
-<p>Where:</p>
-<ul>
-<li><code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>weight tensor</strong></li>
-<li><code>&lt;in&gt;</code> is a two-letter code for the input-channel index (<code>aa</code>, <code>ab</code>, …, <code>zz</code>)</li>
-<li><code>&lt;out&gt;</code> is a two-letter code for the output-channel index</li>
-</ul>
-<p><strong>Example:</strong><br />
-<code>w01aaab.txt</code></p>
-<p>Each file contains one flattened spatial kernel for a single <code>(input channel, output channel)</code> pair.</p>
+<p><strong>Filename format</strong><br />
+<code>w&lt;NN&gt;.txt</code></p>
+<p>Where <code>&lt;NN&gt;</code> is a two-digit, zero-padded index identifying a <strong>weight tensor</strong> (layer index).</p>
+<p><strong>Example</strong><br />
+<code>w01.txt</code> — convolution weights for layer 1.</p>
+<p><strong>File contents</strong><br />
+Each file stores <strong>all convolution kernels for a single layer</strong>, serialized into a <strong>1D sequence</strong>.</p>
 <hr />
 <h3 id="dense-weights-2d-tensors">Dense weights (2D tensors)</h3>
 <p><strong>Filename format:</strong><br />
@@ -767,24 +775,8 @@
 <code>b02.txt</code></p>
 <p>Each file contains flattened bias values, one value per line.</p>
 <hr />
-<p>The exporter program will print the generated files. These are some examples for the LeNet-5.</p>
-<pre><code>.../lenet-5/w01aaaa.txt
-.../lenet-5/w01aaab.txt
-.../lenet-5/w01aaac.txt
-.../lenet-5/b01.txt
-
-.../lenet-5/w02aaaa.txt
-.../lenet-5/w02aaab.txt
-.../lenet-5/w02afap.txt
-.../lenet-5/b02.txt
-
-.../lenet-5/w03.txt
-.../lenet-5/b03.txt
-.../lenet-5/w04.txt
-.../lenet-5/b04.txt
-.../lenet-5/w05.txt
-.../lenet-5/b05.txt
-
+<p>The exporter program will print the generated files. These are some examples for the LeNet-5. Besides generating <code>TXT</code> files, the exporter also generates the header files. Thus, we can use them as <code>const</code> arrays stored in flash (variable-level mnemonics).</p>
+<pre><code>/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w01.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w01.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b01.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b01.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w02.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w02.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b02.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b02.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w03.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w03.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b03.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b03.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w04.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w04.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b04.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b04.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w05.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w05.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b05.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b05.h
 </code></pre>
 <hr />
 <h2 id="on-the-esp32-side">On the ESP32 side</h2>
@@ -805,16 +797,6 @@ struct FCNMem {
 </code></pre>
 <p>If weights/biases are in memory, we use <code>FCNMem</code>. If they are stored as files, we use <code>FCNFile</code>.</p>
 <hr />
-<h3 id="convolution-kernel-filename-pattern">Convolution kernel filename pattern (<code>####</code>)</h3>
-<p>For convolution layers, NOODLE loads per-(input, output) kernels from files named:<br />
-<code>w&lt;KK&gt;&lt;in&gt;&lt;out&gt;.txt</code> (e.g. <code>w01aaab.txt</code>).</p>
-<p>In this documentation, we use the shorthand pattern:</p>
-<ul>
-<li><code>w01####.txt</code> meaning: <code>w01&lt;in&gt;&lt;out&gt;.txt</code></li>
-<li><code>w02####.txt</code> meaning: <code>w02&lt;in&gt;&lt;out&gt;.txt</code></li>
-</ul>
-<p>Where <code>&lt;in&gt;</code> and <code>&lt;out&gt;</code> are the two-letter channel codes produced by the exporter.</p>
-<hr />
 <h3 id="parameter-placement">Parameter placement</h3>
 <table>
 <thead>
@@ -829,14 +811,14 @@ struct FCNMem {
 <tbody>
 <tr>
 <td>C1</td>
-<td><code>w01####.txt</code>, <code>b01.txt</code></td>
+<td><code>w01.txt</code>, <code>b01.txt</code></td>
 <td>FFat</td>
 <td></td>
 <td>✔</td>
 </tr>
 <tr>
 <td>C3</td>
-<td><code>w02####.txt</code>, <code>b02.txt</code></td>
+<td><code>w02.txt</code>, <code>b02.txt</code></td>
 <td>FFat</td>
 <td></td>
 <td>✔</td>
@@ -870,14 +852,14 @@ struct FCNMem {
 cnn1.K = 5;
 cnn1.P = 2;
 cnn1.S = 1; // same padding
-cnn1.weight_fn = &quot;/w01####.txt&quot;;
+cnn1.weight_fn = &quot;/w01.txt&quot;;
 cnn1.bias_fn   = &quot;/b01.txt&quot;;
 
 Conv cnn2;
 cnn2.K = 5;
 cnn2.P = 0;
 cnn2.S = 1; // valid padding
-cnn2.weight_fn = &quot;/w02####.txt&quot;;
+cnn2.weight_fn = &quot;/w02.txt&quot;;
 cnn2.bias_fn   = &quot;/b02.txt&quot;;
 
 Pool pool;
@@ -917,13 +899,13 @@ V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn3, nullptr);
 <li><code>BUFFER3</code>: output buffer</li>
 </ul>
 <p>For the modified LeNet-5 implementation:</p>
-<pre><code class="language-less">Input image        → BUFFER1
-Conv + Pool #1     BUFFER1 → BUFFER3
-Conv + Pool #2     BUFFER3 → BUFFER1
-Flatten            BUFFER1 → BUFFER3
-Dense #1           BUFFER3 → BUFFER1
-Dense #2           BUFFER1 → BUFFER3
-Dense #3           BUFFER3 → BUFFER1
+<pre><code class="language-less">Input image      :    BUFFER1
+Conv + Pool #1   :    BUFFER1 → BUFFER3
+Conv + Pool #2   :    BUFFER3 → BUFFER1
+Flatten          :    BUFFER1 → BUFFER3
+Dense #1         :    BUFFER3 → BUFFER1
+Dense #2         :    BUFFER1 → BUFFER3
+Dense #3         :    BUFFER3 → BUFFER1
 </code></pre>
 <hr />
 <h2 id="visual-code-with-platformio">Visual Code with PlatformIO</h2>

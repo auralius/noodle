@@ -1,0 +1,1186 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/vww-esp32/">
+      
+      
+        <link rel="prev" href="../ad-esp32/">
+      
+      
+        <link rel="next" href="../lenet-5-esp32/">
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Visual Wake Word on ESP32 - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#visual-wake-word-on-esp-32" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Visual Wake Word on ESP32
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Anomali Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Visual Wake Word on ESP32
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Visual Wake Word on ESP32
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#preface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mobilenetv1" class="md-nav__link">
+    <span class="md-ellipsis">
+      MobileNetV1
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#extract-benchmark-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extract benchmark data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layer-by-layer-implementation-on-esp32" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layer-by-Layer Implementation on ESP32
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing Scenario
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remarks
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usps-fcn-uno/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Two-Layer FCN for Digit Recognition on UNO R3
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="visual-wake-word-on-esp-32">Visual Wake Word on ESP 32</h1>
+<h2 id="preface">Preface</h2>
+<ul>
+<li><strong>Author:</strong>  <ul>
+<li>Auralius Manurung (auralius.manurung@ieee.org)  </li>
+</ul>
+</li>
+<li><strong>Repositories:</strong> <ul>
+<li><a href="https://github.com/auralius/noodle/tree/main/examples/mlperf-vww-esp32">GitHub (Visual Code and PlatformIO)</a>.</li>
+</ul>
+</li>
+</ul>
+<p>This example is based on the <a href="https://github.com/mlcommons/tiny/tree/master/benchmark/evaluation/datasets">MLPerf Tiny Visual Wake Word (VWW) benchmark</a> by using <a href="https://drive.google.com/file/d/1svRAHzb3PeeHG3o8FlfJwSE1aDpqSHe6/view?usp=sharing">COCO2014 dataset</a>. The classification task in to predict if there is person(s) in the image (the “person vs non-person” benchmark). The paper can be found <a href="https://arxiv.org/pdf/2106.07597">here</a>.</p>
+<h2 id="mobilenetv1">MobileNetV1</h2>
+<p>The architecture is based on the MLPerf Tiny paper, which is slightly different than the original <a href="https://arxiv.org/abs/1704.04861">MobileNetV1 paper</a>.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Layer #</th>
+<th>Type</th>
+<th style="text-align: center;">S</th>
+<th style="text-align: center;">P</th>
+<th>Weight file (dims)</th>
+<th>Bias file (dims)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">01</td>
+<td>Conv 3×3 (Cin=3, Cout=8)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+<td><code>w01.txt</code> (<strong>3×3×3×8</strong>)</td>
+<td><code>b01.txt</code> (<strong>8</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">02</td>
+<td>Depthwise 3×3 (Cin=8, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w02.txt</code> (<strong>3×3×8</strong>)</td>
+<td><code>b02.txt</code> (<strong>8</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">03</td>
+<td>Conv 1×1 (Cin=8, Cout=16)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w03.txt</code> (<strong>1×1×8×16</strong>)</td>
+<td><code>b03.txt</code> (<strong>16</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">04</td>
+<td>Depthwise 3×3 (Cin=16, M=1)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+<td><code>w04.txt</code> (<strong>3×3×16</strong>)</td>
+<td><code>b04.txt</code> (<strong>16</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">05</td>
+<td>Conv 1×1 (Cin=16, Cout=32)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w05.txt</code> (<strong>1×1×16×32</strong>)</td>
+<td><code>b05.txt</code> (<strong>32</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">06</td>
+<td>Depthwise 3×3 (Cin=32, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w06.txt</code> (<strong>3×3×32</strong>)</td>
+<td><code>b06.txt</code> (<strong>32</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">07</td>
+<td>Conv 1×1 (Cin=32, Cout=32)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w07.txt</code> (<strong>1×1×32×32</strong>)</td>
+<td><code>b07.txt</code> (<strong>32</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">08</td>
+<td>Depthwise 3×3 (Cin=32, M=1)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+<td><code>w08.txt</code> (<strong>3×3×32</strong>)</td>
+<td><code>b08.txt</code> (<strong>32</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">09</td>
+<td>Conv 1×1 (Cin=32, Cout=64)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w09.txt</code> (<strong>1×1×32×64</strong>)</td>
+<td><code>b09.txt</code> (<strong>64</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Depthwise 3×3 (Cin=64, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w10.txt</code> (<strong>3×3×64</strong>)</td>
+<td><code>b10.txt</code> (<strong>64</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Conv 1×1 (Cin=64, Cout=64)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w11.txt</code> (<strong>1×1×64×64</strong>)</td>
+<td><code>b11.txt</code> (<strong>64</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Depthwise 3×3 (Cin=64, M=1)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+<td><code>w12.txt</code> (<strong>3×3×64</strong>)</td>
+<td><code>b12.txt</code> (<strong>64</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Conv 1×1 (Cin=64, Cout=128)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w13.txt</code> (<strong>1×1×64×128</strong>)</td>
+<td><code>b13.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Depthwise 3×3 (Cin=128, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w14.txt</code> (<strong>3×3×128</strong>)</td>
+<td><code>b14.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Conv 1×1 (Cin=128, Cout=128)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w15.txt</code> (<strong>1×1×128×128</strong>)</td>
+<td><code>b15.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Depthwise 3×3 (Cin=128, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w16.txt</code> (<strong>3×3×128</strong>)</td>
+<td><code>b16.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Conv 1×1 (Cin=128, Cout=128)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w17.txt</code> (<strong>1×1×128×128</strong>)</td>
+<td><code>b17.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Depthwise 3×3 (Cin=128, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w18.txt</code> (<strong>3×3×128</strong>)</td>
+<td><code>b18.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Conv 1×1 (Cin=128, Cout=128)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w19.txt</code> (<strong>1×1×128×128</strong>)</td>
+<td><code>b19.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Depthwise 3×3 (Cin=128, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w20.txt</code> (<strong>3×3×128</strong>)</td>
+<td><code>b20.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">21</td>
+<td>Conv 1×1 (Cin=128, Cout=128)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w21.txt</code> (<strong>1×1×128×128</strong>)</td>
+<td><code>b21.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">22</td>
+<td>Depthwise 3×3 (Cin=128, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w22.txt</code> (<strong>3×3×128</strong>)</td>
+<td><code>b22.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">23</td>
+<td>Conv 1×1 (Cin=128, Cout=128)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w23.txt</code> (<strong>1×1×128×128</strong>)</td>
+<td><code>b23.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td>Depthwise 3×3 (Cin=128, M=1)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1</td>
+<td><code>w24.txt</code> (<strong>3×3×128</strong>)</td>
+<td><code>b24.txt</code> (<strong>128</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">25</td>
+<td>Conv 1×1 (Cin=128, Cout=256)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w25.txt</code> (<strong>1×1×128×256</strong>)</td>
+<td><code>b25.txt</code> (<strong>256</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">26</td>
+<td>Depthwise 3×3 (Cin=256, M=1)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td><code>w26.txt</code> (<strong>3×3×256</strong>)</td>
+<td><code>b26.txt</code> (<strong>256</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">27</td>
+<td>Conv 1×1 (Cin=256, Cout=256)</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0</td>
+<td><code>w27.txt</code> (<strong>1×1×256×256</strong>)</td>
+<td><code>b27.txt</code> (<strong>256</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">28</td>
+<td>FC (in=256, out=2)</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td><code>w28.txt</code> (<strong>2×256</strong>)</td>
+<td><code>b28.txt</code> (<strong>2</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<pre><code>Op 00: CONV_2D
+  inputs : [(0, [1, 96, 96, 3]), (44, [8, 3, 3, 3]), (3, [8])]
+  outputs: [(58, [1, 48, 48, 8])]
+  stride : (2, 2)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 01: DEPTHWISE_CONV_2D
+  inputs : [(58, [1, 48, 48, 8]), (5, [1, 3, 3, 8]), (4, [8])]
+  outputs: [(59, [1, 48, 48, 8])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 02: CONV_2D
+  inputs : [(59, [1, 48, 48, 8]), (45, [16, 1, 1, 8]), (21, [16])]
+  outputs: [(60, [1, 48, 48, 16])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 03: DEPTHWISE_CONV_2D
+  inputs : [(60, [1, 48, 48, 16]), (33, [1, 3, 3, 16]), (32, [16])]
+  outputs: [(61, [1, 24, 24, 16])]
+  stride : (2, 2)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 04: CONV_2D
+  inputs : [(61, [1, 24, 24, 16]), (46, [32, 1, 1, 16]), (34, [32])]
+  outputs: [(62, [1, 24, 24, 32])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 05: DEPTHWISE_CONV_2D
+  inputs : [(62, [1, 24, 24, 32]), (36, [1, 3, 3, 32]), (35, [32])]
+  outputs: [(63, [1, 24, 24, 32])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 06: CONV_2D
+  inputs : [(63, [1, 24, 24, 32]), (47, [32, 1, 1, 32]), (37, [32])]
+  outputs: [(64, [1, 24, 24, 32])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 07: DEPTHWISE_CONV_2D
+  inputs : [(64, [1, 24, 24, 32]), (39, [1, 3, 3, 32]), (38, [32])]
+  outputs: [(65, [1, 12, 12, 32])]
+  stride : (2, 2)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 08: CONV_2D
+  inputs : [(65, [1, 12, 12, 32]), (48, [64, 1, 1, 32]), (40, [64])]
+  outputs: [(66, [1, 12, 12, 64])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 09: DEPTHWISE_CONV_2D
+  inputs : [(66, [1, 12, 12, 64]), (42, [1, 3, 3, 64]), (41, [64])]
+  outputs: [(67, [1, 12, 12, 64])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 10: CONV_2D
+  inputs : [(67, [1, 12, 12, 64]), (49, [64, 1, 1, 64]), (6, [64])]
+  outputs: [(68, [1, 12, 12, 64])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 11: DEPTHWISE_CONV_2D
+  inputs : [(68, [1, 12, 12, 64]), (8, [1, 3, 3, 64]), (7, [64])]
+  outputs: [(69, [1, 6, 6, 64])]
+  stride : (2, 2)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 12: CONV_2D
+  inputs : [(69, [1, 6, 6, 64]), (50, [128, 1, 1, 64]), (9, [128])]
+  outputs: [(70, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 13: DEPTHWISE_CONV_2D
+  inputs : [(70, [1, 6, 6, 128]), (11, [1, 3, 3, 128]), (10, [128])]
+  outputs: [(71, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 14: CONV_2D
+  inputs : [(71, [1, 6, 6, 128]), (51, [128, 1, 1, 128]), (12, [128])]
+  outputs: [(72, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 15: DEPTHWISE_CONV_2D
+  inputs : [(72, [1, 6, 6, 128]), (14, [1, 3, 3, 128]), (13, [128])]
+  outputs: [(73, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 16: CONV_2D
+  inputs : [(73, [1, 6, 6, 128]), (52, [128, 1, 1, 128]), (15, [128])]
+  outputs: [(74, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 17: DEPTHWISE_CONV_2D
+  inputs : [(74, [1, 6, 6, 128]), (17, [1, 3, 3, 128]), (16, [128])]
+  outputs: [(75, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 18: CONV_2D
+  inputs : [(75, [1, 6, 6, 128]), (53, [128, 1, 1, 128]), (18, [128])]
+  outputs: [(76, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 19: DEPTHWISE_CONV_2D
+  inputs : [(76, [1, 6, 6, 128]), (20, [1, 3, 3, 128]), (19, [128])]
+  outputs: [(77, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 20: CONV_2D
+  inputs : [(77, [1, 6, 6, 128]), (54, [128, 1, 1, 128]), (22, [128])]
+  outputs: [(78, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 21: DEPTHWISE_CONV_2D
+  inputs : [(78, [1, 6, 6, 128]), (24, [1, 3, 3, 128]), (23, [128])]
+  outputs: [(79, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 22: CONV_2D
+  inputs : [(79, [1, 6, 6, 128]), (55, [128, 1, 1, 128]), (25, [128])]
+  outputs: [(80, [1, 6, 6, 128])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 23: DEPTHWISE_CONV_2D
+  inputs : [(80, [1, 6, 6, 128]), (27, [1, 3, 3, 128]), (26, [128])]
+  outputs: [(81, [1, 3, 3, 128])]
+  stride : (2, 2)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 24: CONV_2D
+  inputs : [(81, [1, 3, 3, 128]), (56, [256, 1, 1, 128]), (28, [256])]
+  outputs: [(82, [1, 3, 3, 256])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 25: DEPTHWISE_CONV_2D
+  inputs : [(82, [1, 3, 3, 256]), (30, [1, 3, 3, 256]), (29, [256])]
+  outputs: [(83, [1, 3, 3, 256])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  depth_multiplier: 1
+  act    : 1
+
+Op 26: CONV_2D
+  inputs : [(83, [1, 3, 3, 256]), (57, [256, 1, 1, 256]), (31, [256])]
+  outputs: [(84, [1, 3, 3, 256])]
+  stride : (1, 1)
+  padding: SAME
+  dilation: (1, 1)
+  act    : 1
+
+Op 27: AVERAGE_POOL_2D
+  inputs : [(84, [1, 3, 3, 256])]
+  outputs: [(85, [1, 1, 1, 256])]
+  stride : (3, 3)
+  filter : (3, 3)
+  padding: VALID
+  act    : 0
+
+Op 28: BUILTIN_22
+  inputs : [(85, [1, 1, 1, 256]), (2, [2])]
+  outputs: [(86, [1, 256])]
+
+Op 29: FULLY_CONNECTED
+  inputs : [(86, [1, 256]), (43, [2, 256]), (1, [2])]
+  outputs: [(87, [1, 2])]
+
+Op 30: BUILTIN_25
+  inputs : [(87, [1, 2])]
+  outputs: [(88, [1, 2])]
+</code></pre>
+<h2 id="extract-benchmark-data">Extract benchmark data</h2>
+<p>MLPerf Tiny has already provided <code>.tflite</code> file. Therefore, we will first extract all weights and biases by using <a href="https://drive.google.com/file/d/15lfleTMr7B73JQnjhnBMJ1q62nC9ilJr/view?usp=sharing">the following python code</a>. We then put all these files to <code>data</code>  folder of the VS Code / PlatformIO  working directory.</p>
+<h2 id="layer-by-layer-implementation-on-esp32">Layer-by-Layer Implementation on ESP32</h2>
+<p>The following C++ code demonstrates the "Noodle" layer-by-layer implementation for the ESP32:</p>
+<pre><code class="language-cpp">Pool POOL_ID; POOL_ID.M = 1; POOL_ID.T = 1;
+
+uint16_t W = IN_W;
+uint16_t V = 0;
+
+Conv c00; c00.K=3; c00.P=1; c00.S=2; c00.weight_fn=W_OP00; c00.bias_fn=B_OP00; c00.act=ACT_RELU;
+V = noodle_conv_float(IN, 3, 8, A, W, c00, POOL_ID, nullptr); W = V;
+
+Conv d01; d01.K=3; d01.P=1; d01.S=1; d01.weight_fn=W_OP01; d01.bias_fn=B_OP01; d01.act=ACT_RELU;
+V = noodle_dwconv_float(A, 8, B, W, d01, POOL_ID, nullptr); W = V;
+
+Conv c02; c02.K=1; c02.P=0; c02.S=1; c02.weight_fn=W_OP02; c02.bias_fn=B_OP02; c02.act=ACT_RELU;
+V = noodle_conv_float(B, 8, 16, A, W, c02, POOL_ID, nullptr); W = V;
+
+Conv d03; d03.K=3; d03.P=1; d03.S=2; d03.weight_fn=W_OP03; d03.bias_fn=B_OP03; d03.act=ACT_RELU;
+V = noodle_dwconv_float(A, 16, B, W, d03, POOL_ID, nullptr); W = V;
+
+Conv c04; c04.K=1; c04.P=0; c04.S=1; c04.weight_fn=W_OP04; c04.bias_fn=B_OP04; c04.act=ACT_RELU;
+V = noodle_conv_float(B, 16, 32, A, W, c04, POOL_ID, nullptr); W = V;
+
+Conv d05; d05.K=3; d05.P=1; d05.S=1; d05.weight_fn=W_OP05; d05.bias_fn=B_OP05; d05.act=ACT_RELU;
+V = noodle_dwconv_float(A, 32, B, W, d05, POOL_ID, nullptr); W = V;
+
+Conv c06; c06.K=1; c06.P=0; c06.S=1; c06.weight_fn=W_OP06; c06.bias_fn=B_OP06; c06.act=ACT_RELU;
+V = noodle_conv_float(B, 32, 32, A, W, c06, POOL_ID, nullptr); W = V;
+
+Conv d07; d07.K=3; d07.P=1; d07.S=2; d07.weight_fn=W_OP07; d07.bias_fn=B_OP07; d07.act=ACT_RELU;
+V = noodle_dwconv_float(A, 32, B, W, d07, POOL_ID, nullptr); W = V;
+
+Conv c08; c08.K=1; c08.P=0; c08.S=1; c08.weight_fn=W_OP08; c08.bias_fn=B_OP08; c08.act=ACT_RELU;
+V = noodle_conv_float(B, 32, 64, A, W, c08, POOL_ID, nullptr); W = V;
+
+Conv d09; d09.K=3; d09.P=1; d09.S=1; d09.weight_fn=W_OP09; d09.bias_fn=B_OP09; d09.act=ACT_RELU;
+V = noodle_dwconv_float(A, 64, B, W, d09, POOL_ID, nullptr); W = V;
+
+Conv c10; c10.K=1; c10.P=0; c10.S=1; c10.weight_fn=W_OP10; c10.bias_fn=B_OP10; c10.act=ACT_RELU;
+V = noodle_conv_float(B, 64, 64, A, W, c10, POOL_ID, nullptr); W = V;
+
+Conv d11; d11.K=3; d11.P=1; d11.S=2; d11.weight_fn=W_OP11; d11.bias_fn=B_OP11; d11.act=ACT_RELU;
+V = noodle_dwconv_float(A, 64, B, W, d11, POOL_ID, nullptr); W = V;
+
+Conv c12; c12.K=1; c12.P=0; c12.S=1; c12.weight_fn=W_OP12; c12.bias_fn=B_OP12; c12.act=ACT_RELU;
+V = noodle_conv_float(B, 64, 128, A, W, c12, POOL_ID, nullptr); W = V;
+
+Conv d13; d13.K=3; d13.P=1; d13.S=1; d13.weight_fn=W_OP13; d13.bias_fn=B_OP13; d13.act=ACT_RELU;
+V = noodle_dwconv_float(A, 128, B, W, d13, POOL_ID, nullptr); W = V;
+
+Conv c14; c14.K=1; c14.P=0; c14.S=1; c14.weight_fn=W_OP14; c14.bias_fn=B_OP14; c14.act=ACT_RELU;
+V = noodle_conv_float(B, 128, 128, A, W, c14, POOL_ID, nullptr); W = V;
+
+Conv d15; d15.K=3; d15.P=1; d15.S=1; d15.weight_fn=W_OP15; d15.bias_fn=B_OP15; d15.act=ACT_RELU;
+V = noodle_dwconv_float(A, 128, B, W, d15, POOL_ID, nullptr); W = V;
+
+Conv c16; c16.K=1; c16.P=0; c16.S=1; c16.weight_fn=W_OP16; c16.bias_fn=B_OP16; c16.act=ACT_RELU;
+V = noodle_conv_float(B, 128, 128, A, W, c16, POOL_ID, nullptr); W = V;
+
+Conv d17; d17.K=3; d17.P=1; d17.S=1; d17.weight_fn=W_OP17; d17.bias_fn=B_OP17; d17.act=ACT_RELU;
+V = noodle_dwconv_float(A, 128, B, W, d17, POOL_ID, nullptr); W = V;
+
+Conv c18; c18.K=1; c18.P=0; c18.S=1; c18.weight_fn=W_OP18; c18.bias_fn=B_OP18; c18.act=ACT_RELU;
+V = noodle_conv_float(B, 128, 128, A, W, c18, POOL_ID, nullptr); W = V;
+
+Conv d19; d19.K=3; d19.P=1; d19.S=1; d19.weight_fn=W_OP19; d19.bias_fn=B_OP19; d19.act=ACT_RELU;
+V = noodle_dwconv_float(A, 128, B, W, d19, POOL_ID, nullptr); W = V;
+
+Conv c20; c20.K=1; c20.P=0; c20.S=1; c20.weight_fn=W_OP20; c20.bias_fn=B_OP20; c20.act=ACT_RELU;
+V = noodle_conv_float(B, 128, 128, A, W, c20, POOL_ID, nullptr); W = V;
+
+Conv d21; d21.K=3; d21.P=1; d21.S=1; d21.weight_fn=W_OP21; d21.bias_fn=B_OP21; d21.act=ACT_RELU;
+V = noodle_dwconv_float(A, 128, B, W, d21, POOL_ID, nullptr); W = V;
+
+Conv c22; c22.K=1; c22.P=0; c22.S=1; c22.weight_fn=W_OP22; c22.bias_fn=B_OP22; c22.act=ACT_RELU;
+V = noodle_conv_float(B, 128, 128, A, W, c22, POOL_ID, nullptr); W = V;
+
+Conv d23; d23.K=3; d23.P=1; d23.S=2; d23.weight_fn=W_OP23; d23.bias_fn=B_OP23; d23.act=ACT_RELU;
+V = noodle_dwconv_float(A, 128, B, W, d23, POOL_ID, nullptr); W = V;
+
+Conv c24; c24.K=1; c24.P=0; c24.S=1; c24.weight_fn=W_OP24; c24.bias_fn=B_OP24; c24.act=ACT_RELU;
+V = noodle_conv_float(B, 128, 256, A, W, c24, POOL_ID, nullptr); W = V;
+
+Conv d25; d25.K=3; d25.P=1; d25.S=1; d25.weight_fn=W_OP25; d25.bias_fn=B_OP25; d25.act=ACT_RELU;
+V = noodle_dwconv_float(A, 256, B, W, d25, POOL_ID, nullptr); W = V;
+
+Conv c26; c26.K=1; c26.P=0; c26.S=1; c26.weight_fn=W_OP26; c26.bias_fn=B_OP26; c26.act=ACT_RELU;
+V = noodle_conv_float(B, 256, 256, A, W, c26, POOL_ID, nullptr); W = V;
+
+noodle_gap(A, 256, W);
+
+float out2[2];
+FCNFile fcf; fcf.weight_fn = FC_W; fcf.bias_fn = FC_B; fcf.act = ACT_SOFTMAX;
+(void)noodle_fcn((const float*)A, 256, 2, out2, fcf, nullptr);
+
+</code></pre>
+<h2 id="testing-scenario">Testing Scenario</h2>
+<ol>
+<li><strong>Image Processing:</strong> <a href="../attachments/send_test_data.py">A Python script</a> loads an image, converts it into an array, and sends it to the ESP32 via serial communication.</li>
+<li><strong>Inference:</strong> The ESP32 receives the data, processes the layers, and calculates the prediction.</li>
+<li><strong>Output:</strong> The ESP32 returns the classification results and the total execution time to the host.</li>
+</ol>
+<pre><code>Found 10 images in 'non_person'
+PY DBG first pixel normalized: R=0.094118 G=0.086275 B=0.105882
+[1/10] COCO_train2014_000000387393.jpg -&gt; P0=0.964005 P1=0.035995 pred=0 time_ms=29869
+[2/10] COCO_train2014_000000395007.jpg -&gt; P0=0.926328 P1=0.073672 pred=0 time_ms=29870
+[3/10] COCO_val2014_000000556005.jpg -&gt; P0=0.850917 P1=0.149083 pred=0 time_ms=29870
+[4/10] COCO_train2014_000000091234.jpg -&gt; P0=0.931560 P1=0.068440 pred=0 time_ms=29869
+[5/10] COCO_train2014_000000257732.jpg -&gt; P0=0.916183 P1=0.083817 pred=0 time_ms=29869
+[6/10] COCO_train2014_000000187844.jpg -&gt; P0=0.668761 P1=0.331239 pred=0 time_ms=29870
+[7/10] COCO_train2014_000000037880.jpg -&gt; P0=0.960637 P1=0.039363 pred=0 time_ms=29869
+[8/10] COCO_val2014_000000326854.jpg -&gt; P0=0.983913 P1=0.016087 pred=0 time_ms=29870
+[9/10] COCO_train2014_000000044842.jpg -&gt; P0=0.973420 P1=0.026580 pred=0 time_ms=29871
+[10/10] COCO_val2014_000000558362.jpg -&gt; P0=0.774368 P1=0.225632 pred=0 time_ms=29870
+
+Summary: n=10 avg_P1=0.104991 avg_time_ms=29869.7
+
+Found 10 images in 'person'
+PY DBG first pixel normalized: R=0.819608 G=0.403922 B=0.301961
+[1/10] COCO_val2014_000000533123.jpg -&gt; P0=0.273155 P1=0.726845 pred=1 time_ms=29870
+[2/10] COCO_val2014_000000127516.jpg -&gt; P0=0.355667 P1=0.644333 pred=1 time_ms=29870
+[3/10] COCO_val2014_000000287741.jpg -&gt; P0=0.862113 P1=0.137887 pred=0 time_ms=29870
+[4/10] COCO_train2014_000000523490.jpg -&gt; P0=0.548813 P1=0.451187 pred=0 time_ms=29870
+[5/10] COCO_train2014_000000091056.jpg -&gt; P0=0.687100 P1=0.312900 pred=0 time_ms=29870
+[6/10] COCO_train2014_000000101218.jpg -&gt; P0=0.336044 P1=0.663956 pred=1 time_ms=29871
+[7/10] COCO_train2014_000000169510.jpg -&gt; P0=0.844256 P1=0.155744 pred=0 time_ms=29870
+[8/10] COCO_val2014_000000138995.jpg -&gt; P0=0.662459 P1=0.337541 pred=0 time_ms=29870
+[9/10] COCO_val2014_000000022793.jpg -&gt; P0=0.911852 P1=0.088148 pred=0 time_ms=29871
+[10/10] COCO_train2014_000000336552.jpg -&gt; P0=0.294411 P1=0.705589 pred=1 time_ms=29870
+
+Summary: n=10 avg_P1=0.422413 avg_time_ms=29870.2
+</code></pre>
+<ol>
+<li>Validation: Compare the results with <a href="../attachments/validation.py">Python and Tensorflow</a> using the provided trained <code>.tflite</code>.5. </li>
+</ol>
+<pre><code>[1/10] COCO_train2014_000000387393.jpg -&gt; P0=0.974202 P1=0.025798 pred=0
+[2/10] COCO_train2014_000000395007.jpg -&gt; P0=0.790333 P1=0.209667 pred=0
+[3/10] COCO_val2014_000000556005.jpg -&gt; P0=0.942274 P1=0.057726 pred=0
+[4/10] COCO_train2014_000000091234.jpg -&gt; P0=0.797478 P1=0.202522 pred=0
+[5/10] COCO_train2014_000000257732.jpg -&gt; P0=0.879772 P1=0.120228 pred=0
+[6/10] COCO_train2014_000000187844.jpg -&gt; P0=0.777542 P1=0.222458 pred=0
+[7/10] COCO_train2014_000000037880.jpg -&gt; P0=0.977813 P1=0.022187 pred=0
+[8/10] COCO_val2014_000000326854.jpg -&gt; P0=0.969205 P1=0.030795 pred=0
+[9/10] COCO_train2014_000000044842.jpg -&gt; P0=0.974536 P1=0.025464 pred=0
+[10/10] COCO_val2014_000000558362.jpg -&gt; P0=0.896006 P1=0.103994 pred=0
+
+Summary: n=10 avg_P1=0.102084
+
+[1/10] COCO_val2014_000000533123.jpg -&gt; P0=0.001624 P1=0.998376 pred=1
+[2/10] COCO_val2014_000000127516.jpg -&gt; P0=0.068915 P1=0.931085 pred=1
+[3/10] COCO_val2014_000000287741.jpg -&gt; P0=0.520537 P1=0.479463 pred=0
+[4/10] COCO_train2014_000000523490.jpg -&gt; P0=0.063276 P1=0.936723 pred=1
+[5/10] COCO_train2014_000000091056.jpg -&gt; P0=0.072531 P1=0.927469 pred=1
+[6/10] COCO_train2014_000000101218.jpg -&gt; P0=0.053075 P1=0.946925 pred=1
+[7/10] COCO_train2014_000000169510.jpg -&gt; P0=0.385355 P1=0.614645 pred=1
+[8/10] COCO_val2014_000000138995.jpg -&gt; P0=0.243333 P1=0.756667 pred=1
+[9/10] COCO_val2014_000000022793.jpg -&gt; P0=0.694776 P1=0.305224 pred=0
+[10/10] COCO_train2014_000000336552.jpg -&gt; P0=0.005157 P1=0.994843 pred=1
+
+Summary: n=10 avg_P1=0.789142
+</code></pre>
+<h2 id="remarks">Remarks</h2>
+<p>Discrepancies currently exist between TensorFlow and Noodle outputs. Since reusing pre-trained weights and biases requires bit-perfect process parity, we are finding it difficult to trace and align specific execution steps. To ensure consistency moving forward, it may be more efficient to train models from scratch within our own ecosystem and develop a custom model exporter.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
