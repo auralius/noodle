@@ -6,12 +6,11 @@
 ## Contents
 
 - [API Reference Documentation](api.md)
-- [Anomaly Detection](ad-esp32.md)    
-    - A fully connected autoencoder used in the MLPerf Tiny anomaly detection benchmark
-    - ESP32-S3 Platform
+- [MLPerf Tiny Anomaly Detection on ESP32](ad-esp32.md)    
+- [MLPerf Tiny Visual Wake Word on ESP32](vww-esp32.md)    
 - Single Digit Recognition with Touch-Based Interface
     - [LeNet 5 implementation on ESP32](lenet-5-esp32.md)
-    - [Two layer fully connected network on ATmega328 (Arduino Uno R3)](usps-fcn-uno)
+    - [Two layer fully connected network on ATmega328 (Arduino Uno R3)](usps-fcn-uno.md)
      
 ---
 ## Persistent identifier

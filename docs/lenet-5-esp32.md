@@ -4,7 +4,7 @@
 - **Author:**  
 	- Auralius Manurung (auralius.manurung@ieee.org)  
 - **Repositories:** 
-	- [Download the whole project files here (Visual Code and PlatformIO)](https://drive.google.com/file/d/15W501O_LasyiQtoWS02d_JDbA1lgaIQo/view?usp=sharing).
+	- [GitHub (Visual Code and PlatformIO)](https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32).
 	- [Google Colab notebook](https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing)    
 	- [Dataset link](https://drive.google.com/file/d/1rvQixKpxU0dBhDQ8B9gZxADqttoxJPK5/view?usp=drive_link)
 - **Video demonstration :**
@@ -89,19 +89,16 @@ The provided Keras training program come with an automatic exporter function tha
 ---
 ### Convolution kernels (4D tensors)
 
-**Filename format:**  
-`w<NN><in><out>.txt`
+**Filename format**  
+`w<NN>.txt`
 
-Where:
+Where `<NN>` is a two-digit, zero-padded index identifying a **weight tensor** (layer index).
 
-- `<NN>` is a two-digit, zero-padded index identifying a **weight tensor**
-- `<in>` is a two-letter code for the input-channel index (`aa`, `ab`, …, `zz`)
-- `<out>` is a two-letter code for the output-channel index
+**Example**  
+`w01.txt` — convolution weights for layer 1.
 
-**Example:**  
-`w01aaab.txt`
-
-Each file contains one flattened spatial kernel for a single `(input channel, output channel)` pair.
+**File contents**  
+Each file stores **all convolution kernels for a single layer**, serialized into a **1D sequence**.
 
 ---
 ### Dense weights (2D tensors)
@@ -135,25 +132,9 @@ Where:
 Each file contains flattened bias values, one value per line.
 
 ---
-The exporter program will print the generated files. These are some examples for the LeNet-5.
+The exporter program will print the generated files. These are some examples for the LeNet-5. Besides generating `TXT` files, the exporter also generates the header files. Thus, we can use them as `const` arrays stored in flash (variable-level mnemonics).
 ```
-.../lenet-5/w01aaaa.txt
-.../lenet-5/w01aaab.txt
-.../lenet-5/w01aaac.txt
-.../lenet-5/b01.txt
-
-.../lenet-5/w02aaaa.txt
-.../lenet-5/w02aaab.txt
-.../lenet-5/w02afap.txt
-.../lenet-5/b02.txt
-
-.../lenet-5/w03.txt
-.../lenet-5/b03.txt
-.../lenet-5/w04.txt
-.../lenet-5/b04.txt
-.../lenet-5/w05.txt
-.../lenet-5/b05.txt
-
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w01.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w01.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b01.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b01.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w02.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w02.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b02.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b02.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w03.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w03.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b03.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b03.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w04.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w04.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b04.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b04.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w05.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w05.h /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b05.txt /content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b05.h
 ```
 
 ---
@@ -180,28 +161,15 @@ struct FCNMem {
 If weights/biases are in memory, we use `FCNMem`. If they are stored as files, we use `FCNFile`.
 
 ---
-### Convolution kernel filename pattern (`####`)
-
-For convolution layers, NOODLE loads per-(input, output) kernels from files named:  
-`w<KK><in><out>.txt` (e.g. `w01aaab.txt`).
-
-In this documentation, we use the shorthand pattern:
-
-- `w01####.txt` meaning: `w01<in><out>.txt`
-- `w02####.txt` meaning: `w02<in><out>.txt`
-    
-Where `<in>` and `<out>` are the two-letter channel codes produced by the exporter.
-
----
 ### Parameter placement
 
-| Layer  | Files                    | Location        | In-memory (`const`) | File-based |
-| ------ | ------------------------ | --------------- | ------------------- | ---------- |
-| C1     | `w01####.txt`, `b01.txt` | FFat            |                     | ✔          |
-| C3     | `w02####.txt`, `b02.txt` | FFat            |                     | ✔          |
-| F6     | `w03.txt`, `b03.txt`     | flash (`const`) | ✔                   |            |
-| F7     | `w04.txt`, `b04.txt`     | flash (`const`) | ✔                   |            |
-| Output | `w05.txt`, `b05.txt`     | flash (`const`) | ✔                   |            |
+| Layer  | Files                | Location        | In-memory (`const`) | File-based |
+| ------ | -------------------- | --------------- | ------------------- | ---------- |
+| C1     | `w01.txt`, `b01.txt` | FFat            |                     | ✔          |
+| C3     | `w02.txt`, `b02.txt` | FFat            |                     | ✔          |
+| F6     | `w03.txt`, `b03.txt` | flash (`const`) | ✔                   |            |
+| F7     | `w04.txt`, `b04.txt` | flash (`const`) | ✔                   |            |
+| Output | `w05.txt`, `b05.txt` | flash (`const`) | ✔                   |            |
 
 ---
 ### Layer-by-layer implementation 
@@ -210,14 +178,14 @@ Conv cnn1;
 cnn1.K = 5;
 cnn1.P = 2;
 cnn1.S = 1; // same padding
-cnn1.weight_fn = "/w01####.txt";
+cnn1.weight_fn = "/w01.txt";
 cnn1.bias_fn   = "/b01.txt";
 
 Conv cnn2;
 cnn2.K = 5;
 cnn2.P = 0;
 cnn2.S = 1; // valid padding
-cnn2.weight_fn = "/w02####.txt";
+cnn2.weight_fn = "/w02.txt";
 cnn2.bias_fn   = "/b02.txt";
 
 Pool pool;
@@ -259,13 +227,13 @@ This implementation requires three buffers:
     
 For the modified LeNet-5 implementation:
 ```less
-Input image        → BUFFER1
-Conv + Pool #1     BUFFER1 → BUFFER3
-Conv + Pool #2     BUFFER3 → BUFFER1
-Flatten            BUFFER1 → BUFFER3
-Dense #1           BUFFER3 → BUFFER1
-Dense #2           BUFFER1 → BUFFER3
-Dense #3           BUFFER3 → BUFFER1
+Input image      :    BUFFER1
+Conv + Pool #1   :    BUFFER1 → BUFFER3
+Conv + Pool #2   :    BUFFER3 → BUFFER1
+Flatten          :    BUFFER1 → BUFFER3
+Dense #1         :    BUFFER3 → BUFFER1
+Dense #2         :    BUFFER1 → BUFFER3
+Dense #3         :    BUFFER3 → BUFFER1
 ```
 ---
 ## Visual Code with PlatformIO

@@ -4,7 +4,7 @@
 - **Author:**  
 	- Auralius Manurung (auralius.manurung@ieee.org)  
 - **Repositories:** 
-	- [Download the whole project files here (Visual Code and PlatformIO)](https://drive.google.com/file/d/156KA2AQ_NmlQ6s9Vb0hkxTVZj1cXPOjE/view?usp=sharing).
+	- [GitHub (Visual Code and PlatformIO)](https://github.com/auralius/noodle/tree/main/examples/fcn2-uno).
 	- [Google Colab notebook](https://colab.research.google.com/drive/1UFKH2KD140519j4UWmnDx9_BQ5deOaGe?usp=sharing)    
 	- [Dataset link](https://drive.google.com/file/d/1hflXVZbdAvp15LP2oytCWPqDjGo90O4y/view?usp=drive_link)
 - **Video demonstration :** (speed x 2) 
