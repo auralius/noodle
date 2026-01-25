@@ -618,6 +618,21 @@ uint16_t noodle_dwconv_float(float *input,
  * @param C Number of channels.
  * @param W Width/height of each channel plane.
  */ 
-void noodle_gap(float *x_chw,
+void noodle_gap(float *inout,
                 uint16_t C,
                 uint16_t W);
+                
+void noodle_bn(float *x,
+               uint16_t C,
+               uint16_t W,
+               const float *gamma,
+               const float *beta,
+               const float *mean,
+               const float *var,
+               float eps);
+
+
+void noodle_find_max(float *input,
+          uint16_t n,
+          float &max_val,
+          uint16_t &max_idx);

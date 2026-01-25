@@ -1278,15 +1278,49 @@ uint16_t noodle_dwconv_float(float *input,
 
 
 
-void noodle_gap(float *x_chw,
+void noodle_gap(float *inout,
                 uint16_t C,
                 uint16_t W) {
   const uint32_t n = (uint32_t)W * (uint32_t)W;
   for (uint16_t c = 0; c < C; c++) {
-    float *plane = x_chw + (uint32_t)c * n;
+    float *plane = inout + (uint32_t)c * n;
     double acc = 0.0;
     for (uint32_t i = 0; i < n; i++) acc += (double)plane[i];
     // Write to the front of the buffer. Safe because we finish reading the plane first.
-    x_chw[c] = (float)(acc / (double)n);
+    inout[c] = (float)(acc / (double)n);
+  }
+}
+
+void noodle_bn(float *x,
+               uint16_t C,
+               uint16_t W,
+               const float *gamma,
+               const float *beta,
+               const float *mean,
+               const float *var,
+               float eps) {
+  const uint32_t plane = (uint32_t)W * (uint32_t)W;
+  for (uint16_t c = 0; c < C; ++c) {
+    const float inv_std = 1.0f / sqrtf(var[c] + eps);
+    const float s = gamma[c] * inv_std;
+    const float t = beta[c] - s * mean[c];
+
+    float *p = x + (uint32_t)c * plane;
+    for (uint32_t i = 0; i < plane; ++i) p[i] = s * p[i] + t;
+  }
+}
+
+
+void noodle_find_max(float *input,
+                     uint16_t n,
+                     float &max_val,
+                     uint16_t &max_idx) {
+  max_val = input[0];
+  max_idx = 0;
+  for (uint16_t i = 1; i < n; i++) {
+    if (input[i] > max_val) {
+      max_val = input[i];
+      max_idx = i;
+    }
   }
 }
