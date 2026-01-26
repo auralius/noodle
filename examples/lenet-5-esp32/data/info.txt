@@ -1,1 +1,3 @@
 LeNet-5
+CNN params only
+W01, B01, W02, and B02

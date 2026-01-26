@@ -24,8 +24,8 @@ PLOT_EVERY = 1                  # set 5/10 for faster UI
 
 # --- AUGMENTATION ---
 DO_RANDOM_ROT = True
-ROT_DEG_MIN = -45.0
-ROT_DEG_MAX = 45.0
+ROT_DEG_MIN = -20.0
+ROT_DEG_MAX = 20.0
 ROT_FILL = 0                    # background fill (0=black)
 # =========================
 

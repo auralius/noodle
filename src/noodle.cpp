@@ -310,7 +310,7 @@ uint16_t noodle_do_pooling(const float *input,
 }
 
 uint16_t noodle_do_conv(byte *grid,
-                        float *kernel,
+                        const float *kernel,
                         uint16_t K,
                         uint16_t W,
                         float *output,
@@ -332,7 +332,7 @@ uint16_t noodle_do_conv(byte *grid,
 }
 
 uint16_t noodle_do_conv(float *grid,
-                        float *kernel,
+                        const float *kernel,
                         uint16_t K,
                         uint16_t W,
                         float *output,
@@ -609,6 +609,42 @@ uint16_t noodle_conv_float(float *input,
   return V;
 }
 
+uint16_t noodle_conv_float(float *input,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           const char *out_fn,
+                           uint16_t W,
+                           const ConvMem &conv,
+                           const Pool &pool,
+                           CBFPtr progress_cb)
+{
+  float *in_buffer;
+  float *out_buffer = (float *)temp_buff1;
+
+  float progress = 0;
+  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+
+  char o_fn[20];
+  strcpy(o_fn, out_fn);
+  uint16_t V = 0;
+
+  for (uint16_t O = 0; O < n_outputs; O++) {
+    noodle_reset_buffer(out_buffer, W * W);
+    float bias = conv.bias[O];
+    for (uint16_t I = 0; I < n_inputs; I++) {      
+      const float *kernel = conv.weight + (O * n_inputs + I) * (conv.K * conv.K);
+      in_buffer = noodle_slice(input, W, I);
+      V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
+      if (progress_cb) progress_cb(progress);
+      progress += progress_step;
+    }
+    V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
+    noodle_n2ll(O, &o_fn[6]);
+    V = noodle_do_pooling(out_buffer, V, pool.M, pool.T, o_fn);
+  }
+  return V;
+}
+
 // Memory → memory with float input
 uint16_t noodle_conv_float(float *input,
                            uint16_t n_inputs,
@@ -643,6 +679,39 @@ uint16_t noodle_conv_float(float *input,
   }
   fw.close();
   fb.close();
+  return V;
+}
+
+uint16_t noodle_conv_float(float *input,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           float *output,
+                           uint16_t W,
+                           const ConvMem &conv,
+                           const Pool &pool,
+                           CBFPtr progress_cb) {
+  float *in_buffer;
+  float *out_buffer = (float *)temp_buff1;
+
+  float progress = 0;
+  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  
+  uint16_t V = 0;
+
+  for (uint16_t O = 0; O < n_outputs; O++) {
+    noodle_reset_buffer(out_buffer, W * W);
+    float bias = conv.bias[O];
+    for (uint16_t I = 0; I < n_inputs; I++) {      
+      const float *kernel = conv.weight + (O * n_inputs + I) * (conv.K * conv.K);
+      in_buffer = noodle_slice(input, W, I);
+      V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
+      if (progress_cb) progress_cb(progress);
+      progress += progress_step;
+    }
+    V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
+    uint16_t Wo = (V - pool.M) / pool.T + 1;
+    V = noodle_do_pooling(out_buffer, V, pool.M, pool.T, noodle_slice(output, Wo, O));
+  }
   return V;
 }
 

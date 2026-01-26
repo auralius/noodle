@@ -63,6 +63,19 @@ struct Conv {
   Activation act = ACT_RELU;
 };
 
+struct ConvMem {
+  // Shared conv params for 1D/2D
+  uint16_t K;        ///< Kernel size
+  uint16_t P = 0;    ///< Padding
+  uint16_t S = 1;    ///< Stride
+
+  // File-backed weights/bias filenames
+  const float *weight = nullptr;
+  const float *bias   = nullptr;
+
+  // Activation to apply after bias
+  Activation act = ACT_RELU;
+};
 
 /** 2D pooling parameters. Use enabled=false for identity (no pooling). */
 struct Pool {
@@ -219,10 +232,10 @@ float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t 
  *  @param output  Accumulator buffer of size at least V×V (float).
  *  @return V, the output width/height.
  */
-uint16_t noodle_do_conv(byte *grid, float *kernel, uint16_t K, uint16_t W,
+uint16_t noodle_do_conv(byte *grid, const float *kernel, uint16_t K, uint16_t W,
                         float *output, uint16_t P, uint16_t S);
 /** @overload using float input grid. */
-uint16_t noodle_do_conv(float *grid, float *kernel, uint16_t K, uint16_t W,
+uint16_t noodle_do_conv(float *grid, const float *kernel, uint16_t K, uint16_t W,
                         float *output, uint16_t P, uint16_t S);
 
 /** File→File 2D conv with byte input feature maps.
@@ -327,6 +340,15 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
 
+uint16_t noodle_conv_float(float *input,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           const char *out_fn,
+                           uint16_t W,
+                           const ConvMem &conv,
+                           const Pool &pool,
+                           CBFPtr progress_cb = NULL);
+
 /** Memory→Memory 2D conv with FLOAT inputs. */
 uint16_t noodle_conv_float(float *input,
                            uint16_t n_inputs,
@@ -337,6 +359,14 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
 
+uint16_t noodle_conv_float(float *input,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           float *output,
+                           uint16_t W,
+                           const ConvMem &conv,
+                           const Pool &pool,
+                           CBFPtr progress_cb = NULL);
 // --- 1D Convolution (Conv.K used as kernel length) ---
 
 
