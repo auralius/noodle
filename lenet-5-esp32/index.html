@@ -499,18 +499,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#all-weights-and-biases-in-sram" class="md-nav__link">
+  <a href="#cnn-as-variables-fcn-as-variables" class="md-nav__link">
     <span class="md-ellipsis">
-      All weights and biases in SRAM
+      CNN as variables -- FCN as variables
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#cnn-as-files-fcn-as" class="md-nav__link">
+  <a href="#cnn-as-files-fcn-as-variables" class="md-nav__link">
     <span class="md-ellipsis">
-      CNN as files, FCN as
+      CNN as files -- FCN as variables
     </span>
   </a>
   
@@ -954,7 +954,7 @@ Dense #3         :    BUFFER3 → BUFFER1
 <hr />
 <h2 id="benchmarking">Benchmarking</h2>
 <p>To automate benchmarking, we deploy the classification model to an ESP32 and utilize a Python-based test harness. The harness applies random rotations within a range of <span class="arithmatex">\(\pm20^{\circ}\)</span> before streaming the payloads to the ESP32 via serial communication for inference. These random rotations were not applied during training.</p>
-<h3 id="all-weights-and-biases-in-sram">All weights and biases in SRAM</h3>
+<h3 id="cnn-as-variables-fcn-as-variables">CNN as variables -- FCN as variables</h3>
 <p>To put the CNN parameters in SRAM, we use <code>ConvMem</code> structure.</p>
 <pre><code class="language-cpp">void predict(){
   ConvMem cnn1;
@@ -1005,7 +1005,7 @@ Dense #3         :    BUFFER3 → BUFFER1
 </code></pre>
 <p><img alt="" src="../attachments/bench-sram.gif" /></p>
 <hr />
-<h3 id="cnn-as-files-fcn-as">CNN as files, FCN as</h3>
+<h3 id="cnn-as-files-fcn-as-variables">CNN as files -- FCN as variables</h3>
 <p>To put the CNN parameters in File, we use <code>Conv</code> structure.</p>
 <pre><code class="language-cpp">void predict()
 {
