@@ -40,7 +40,6 @@ The architecture is based on the MLPerf Tiny paper, which is slightly different 
 |      26 | Depthwise 3×3 (Cin=256, M=1) |  1  |  1  | `w26.txt` (**3×3×256**)     | `b26.txt` (**256**) |
 |      27 | Conv 1×1 (Cin=256, Cout=256) |  1  |  0  | `w27.txt` (**1×1×256×256**) | `b27.txt` (**256**) |
 |      28 | FC (in=256, out=2)           |  –  |  –  | `w28.txt` (**2×256**)       | `b28.txt` (**2**)   |
-|         |                              |     |     |                             |                     |
 ```
 Op 00: CONV_2D
   inputs : [(0, [1, 96, 96, 3]), (44, [8, 3, 3, 3]), (3, [8])]

@@ -173,6 +173,7 @@ If weights/biases are in memory, we use `FCNMem`. If they are stored as files, w
 
 ---
 ### Layer-by-layer implementation 
+Here, we define **access to CNN parameters** as files while **access to FCN parameters as variables**.
 ```cpp
 Conv cnn1;
 cnn1.K = 5;
@@ -245,4 +246,121 @@ The workflows are as follows.
 
 - Build a file-system image from the contents of `data/` (all files in `data` directory to one image file:  `fatfs.bin`).
 - Upload image file to the file-system partition in flash.
-- Leave the application firmware unchanged.
+- Leave the application firmware unchanged
+
+---
+## Benchmarking 
+To automate benchmarking, we deploy the classification model to an ESP32 and utilize a Python-based test harness. The harness applies random rotations within a range of $\pm20^{\circ}$ before streaming the payloads to the ESP32 via serial communication for inference. These random rotations were not applied during training.
+# All weights and biases in SRAM
+To put the CNN parameters in SRAM, we use `ConvMem` structure.
+```cpp
+void predict(){
+  ConvMem cnn1;
+  cnn1.K = 5;
+  cnn1.P = 2;
+  cnn1.S = 1; // same padding
+  cnn1.weight = w01;
+  cnn1.bias   = b01;
+
+  ConvMem cnn2;
+  cnn2.K = 5;
+  cnn2.P = 0;
+  cnn2.S = 1; // valid padding
+  cnn2.weight = w02;
+  cnn2.bias   = b02;
+
+  Pool pool;
+  pool.M = 2;
+  pool.T = 2;
+
+  FCNMem fcn_mem1;
+  fcn_mem1.weight = w03;
+  fcn_mem1.bias   = b03;
+  fcn_mem1.act    = ACT_RELU;
+
+  FCNMem fcn_mem2;
+  fcn_mem2.weight = w04;
+  fcn_mem2.bias   = b04;
+  fcn_mem2.act    = ACT_RELU;
+
+  FCNMem fcn_mem3;
+  fcn_mem3.weight = w05;
+  fcn_mem3.bias   = b05;
+  fcn_mem3.act    = ACT_SOFTMAX;
+
+  unsigned long st = micros();
+  uint16_t V;
+
+  // (Optional) keep these prints if you want verbose logs
+  // Serial.println(INFO);
+
+  V = noodle_conv_float(BUFFER1, 1, 6, BUFFER3, 28, cnn1, pool, NULL);
+  V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V, cnn2, pool, NULL);
+
+  V = noodle_flat(BUFFER1, BUFFER3, V, 16);
+
+  V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn_mem1, NULL);
+  V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn_mem2, NULL);
+  V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn_mem3, NULL);
+}
+```
+
+![](attachments/bench-sram.gif)
+
+---
+### CNN as files, FCN as 
+To put the CNN parameters in File, we use `Conv` structure.
+```cpp
+void predict()
+{
+  Conv cnn1;
+  cnn1.K = 5;
+  cnn1.P = 2;
+  cnn1.S = 1; // same padding
+  cnn1.weight_fn = "/w01.txt";
+  cnn1.bias_fn   = "/b01.txt";
+
+  Conv cnn2;
+  cnn2.K = 5;
+  cnn2.P = 0;
+  cnn2.S = 1; // valid padding
+  cnn2.weight_fn = "/w02.txt";
+  cnn2.bias_fn   = "/b02.txt";
+
+  Pool pool;
+  pool.M = 2;
+  pool.T = 2;
+
+  FCNMem fcn_mem1;
+  fcn_mem1.weight = w03;
+  fcn_mem1.bias   = b03;
+  fcn_mem1.act    = ACT_RELU;
+
+  FCNMem fcn_mem2;
+  fcn_mem2.weight = w04;
+  fcn_mem2.bias   = b04;
+  fcn_mem2.act    = ACT_RELU;
+
+  FCNMem fcn_mem3;
+  fcn_mem3.weight = w05;
+  fcn_mem3.bias   = b05;
+  fcn_mem3.act    = ACT_SOFTMAX;
+
+  unsigned long st = micros();
+  uint16_t V;
+
+  // (Optional) keep these prints if you want verbose logs
+  // Serial.println(INFO);
+
+  V = noodle_conv_float(BUFFER1, 1, 6, BUFFER3, 28, cnn1, pool, NULL);
+  V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V, cnn2, pool, NULL);
+
+  V = noodle_flat(BUFFER1, BUFFER3, V, 16);
+
+  V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn_mem1, NULL);
+  V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn_mem2, NULL);
+  V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn_mem3, NULL);
+  
+```
+
+![](attachments/bench-file.gif)
