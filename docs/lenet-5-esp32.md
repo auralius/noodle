@@ -251,7 +251,7 @@ The workflows are as follows.
 ---
 ## Benchmarking 
 To automate benchmarking, we deploy the classification model to an ESP32 and utilize a Python-based test harness. The harness applies random rotations within a range of $\pm20^{\circ}$ before streaming the payloads to the ESP32 via serial communication for inference. These random rotations were not applied during training.
-# All weights and biases in SRAM
+### All weights and biases in SRAM
 To put the CNN parameters in SRAM, we use `ConvMem` structure.
 ```cpp
 void predict(){
@@ -290,9 +290,6 @@ void predict(){
 
   unsigned long st = micros();
   uint16_t V;
-
-  // (Optional) keep these prints if you want verbose logs
-  // Serial.println(INFO);
 
   V = noodle_conv_float(BUFFER1, 1, 6, BUFFER3, 28, cnn1, pool, NULL);
   V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V, cnn2, pool, NULL);
@@ -348,9 +345,6 @@ void predict()
 
   unsigned long st = micros();
   uint16_t V;
-
-  // (Optional) keep these prints if you want verbose logs
-  // Serial.println(INFO);
 
   V = noodle_conv_float(BUFFER1, 1, 6, BUFFER3, 28, cnn1, pool, NULL);
   V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V, cnn2, pool, NULL);
