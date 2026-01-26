@@ -1,6 +1,10 @@
 #include <Arduino.h>
 
 #include "noodle.h"
+#include "w01.h"
+#include "b01.h"
+#include "w02.h"
+#include "b02.h"
 #include "w03.h"
 #include "b03.h"
 #include "w04.h"
@@ -61,19 +65,19 @@ void alloc_buffers()
 // Your original predict pipeline, but now it also prints a result
 void predict()
 {
-  Conv cnn1;
+  ConvMem cnn1;
   cnn1.K = 5;
   cnn1.P = 2;
   cnn1.S = 1; // same padding
-  cnn1.weight_fn = "/w01.txt";
-  cnn1.bias_fn   = "/b01.txt";
+  cnn1.weight = w01;
+  cnn1.bias   = b01;
 
-  Conv cnn2;
+  ConvMem cnn2;
   cnn2.K = 5;
   cnn2.P = 0;
   cnn2.S = 1; // valid padding
-  cnn2.weight_fn = "/w02.txt";
-  cnn2.bias_fn   = "/b02.txt";
+  cnn2.weight = w02;
+  cnn2.bias   = b02;
 
   Pool pool;
   pool.M = 2;
@@ -135,11 +139,11 @@ void setup()
   delay(200);
   while (Serial.available()) Serial.read();
 
-  while (!noodle_sd_init()) {
-    delay(500);
-    Serial.println(F("."));
-  }
-  Serial.println(F("FFAT OK!"));
+  //while (!noodle_sd_init()) {
+  //  delay(500);
+  //  Serial.println(F("."));
+  // }
+  //Serial.println(F("FFAT OK!"));
 
   alloc_buffers();
   noodle_setup_temp_buffers((void *)BUFFER2);
