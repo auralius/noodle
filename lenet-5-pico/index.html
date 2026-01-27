@@ -389,10 +389,10 @@
 
 
 <h1 id="lenet-5-on-raspberry-pico">LeNet-5 on Raspberry Pico</h1>
-<p>Repository: https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32</p>
-<p>Activate the <code>[env:rpi_pico]</code> environment.</p>
-<p>Raspberry Pico does not support partitioning internal flash as in ESP32. Therefore, both CNN and FCN are implemented as variables. The layer-by-layer implementation is exactly identical as in ESP32.</p>
-<p><img alt="" src="../attachments/pico.png" /></p>
+<p>Repository: https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32 
+Select the <code>[env:rpi_pico]</code> environment. </p>
+<p>In the <code>test</code> folder, there is a Python script, named <code>mnist-sender.py</code>. This Python scripts reads a line from the <a href="https://drive.google.com/file/d/10fZ4Mr9-2oMtgNPC9zn2d6VBxjyGsiWU/view?usp=sharing">MNIST dataset</a> (<span class="arithmatex">\(28 \times 28=784\)</span> bytes) and streams the data to the Pico.</p>
+<p>Raspberry Pico does not support partitioning of its internal flash as in ESP32. Therefore, both CNN and FCN are implemented as variables. The layer-by-layer implementation is exactly identical as in ESP32.</p>
 <p><img alt="" src="../attachments/bench-pico.png" /></p>
 <p>The inference time stays consistently at ~1 second.</p>
 
