@@ -145,11 +145,11 @@ NDL_File noodle_open_file_for_write(const char* fn);
 size_t   noodle_read_bytes_until(NDL_File &file, char terminator, char *buffer, size_t length);
 
 /** Initialize SD/FS backend (pins variant is meaningful only for SD_MMC). */
-bool noodle_sd_init(int clk_pin, int cmd_pin, int d0_pin);
+bool noodle_fs_init(int clk_pin, int cmd_pin, int d0_pin);
 /** Initialize SD/FS backend with default pins/settings. */
-bool noodle_sd_init();
+bool noodle_fs_init();
 /** Initialize SD/FS backend with a specific CS_PIN. */
-bool noodle_sd_init(uint8_t cs_pin);
+bool noodle_fs_init(uint8_t cs_pin);
 
 /** Convert an integer 0..675 into a two-letter base-26 code ("aa".."zz").
  *  @param number Index to encode.

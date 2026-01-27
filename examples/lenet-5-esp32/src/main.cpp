@@ -139,7 +139,7 @@ void setup()
   delay(200);
   while (Serial.available()) Serial.read();
 
-  //while (!noodle_sd_init()) {
+  //while (!noodle_fs_init()) {
   //  delay(500);
   //  Serial.println(F("."));
   // }

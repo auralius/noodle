@@ -1,9 +1,11 @@
 #pragma once
 
 // Filesystem backend selection (exactly one)
-#if !defined(NOODLE_USE_SD_MMC) && !defined(NOODLE_USE_SDFAT) && !defined(NOODLE_USE_FFAT) && !defined(NOODLE_USE_LITTLEFS)
+// If the user didn't pick anything (including NONE), pick a default.
+#if !defined(NOODLE_USE_SD_MMC) && !defined(NOODLE_USE_SDFAT) && !defined(NOODLE_USE_FFAT) && !defined(NOODLE_USE_LITTLEFS) && !defined(NOODLE_USE_NONE)
   #define NOODLE_USE_SDFAT
 #endif
+
 
 // Pooling enums
 #ifndef NOODLE_POOL_MAX

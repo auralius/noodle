@@ -45,37 +45,59 @@ size_t noodle_read_bytes_until(NDL_File &file,
   return count;
 }
 
-bool noodle_sd_init(int clk_pin,
+bool noodle_fs_init(int clk_pin,
                     int cmd_pin,
                     int d0_pin) {
-#if defined(NOODLE_USE_SD_MMC)
-  // SD_MMC supports setPins on some boards; begin with common args used originally
+#if defined(NOODLE_USE_NONE)
+  (void)clk_pin; (void)cmd_pin; (void)d0_pin;
+  return false;
+
+#elif defined(NOODLE_USE_SD_MMC)
+  // SD_MMC supports setPins on some ESP32 boards
   SD_MMC.setPins(clk_pin, cmd_pin, d0_pin);
+  // 1-bit mode = true (since only D0 provided)
   return SD_MMC.begin("/sdcard", true, false, 20000, 5);
+
 #else
-  (void)clk_pin;
-  (void)cmd_pin;
-  (void)d0_pin;
+  // Not SD_MMC: these pins are meaningless
+  (void)clk_pin; (void)cmd_pin; (void)d0_pin;
   return noodle_sd_init();
 #endif
 }
 
-bool noodle_sd_init() {
-#if defined(NOODLE_USE_SD_MMC)
+bool noodle_fs_init() {
+#if defined(NOODLE_USE_NONE)
+  return false;
+
+#elif defined(NOODLE_USE_SD_MMC)
   return SD_MMC.begin("/sdcard", false, false, 20000, 5);
+
+#elif defined(NOODLE_USE_SDFAT)
+  // WARNING: SdFat often needs an explicit CS pin. If your SdFat supports
+  // begin() without args on your targets, keep this. Otherwise return false
+  // and force calling noodle_sd_init(cs_pin).
+  return NOODLE_FS.begin();
+
 #else
+  // FFat / LittleFS
   return NOODLE_FS.begin();
 #endif
 }
 
-bool noodle_sd_init(uint8_t cs_pin) {
-#if defined(NOODLE_USE_SDFAT)
+bool noodle_fs_init(uint8_t cs_pin) {
+#if defined(NOODLE_USE_NONE)
+  (void)cs_pin;
+  return false;
+
+#elif defined(NOODLE_USE_SDFAT)
   return NOODLE_FS.begin(cs_pin);
+
 #elif defined(NOODLE_USE_SD_MMC)
   (void)cs_pin;
   return SD_MMC.begin("/sdcard", false, false, 20000, 5);
+
 #else
-  // FFat / LittleFS typically don't use CS pins
+  // FFat / LittleFS ignore CS
   (void)cs_pin;
   return NOODLE_FS.begin();
 #endif
