@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#lenet-5-on-esp32" class="md-skip">
+        <a href="#lenet-5-on-raspberry-pico" class="md-skip">
           Skip to content
         </a>
       
@@ -388,9 +388,10 @@
   
 
 
-<h1 id="lenet-5-on-esp32">LeNet-5 on ESP32</h1>
+<h1 id="lenet-5-on-raspberry-pico">LeNet-5 on Raspberry Pico</h1>
 <p>Repository: https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32, activate this the <code>[env:rpi_pico]</code> environment.</p>
 <p>Raspberry Pico does not support partitioning internal flash as in ESP32. Therefore, bot CNN and FCN are implemented as variables. The layer-by-layer implementasi is exactly identical as in ESP32.</p>
+<p><img alt="" src="pico.png" /></p>
 <p><img alt="" src="../attachments/bench-pico.png" /></p>
 <p>The inference time stays consistently at ~1 second.</p>
 
