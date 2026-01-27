@@ -8,11 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://auralius.github.io/noodle/usps-fcn-uno/">
+        <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-pico/">
       
       
-        <link rel="prev" href="../lenet-5-pico/">
+        <link rel="prev" href="../lenet-5-esp32/">
       
+      
+        <link rel="next" href="../usps-fcn-uno/">
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -20,7 +22,7 @@
     
     
       
-        <title>Two-Layer FCN on UNO R3 - Noodle - The Documentation</title>
+        <title>LeNet-5 on Pico - Noodle - The Documentation</title>
       
     
     
@@ -64,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#two-layer-fully-connected-network-on-atmega328-arduino-uno-r3" class="md-skip">
+        <a href="#lenet-5-on-esp32" class="md-skip">
           Skip to content
         </a>
       
@@ -99,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Two-Layer FCN on UNO R3
+              LeNet-5 on Pico
             
           </span>
         </div>
@@ -319,27 +321,6 @@
       
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-pico/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on Pico
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
     
   
   
@@ -352,19 +333,29 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
   
   <span class="md-ellipsis">
-    Two-Layer FCN on UNO R3
+    LeNet-5 on Pico
     
   </span>
   
 
-          <span class="md-nav__icon md-icon"></span>
-        </label>
+      </a>
       
-      <a href="./" class="md-nav__link md-nav__link--active">
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usps-fcn-uno/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -374,35 +365,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#preface" class="md-nav__link">
-    <span class="md-ellipsis">
-      Preface
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -426,99 +388,11 @@
   
 
 
-<h1 id="two-layer-fully-connected-network-on-atmega328-arduino-uno-r3">Two layer fully connected network on ATmega328 (Arduino Uno R3)</h1>
-<h2 id="preface">Preface</h2>
-<ul>
-<li><strong>Author:</strong>  <ul>
-<li>Auralius Manurung (auralius.manurung@ieee.org)  </li>
-</ul>
-</li>
-<li><strong>Repositories:</strong> <ul>
-<li><a href="https://github.com/auralius/noodle/tree/main/examples/fcn2-uno">GitHub (Visual Code and PlatformIO)</a>.</li>
-<li><a href="https://colab.research.google.com/drive/1UFKH2KD140519j4UWmnDx9_BQ5deOaGe?usp=sharing">Google Colab notebook</a>    </li>
-<li><a href="https://drive.google.com/file/d/1hflXVZbdAvp15LP2oytCWPqDjGo90O4y/view?usp=drive_link">Dataset link</a></li>
-</ul>
-</li>
-<li><strong>Video demonstration :</strong> (speed x 2) </li>
-</ul>
-<p><img alt="" src="../attachments/usps-demo.gif" /></p>
-<h1 id="plan">Plan</h1>
-<p>This project demonstrates how an SD card can be used to implement a two-layer Fully Connected Network (FCN) for digit recognition on an Arduino Uno R3.  </p>
-<p>The Arduino Uno R3 has extremely limited RAM and flash memory. In practical applications, especially those involving a graphical user interface, the interface alone can consume a large portion of the available resources. This makes it impractical to store intermediate activations, layer outputs, or large parameter arrays directly in memory.  </p>
-<p>To address this limitation, our plan is to rely on external storage in the form of an SD card. We will use the SD card to stream data that would otherwise exceed the memory capacity of the microcontroller, enabling the execution of a simple neural network pipeline under tight embedded constraints at the cost of the inference time.</p>
-<h2 id="hardware">Hardware</h2>
-<ul>
-<li>Arduino Uno R3</li>
-<li>2.4 in TFT touch display (UNO shield) from MCUFRIEND</li>
-<li>SD Card</li>
-</ul>
-<p><img alt="" src="../attachments/uno-touch.png" /></p>
-<h2 id="training">Training</h2>
-<p>The network is designed and trained in Google Colab using the USPS dataset. The USPS dataset is selected over MNIST to minimize memory requirements. Because inference is executed directly on the ATmega328 microcontroller, strict memory constraints are encountered as early as the preprocessing stage. This is due to the device’s 2 KB RAM capacity.</p>
-<p><img alt="" src="../attachments/fcn2.png" /></p>
-<p>The following Python code shows the Keras implementation. Here, we set 64 neurons (<span class="arithmatex">\(n=64\)</span>) in the hidden layer.</p>
-<pre><code class="language-python">model = Sequential([
-    Dense(64, input_shape=(256,), activation='relu', kernel_initializer=initializer),  
-    Dropout(0.3),  # &lt;-- training only
-    Dense(10, activation='softmax', kernel_initializer=initializer)  #
-], name='two-layer-fcn')
-</code></pre>
-<p>After training, we can run the exporter and will receive the following files. These file will be copied to the SD Card.</p>
-<pre><code>/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/w01.txt
-/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/w01.h
-/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/b01.txt
-/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/b01.h
-/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/w02.txt
-/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/w02.h
-/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/b02.txt
-/content/drive/MyDrive/NOODLE/datasets/usps/fcn2/b02.h
-</code></pre>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">Layer</th>
-<th style="text-align: right;">Input</th>
-<th style="text-align: right;">Output</th>
-<th>Weight files</th>
-<th>Bias files</th>
-<th>Location</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">Fully connected #1</td>
-<td style="text-align: right;">256</td>
-<td style="text-align: right;">64</td>
-<td><code>w01.txt</code></td>
-<td><code>b01.txt</code></td>
-<td>SD Card</td>
-</tr>
-<tr>
-<td style="text-align: right;">Fully connected #2</td>
-<td style="text-align: right;">64</td>
-<td style="text-align: right;">10</td>
-<td><code>w02.txt</code></td>
-<td><code>b02.txt</code></td>
-<td>SD Card</td>
-</tr>
-</tbody>
-</table>
-<h2 id="on-the-uno-side">On the Uno side</h2>
-<pre><code class="language-cpp">FCNFile FCN1;
-FCN1.weight_fn = &quot;w01.txt&quot;;
-FCN1.bias_fn = &quot;b01.txt&quot;;
-FCN1.act = ACT_RELU;
-// 256 input neurons, 64 hidden neurons
-uint16_t V = noodle_fcn(GRID, 256, 64, OUTPUT_BUFFER1, FCN1, progress_hnd);
-
-FCNFile FCN2;
-FCN2.weight_fn = &quot;w02.txt&quot;;
-FCN2.bias_fn = &quot;b02.txt&quot;;
-FCN2.act = ACT_SOFTMAX;
-// 10 output neurons
-V = noodle_fcn(OUTPUT_BUFFER1, V, 10, OUTPUT_BUFFER2, FCN2, progress_hnd);
-</code></pre>
-<p>The inference completes in  about 10 to 11 seconds. This timing is very consistent since variability only comes from data transfer from SD Card to the micrcontroller.</p>
+<h1 id="lenet-5-on-esp32">LeNet-5 on ESP32</h1>
+<p>Repository: https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32, activate this the <code>[env:rpi_pico]</code> environment.</p>
+<p>Raspberry Pico does not support partitioning internal flash as in ESP32. Therefore, bot CNN and FCN are implemented as variables. The layer-by-layer implementasi is exactly identical as in ESP32.</p>
+<p><img alt="" src="../attachments/bench-pico.png" /></p>
+<p>The inference time stays consistently at ~1 second.</p>
 
 
 
