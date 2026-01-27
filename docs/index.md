@@ -9,8 +9,10 @@
 - [MLPerf Tiny Anomaly Detection on ESP32](ad-esp32.md)    
 - [MLPerf Tiny Visual Wake Word on ESP32](vww-esp32.md)    
 - Single Digit Recognition with Touch-Based Interface
-    - [LeNet 5 implementation on ESP32](lenet-5-esp32.md)
+    - [LeNet-5 implementation on ESP32](lenet-5-esp32.md)
     - [Two layer fully connected network on ATmega328 (Arduino Uno R3)](usps-fcn-uno.md)
+    - [LeNet-5 on Raspberry Pico](lenet-5-pico.md)
+    - LeNet-5 on ATmega32U4 (Arduino Leonardo)
      
 ---
 ## Persistent identifier
