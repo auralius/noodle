@@ -279,8 +279,8 @@ void setup()
 {
   Serial.begin(115200);
 
-  // while (!noodle_sd_init(14, 15, 2)) { // 1-bit pins for ESP32-CAM (AI-Thinker)
-  while (!noodle_sd_init())
+  // while (!noodle_fs_init(14, 15, 2)) { // 1-bit pins for ESP32-CAM (AI-Thinker)
+  while (!noodle_fs_init())
   { // 4-bit
     delay(500);
     tft.println(".");
