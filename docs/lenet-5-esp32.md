@@ -251,7 +251,7 @@ The workflows are as follows.
 ---
 ## Benchmarking 
 To automate benchmarking, we deploy the classification model to an ESP32 and utilize a Python-based test harness. The harness applies random rotations within a range of $\pm20^{\circ}$ before streaming the payloads to the ESP32 via serial communication for inference. These random rotations were not applied during training.
-### All weights and biases in SRAM
+### CNN as variables -- FCN as variables
 To put the CNN parameters in SRAM, we use `ConvMem` structure.
 ```cpp
 void predict(){
@@ -299,13 +299,15 @@ void predict(){
   V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn_mem1, NULL);
   V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn_mem2, NULL);
   V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn_mem3, NULL);
+  ⋮
+  ⋮
 }
 ```
 
 ![](attachments/bench-sram.gif)
 
 ---
-### CNN as files, FCN as 
+### CNN as files -- FCN as variables
 To put the CNN parameters in File, we use `Conv` structure.
 ```cpp
 void predict()
@@ -354,7 +356,8 @@ void predict()
   V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn_mem1, NULL);
   V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn_mem2, NULL);
   V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn_mem3, NULL);
-  
+  ⋮
+  ⋮
 ```
 
 ![](attachments/bench-file.gif)
