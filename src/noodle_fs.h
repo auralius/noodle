@@ -16,20 +16,17 @@
  */
 #pragma once
 
+// -----------------------------
+// Path policy 
+// -----------------------------
 #if defined(NOODLE_USE_SDFAT)
-#warning "NOODLE_USE_SDFAT is defined"
+  #define NOODLE_FS_NEEDS_LEADING_SLASH 0
+#else
+  #define NOODLE_FS_NEEDS_LEADING_SLASH 1
 #endif
-#if defined(NOODLE_USE_SD_MMC)
-#warning "NOODLE_USE_SD_MMC is defined"
-#endif
-#if defined(NOODLE_USE_FFAT)
-#warning "NOODLE_USE_FFAT is defined"
-#endif
-#if defined(NOODLE_USE_LITTLEFS)
-#warning "NOODLE_USE_LITTLEFS is defined"
-#endif
-#if defined(NOODLE_USE_NONE)
-#warning "NOODLE_USE_NONE is defined"
+
+#ifndef NOODLE_MAX_FILENAME
+  #define NOODLE_MAX_FILENAME 20   // plenty for "w28.txt" etc.
 #endif
 
 
@@ -108,7 +105,43 @@
 // ------------------------------
 // 4) Unified API
 // ------------------------------
+// Safe string copy with NUL-termination
+
+// Minimal bounded copy for short filenames
+static inline void noodle_copy_name(char* dst, size_t cap, const char* src) {
+  if (!dst || cap == 0) return;
+  if (!src) { dst[0] = '\0'; return; }
+
+  size_t i = 0;
+  while (src[i] != '\0' && (i + 1) < cap) {
+    dst[i] = src[i];
+    i++;
+  }
+  dst[i] = '\0';
+}
+
+// Normalize path according to backend policy
+// Only safe for immediate use (open/remove); do not store returned pointer!
+static inline const char* noodle_norm_filename(const char* name) {
+  if (!name) return "";
+
+#if NOODLE_FS_NEEDS_LEADING_SLASH
+  // One static buffer is enough for your simplified rules.
+  // Size = '/' + filename + '\0'
+  static char out[NOODLE_MAX_FILENAME + 2];
+
+  out[0] = '/';
+  noodle_copy_name(out + 1, NOODLE_MAX_FILENAME + 1, name);
+  return out;
+#else
+  // SdFat: return as-is, no extra RAM used.
+  return name;
+#endif
+}
+
+// Open a file for reading
 inline NDL_File noodle_fs_open_read(const char* path) {
+  path = noodle_norm_filename(path);
 #if defined(NOODLE_USE_NONE)
   (void)path;
   return NDL_File{}; // invalid handle
@@ -119,7 +152,9 @@ inline NDL_File noodle_fs_open_read(const char* path) {
 #endif
 }
 
+// Open a file for writing (creates or truncates)
 inline NDL_File noodle_fs_open_write(const char* path) {
+    path = noodle_norm_filename(path);
 #if defined(NOODLE_USE_NONE)
   (void)path;
   return NDL_File{}; // invalid handle
@@ -132,6 +167,7 @@ inline NDL_File noodle_fs_open_write(const char* path) {
 }
 
 inline bool noodle_fs_remove(const char* path) {
+    path = noodle_norm_filename(path);
 #if defined(NOODLE_USE_NONE)
   (void)path;
   return false;
