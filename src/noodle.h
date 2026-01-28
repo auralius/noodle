@@ -511,7 +511,9 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  *  @param progress_cb Optional progress callback in [0,1].
  *  @return n_outputs.
  */
-uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs, float *output, const FCNMem &fcn, CBFPtr progress_cb = NULL);
+uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs, 
+                    float *output, const FCNMem &fcn, 
+                    CBFPtr progress_cb = NULL);
 
 
 /** Memory→Memory fully-connected layer (byte inputs; params from files).
