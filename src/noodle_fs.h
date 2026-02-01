@@ -76,7 +76,7 @@
   #if defined(NOODLE_USE_SDFAT)
     #include <SdFat.h>
 
-    #if defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
+    #if defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040)
       using NDL_File = FsFile;   // SdFat on ESP32 typically uses FsFile
     #else
       using NDL_File = File;     // SdFat on AVR often uses File wrapper
@@ -159,7 +159,7 @@ inline NDL_File noodle_fs_open_write(const char* path) {
   (void)path;
   return NDL_File{}; // invalid handle
 #elif defined(NOODLE_USE_SDFAT)
-  uint8_t flags = O_WRITE | O_CREAT | O_TRUNC;
+  int flags = O_WRITE | O_CREAT | O_TRUNC;
   return NOODLE_FS.open(path, flags);
 #else
   return NOODLE_FS.open(path, FILE_WRITE);
@@ -175,3 +175,15 @@ inline bool noodle_fs_remove(const char* path) {
   return NOODLE_FS.remove(path);
 #endif
 }
+
+inline void noodle_rewind_file(NDL_File &fi) {
+#if defined(NOODLE_USE_SDFAT)
+  fi.seekSet(0);
+#elif defined(NOODLE_USE_FFAT) || defined(NOODLE_USE_LITTLEFS) || defined(NOODLE_USE_SD_MMC) || defined(NOODLE_USE_SD)
+  fi.seek(0);
+#else
+  // NOODLE_USE_NONE (or unknown backend): nothing to seek. Close the handle.
+  fi.close();
+#endif
+}
+

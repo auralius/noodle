@@ -15,13 +15,6 @@
  * or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS` before
  * including this header; see @ref noodle_fs.h for details.
  *
- * ### File naming convention (2-letter indices)
- * Some routines iterate input (I) and output (O) channel files by writing a two-letter base-26
- * code into filename templates using ::noodle_n2ll. By convention the 5th and 7th bytes
- * (0‑based indexes 4 and 6) of `in_fn`, `weight_fn`, and `out_fn` are overwritten with the
- * two-letter tokens for **I** and **O**, respectively. Ensure your templates have writable
- * space there (e.g., `"in____"`, `"w____"`, `"out__"`). See function docs.
- *
  * ### Temporary buffers
  * Call ::noodle_setup_temp_buffers() once prior to convolution/FCN routines that read from files.
  * Unless otherwise stated:
@@ -45,6 +38,7 @@
 #ifndef ARDUINO
 typedef unsigned char byte;    ///< Minimal Arduino-compatible alias when not building for Arduino.
 #endif
+// ============================================================================
 
 /** 2D convolution parameters. */
 enum Activation : uint8_t { ACT_NONE = 0, ACT_RELU = 1 , ACT_SOFTMAX = 2};
@@ -83,8 +77,7 @@ struct Pool {
   uint16_t T = 2;    ///< Pool stride
 };
 
-
-
+// ============================================================================
 /** Progress callback type used by long-running routines.
  *  @param progress A normalized progress in [0,1], monotonically nondecreasing.
  */
@@ -145,11 +138,14 @@ NDL_File noodle_open_file_for_write(const char* fn);
 size_t   noodle_read_bytes_until(NDL_File &file, char terminator, char *buffer, size_t length);
 
 /** Initialize SD/FS backend (pins variant is meaningful only for SD_MMC). */
-bool noodle_fs_init(int clk_pin, int cmd_pin, int d0_pin);
+bool noodle_fs_init(uint8_t clk_pin, uint8_t cmd_pin, uint8_t d0_pin);
+/** Initialize SD/FS backend with default pins/settings. */
+bool noodle_fs_init(uint8_t clk_pin, uint8_t cmd_pin, uint8_t d0_pin, uint8_t d1_pin, uint8_t d2_pin, uint8_t d3_pin);
 /** Initialize SD/FS backend with default pins/settings. */
 bool noodle_fs_init();
 /** Initialize SD/FS backend with a specific CS_PIN. */
 bool noodle_fs_init(uint8_t cs_pin);
+
 
 /** Convert an integer 0..675 into a two-letter base-26 code ("aa".."zz").
  *  @param number Index to encode.
@@ -277,6 +273,7 @@ uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation ac
  *  @return V_out = (V - K)/S + 1.
  */
 uint16_t noodle_do_pooling(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
+uint16_t noodle_do_pooling(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
 
 /** 2D pooling over a V×V map, writing results to a provided output buffer.
  *  Pooling mode (MAX or MEAN) is selected via NOODLE_POOL_MODE at compile time.
@@ -298,6 +295,7 @@ uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t 
  *  @return V_out = (V - K)/S + 1.
  */
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
+uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
 // --- 2D Convolution (Conv + optional Pool) ---
 
 /** File→File 2D conv with BYTE input feature maps. */
@@ -370,48 +368,79 @@ uint16_t noodle_conv_float(float *input,
 // --- 1D Convolution (Conv.K used as kernel length) ---
 
 
-/** File→File 1D convolution with optional bias+activation and a 1D MAX pooling stage.
- *  For each output channel O: accumulates conv over all inputs I, adds bias from @p conv.bias_fn,
- *  applies @p conv.act (ACT_NONE/ACT_RELU), and writes pooled outputs for O to @p out_fn (tokenized
- *  by O). Inputs and weights are read from files whose names are tokenized with two-letter indices
- *  via ::noodle_n2ll at positions 4 (I) and 6 (O).
- *  @param input       Scratch buffer (length ≥ W) used internally for streaming reads.
- *  @param output      Scratch/output buffer (length ≥ W) used during accumulation.
+/** File CHW→File CHW 1D convolution with optional bias+activation and a 1D MAX pooling stage.
+ *
+ *  This follows the same I/O convention as noodle_conv_float():
+ *  - @p in_fn is a *single* packed input file containing all input channels in CHW order
+ *    (for 1D: C then W samples, one channel after another).
+ *  - @p out_fn is a *single* packed output file; for each output channel O we append either the
+ *    pooled sequence or the raw sequence (depending on overload).
+ *  - Weights are read sequentially from @p conv.weight_fn in the order: for O in [0..n_outputs)
+ *    and I in [0..n_inputs), read K floats (kernel taps).
+ *  - Biases are read sequentially from @p conv.bias_fn (one float per output channel).
+ *
+ *  NOTE: @p input and @p output parameters are kept for backward compatibility but ignored; this
+ *  function uses the global temp buffers set by noodle_setup_temp_buffers().
+ *
  *  @param n_inputs    Number of input channels I.
  *  @param n_outputs   Number of output channels O.
- *  @param in_fn       Base input filename template (receives I).
- *  @param out_fn      Base output filename template (receives O).
+ *  @param in_fn       Packed input filename (CHW).
+ *  @param out_fn      Packed output filename (CHW).
  *  @param W           Input length.
  *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
  *  @param pool        Pool parameters (kernel M, stride T).
  *  @param progress_cb Optional progress callback in [0,1].
  *  @return V_out after pooling.
  */
-uint16_t noodle_conv1d(float *input, float *output,
-                       uint16_t n_inputs, uint16_t n_outputs,
-                       const char *in_fn, const char *out_fn,
-                       uint16_t W, const Conv &conv, const Pool &pool,
-                       CBFPtr progress_cb = NULL);
+uint16_t noodle_conv1d(const char *in_fn,
+                       uint16_t n_inputs,
+                       const char *out_fn,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const Conv &conv,
+                       const Pool &pool,
+                       CBFPtr progress_cb=NULL);
 
 
-/** File→File 1D convolution with bias+activation and NO pooling.
- *  Semantics as above but writes raw conv+bias(+ReLU) per-O to @p out_fn.
- *  @param input       Scratch buffer (length ≥ W).
- *  @param output      Accumulator buffer (length ≥ W).
+/** File CHW→File CHW 1D convolution with bias+activation and NO pooling.
+ *  Semantics as above but appends raw conv+bias(+ReLU) sequences for each output channel to
+ *  @p out_fn.
+ *  NOTE: @p input/@p output are ignored (uses temp buffers).
  *  @param n_inputs    Number of input channels I.
  *  @param n_outputs   Number of output channels O.
- *  @param in_fn       Base input filename template (receives I).
- *  @param out_fn      Base output filename template (receives O).
+ *  @param in_fn       Packed input filename (CHW).
+ *  @param out_fn      Packed output filename (CHW).
  *  @param W           Input length.
  *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
  *  @param progress_cb Optional progress callback in [0,1].
  *  @return V (pre-pooling output length).
  */
-uint16_t noodle_conv1d(float *input, float *output,
-                       uint16_t n_inputs, uint16_t n_outputs,
-                       const char *in_fn, const char *out_fn,
-                       uint16_t W, const Conv &conv,
-                       CBFPtr progress_cb = NULL);
+uint16_t noodle_conv1d(const char *in_fn,
+                       uint16_t n_inputs,
+                       const char *out_fn,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const Conv &conv,
+                       CBFPtr progress_cb=NULL);
+
+
+/** Memory→Memory 1D convolution with optional bias+activation and a 1D MAX pooling stage.
+ *  @param in          Input array (CHW).
+ *  @param n_inputs    Number of input channels I.
+ *  @param out         Output array (CHW).
+ *  @param n_outputs   Number of output channels O.
+ *  @param W           Input length.
+ *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
+ *  @param progress_cb Optional progress callback in [0,1].
+ *  @return V_out after pooling.
+ */
+uint16_t noodle_conv1d(const float *in,
+                       uint16_t n_inputs,
+                       float *out,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       CBFPtr progress_cb=NULL);
 
 /** File→File FCN with float inputs. */
 /** File→Memory FCN with byte inputs. */
@@ -570,12 +599,23 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  *  @param progress_cb Optional progress callback.
  *  @return n_outputs.
  */
-uint16_t noodle_fcn(const float *input,
-                    uint16_t n_inputs,
-                    uint16_t n_outputs,
-                    float *output,
-                    const FCNFile &fcn,
+uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
+                    float *output, const FCNFile &fcn,
                     CBFPtr progress_cb); 
+
+/** Memory→File fully-connected layer (float inputs; params from files).
+ *  Computes y = W·x + b, optionally applies activation, and writes @p n_outputs lines to @p out_fn.
+ *  @param input       Pointer to @p n_inputs float values.
+ *  @param n_inputs    Number of inputs.
+ *  @param n_outputs   Number of outputs.     
+ *  @param out_fn      Output filename (one float per line).
+ *  @param fcn         Filenames for weights and bias; weights read row-major [O, I].
+ *  @param progress_cb Optional progress callback in [0,1].
+ *  @return n_outputs.
+ */
+uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs, 
+                    const char *out_fn, const FCNFile &fcn,
+                    CBFPtr progress_cb);
 
 /** File→Memory flatten: reads @p n_filters feature maps from files named by @p in_fn
  *  (tokenized by O via ::noodle_n2ll at positions 4/6 as appropriate) and writes a vector
