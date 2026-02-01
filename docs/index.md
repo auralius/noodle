@@ -12,7 +12,7 @@
     - [LeNet-5 implementation on ESP32](lenet-5-esp32.md)
     - [Two layer fully connected network on ATmega328 (Arduino Uno R3)](usps-fcn-uno.md)
     - [LeNet-5 on Raspberry Pico](lenet-5-pico.md)
-    - LeNet-5 on ATmega32U4 (Arduino Leonardo)
+    - [SD-Card–Backed LeNet-5 Inference](lenet-5-esp32-sdio.md)
      
 ---
 ## Persistent identifier

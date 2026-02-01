@@ -5,11 +5,13 @@ repo_url: https://github.com/auralius/noodle/
 nav:
 - Home: index.md
 - API References: api.md
-- Anomaly Detection on ESP32: ad-esp32.md
+- Anomali Detection on ESP32: ad-esp32.md
 - Visual Wake Word on ESP32: vww-esp32.md
 - LeNet-5 on ESP32: lenet-5-esp32.md
 - LeNet-5 on Pico: lenet-5-pico.md
+- SD-Card–Backed LeNet-5: lenet-5-esp32-sdio.md
 - Two-Layer FCN on UNO R3: usps-fcn-uno.md
+
 theme:
   name: material
   logo: attachments/noodle.png
