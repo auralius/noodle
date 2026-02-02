@@ -9,7 +9,7 @@ def format_c_array(array):
     lines = []
     line = []
     for i, val in enumerate(array):
-        line.append(f"{val:.6e}f")
+        line.append(f"{val:.4e}f")
         if (i + 1) % 8 == 0:
             lines.append("  " + ", ".join(line))
             line = []
@@ -83,7 +83,7 @@ def exporter(weights, dir):
                 # [Kh, Kw, Cin, Cout] -> [Cout, Cin, Kh, Kw] then flatten (O,I,r,c)
                 w_oihw = np.transpose(w, (3, 2, 0, 1)).astype(np.float32)
                 flat = w_oihw.flatten(order="C")
-                np.savetxt(fn_txt, flat, fmt="%.6e", newline="\n")
+                np.savetxt(fn_txt, flat, fmt="%.4e", newline="\n")
 
                 #fn_meta = fn_txt.replace(".txt", ".meta.txt")
                 #_write_meta(fn_meta, "conv2d", "OIHW", {"Kh": Kh, "Kw": Kw, "Cin": Cin, "Cout": C4})
@@ -94,7 +94,7 @@ def exporter(weights, dir):
                 M = C4
                 w_cmrw = np.transpose(w, (2, 3, 0, 1)).astype(np.float32)  # [Cin, M, Kh, Kw]
                 flat = w_cmrw.flatten(order="C")  # (C, m, r, c)
-                np.savetxt(fn_txt, flat, fmt="%.6e", newline="\n")
+                np.savetxt(fn_txt, flat, fmt="%.4e", newline="\n")
 
                 #fn_meta = fn_txt.replace(".txt", ".meta.txt")
                 #_write_meta(fn_meta, "depthwise", "CIMHW", {"Kh": Kh, "Kw": Kw, "Cin": Cin, "M": M, "Cout": Cin * M})
@@ -125,7 +125,7 @@ def exporter(weights, dir):
             fn_txt = dir + "w" + to_two_digit_string(w_idx) + ".txt"
             print(fn_txt)
             arr = np.float32(w.transpose().flatten())
-            np.savetxt(fn_txt, arr, fmt="%.6e", newline="\n")
+            np.savetxt(fn_txt, arr, fmt="%.4e", newline="\n")
 
             fn_h = fn_txt.replace(".txt", ".h")
             var_name = "w" + to_two_digit_string(w_idx)
@@ -146,7 +146,7 @@ def exporter(weights, dir):
             fn_txt = dir + "b" + to_two_digit_string(b_idx) + ".txt"
             print(fn_txt)
             arr = np.float32(w.flatten())
-            np.savetxt(fn_txt, arr, fmt="%.6e", newline="\n")
+            np.savetxt(fn_txt, arr, fmt="%.4e", newline="\n")
 
             fn_h = fn_txt.replace(".txt", ".h")
             var_name = "b" + to_two_digit_string(b_idx)
