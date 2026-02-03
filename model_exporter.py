@@ -29,19 +29,24 @@ def exporter(weights, dir):
     Export model weights in Noodle-friendly streaming format.
 
     Conventions:
-    - 4D conv2d kernel (Keras): [Kh, Kw, Cin, Cout]  -> wXX.txt, layout OIHW (O-major, then I, then row/col)
-      File order: for O, for I, for r, for c: write w[r,c,I,O] (one float per line)
-    - 4D depthwise kernel (Keras): [Kh, Kw, Cin, M] -> wXX.txt, layout CIMHW (C-major, then multiplier, then row/col)
+    - 4D conv2d kernel (Keras): [Kh, Kw, Cin, Cout] -> OIHW stream (O-major, then I, then r,c)
+      File order: for O, for I, for r, for c: write w[r,c,I,O]
+    - 4D depthwise2d kernel (Keras): [Kh, Kw, Cin, M] -> CIMHW stream (C-major, then m, then r,c)
       File order: for C, for m, for r, for c: write w[r,c,C,m]
-      (If M==1 this is simply C-major K*K per channel, which matches common DW streaming.)
-    - 2D dense: transposed flatten same as original exporter
-    - 1D bias: bXX.txt one float per line
+
+    - 3D conv1d kernel (Keras): [K, Cin, Cout] -> OIK stream (O-major, then I, then k)
+      File order: for O, for I, for k: write w[k,I,O]
+    - 3D depthwise1d-like kernel: [K, Cin, M] -> CIMK stream (C-major, then m, then k)
+      File order: for C, for m, for k: write w[k,C,m]
+
+    - 2D dense: transpose then flatten (same as your original)
+    - 1D bias: one float per line
 
     Notes:
-    - Depthwise vs Conv2D detection is heuristic based on the NEXT 1D bias length:
-        * if bias_len == Cout            => Conv2D
-        * if bias_len == Cin*M           => Depthwise
-      If unsure, defaults to Conv2D.
+    - Conv vs depthwise detection is heuristic based on the NEXT 1D bias length:
+        * if bias_len == Cout            => Conv
+        * if bias_len == Cin*M           => Depthwise-like
+      If unsure, defaults to Conv.
     """
     if not dir.endswith('/'):
         dir += '/'
@@ -58,9 +63,9 @@ def exporter(weights, dir):
         # ---------- 4D tensors: Conv2D or DepthwiseConv2D ----------
         if len(w.shape) == 4:
             Kh, Kw, Cin, C4 = w.shape  # C4 is Cout for Conv2D, or M for Depthwise
-            # Lookahead for bias to infer layer type
             kind = "conv2d"
             layout = "OIHW"
+
             bias_len = None
             if k + 1 < len(weights) and len(weights[k + 1].shape) == 1:
                 bias_len = int(weights[k + 1].shape[0])
@@ -68,10 +73,9 @@ def exporter(weights, dir):
                     kind = "conv2d"
                     layout = "OIHW"
                 elif bias_len == Cin * C4:
-                    kind = "depthwise"
+                    kind = "depthwise2d"
                     layout = "CIMHW"
                 else:
-                    # default conv2d
                     kind = "conv2d"
                     layout = "OIHW"
 
@@ -84,21 +88,12 @@ def exporter(weights, dir):
                 w_oihw = np.transpose(w, (3, 2, 0, 1)).astype(np.float32)
                 flat = w_oihw.flatten(order="C")
                 np.savetxt(fn_txt, flat, fmt="%.4e", newline="\n")
-
-                #fn_meta = fn_txt.replace(".txt", ".meta.txt")
-                #_write_meta(fn_meta, "conv2d", "OIHW", {"Kh": Kh, "Kw": Kw, "Cin": Cin, "Cout": C4})
-                #print(fn_meta)
-
             else:
-                # depthwise: [Kh, Kw, Cin, M] -> stream as C-major then multiplier then r,c
+                # depthwise2d: [Kh, Kw, Cin, M] -> [Cin, M, Kh, Kw] then flatten (C,m,r,c)
                 M = C4
                 w_cmrw = np.transpose(w, (2, 3, 0, 1)).astype(np.float32)  # [Cin, M, Kh, Kw]
-                flat = w_cmrw.flatten(order="C")  # (C, m, r, c)
+                flat = w_cmrw.flatten(order="C")
                 np.savetxt(fn_txt, flat, fmt="%.4e", newline="\n")
-
-                #fn_meta = fn_txt.replace(".txt", ".meta.txt")
-                #_write_meta(fn_meta, "depthwise", "CIMHW", {"Kh": Kh, "Kw": Kw, "Cin": Cin, "M": M, "Cout": Cin * M})
-                #print(fn_meta)
 
             # Also generate .h
             fn_h = fn_txt.replace(".txt", ".h")
@@ -111,6 +106,60 @@ def exporter(weights, dir):
                     f_h.write(f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, Cout={C4}\n")
                 else:
                     f_h.write(f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, M={C4}, Cout={Cin*C4}\n")
+                f_h.write(f"static const float {var_name}[] = {{\n")
+                f_h.write(c_array_content)
+                f_h.write("\n};\n")
+            print(fn_h)
+
+            k += 1
+            continue
+
+        # ---------- 3D tensors: Conv1D or Depthwise1D-like ----------
+        if len(w.shape) == 3:
+            K, Cin, C3 = w.shape  # C3 is Cout for Conv1D, or M for depthwise-like
+            kind = "conv1d"
+            layout = "OIK"
+
+            bias_len = None
+            if k + 1 < len(weights) and len(weights[k + 1].shape) == 1:
+                bias_len = int(weights[k + 1].shape[0])
+                if bias_len == C3:
+                    kind = "conv1d"
+                    layout = "OIK"
+                elif bias_len == Cin * C3:
+                    kind = "depthwise1d"
+                    layout = "CIMK"
+                else:
+                    kind = "conv1d"
+                    layout = "OIK"
+
+            w_idx += 1
+            fn_txt = dir + "w" + to_two_digit_string(w_idx) + ".txt"
+            print(fn_txt)
+
+            if kind == "conv1d":
+                # [K, Cin, Cout] -> [Cout, Cin, K] then flatten (O, I, k)
+                w_oik = np.transpose(w, (2, 1, 0)).astype(np.float32)  # [Cout, Cin, K]
+                flat = w_oik.flatten(order="C")
+                np.savetxt(fn_txt, flat, fmt="%.4e", newline="\n")
+            else:
+                # depthwise1d-like: [K, Cin, M] -> [Cin, M, K] then flatten (C, m, k)
+                M = C3
+                w_cmk = np.transpose(w, (1, 2, 0)).astype(np.float32)  # [Cin, M, K]
+                flat = w_cmk.flatten(order="C")
+                np.savetxt(fn_txt, flat, fmt="%.4e", newline="\n")
+
+            # Also generate .h
+            fn_h = fn_txt.replace(".txt", ".h")
+            var_name = "w" + to_two_digit_string(w_idx)
+            c_array_content = format_c_array(flat)
+            with open(fn_h, "w") as f_h:
+                f_h.write("#pragma once\n\n")
+                f_h.write(f"// kind={kind}, layout={layout}\n")
+                if kind == "conv1d":
+                    f_h.write(f"// dims: K={K}, Cin={Cin}, Cout={C3}\n")
+                else:
+                    f_h.write(f"// dims: K={K}, Cin={Cin}, M={C3}, Cout={Cin*C3}\n")
                 f_h.write(f"static const float {var_name}[] = {{\n")
                 f_h.write(c_array_content)
                 f_h.write("\n};\n")
