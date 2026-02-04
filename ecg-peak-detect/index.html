@@ -553,7 +553,7 @@ V = noodle_conv1d(BUFFER4, 16, BUFFER3, 1,  V, c6, NULL);
 // Final sigmoid on 1 channel output
 noodle_sigmoid(BUFFER3, V);
 </code></pre>
-<p>The layers use larger kernels (7–9 samples wide). The number of channels increases (1 → 8 → 16), allowing the network to represent multiple feature types simultaneously. The last layer reduces the channel dimension from 16 to 1. After the final convolution, a sigmoid function maps each value into [0,1][0,1][0,1], producing a <strong>peak likelihood signal</strong>.</p>
+<p>The layers use larger kernels (7–9 samples wide). The number of channels increases (1 → 8 → 16), allowing the network to represent multiple feature types simultaneously. The last layer reduces the channel dimension from 16 to 1. After the final convolution, a sigmoid function maps each value into <span class="arithmatex">\([0,1]\)</span>, producing a <strong>peak likelihood signal</strong>.</p>
 <p>In the implementation, two large buffers are used (<code>BUFFER3</code> and <code>BUFFER4</code>) with alternating roles (input and output). This is known as <strong>ping-pong buffering</strong>.</p>
 <table>
 <thead>
@@ -611,9 +611,9 @@ noodle_sigmoid(BUFFER3, V);
 </table>
 <h3 id="4-from-scores-to-peaks">4. From scores to peaks</h3>
 <p>The output of the network is <strong>not yet a list of peaks</strong>. Instead, it is a smooth score curve, ranging from 0 to 1:</p>
-<div class="arithmatex">\[s[t]∈[0,1],\,t=0,1,…255 \]</div>
+<div class="arithmatex">\[y[t]∈[0,1],\,t=0,1,…255 \]</div>
 <p>Peak detection is completed using simple thresholding (post-processing step):</p>
-<div class="arithmatex">\[\text{peak}(t)=1 \, \text{if} \, s[t]&gt;0.5 \]</div>
+<div class="arithmatex">\[\text{peak}(t)=1 \, \text{if} \, y[t]&gt;0.5 \]</div>
 <p>There is also additional logic to perform refractory period enforcement (to avoid double counting).</p>
 
 
