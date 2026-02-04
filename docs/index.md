@@ -8,6 +8,7 @@
 - [API Reference Documentation](api.md)
 - [MLPerf Tiny Anomaly Detection on ESP32](ad-esp32.md)    
 - [MLPerf Tiny Visual Wake Word on ESP32](vww-esp32.md)    
+- [Simple 1D Peak Detection](ecg-peak-detect.md)
 - Single Digit Recognition with Touch-Based Interface
     - [LeNet-5 implementation on ESP32](lenet-5-esp32.md)
     - [Two layer fully connected network on ATmega328 (Arduino Uno R3)](usps-fcn-uno.md)
