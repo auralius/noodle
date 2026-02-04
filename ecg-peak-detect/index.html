@@ -610,8 +610,8 @@ noodle_sigmoid(BUFFER3, V);
 </tbody>
 </table>
 <h3 id="4-from-scores-to-peaks">4. From scores to peaks</h3>
-<p>The output of the network is <strong>not yet a list of peaks</strong>. Instead, it is a smooth score curve, ranging from 0 to 1:
-$$s[t]∈[0,1],\,t=0,1,…255 $$</p>
+<p>The output of the network is <strong>not yet a list of peaks</strong>. Instead, it is a smooth score curve, ranging from 0 to 1:</p>
+<div class="arithmatex">\[s[t]∈[0,1],\,t=0,1,…255 \]</div>
 <p>Peak detection is completed using simple thresholding (post-processing step):</p>
 <div class="arithmatex">\[\text{peak}(t)=1 \, \text{if} \, s[t]&gt;0.5 \]</div>
 <p>There is also additional logic to perform refractory period enforcement (to avoid double counting).</p>
