@@ -514,10 +514,10 @@
 <p><img alt="" src="../attachments/peak.png" /></p>
 <p>In this experiment, we implement a simple but powerful peak detection system using a one-dimensional convolutional neural network (PeakNet1D). The goal is to detect peaks (such as R-peaks in ECG signals) directly from raw time-domain data, without hand-crafted feature extraction.</p>
 <h3 id="1-input-representation">1. Input representation</h3>
-<p>Each input window contains <strong>256 samples</strong>, corresponding to a short segment of the signal (one second at 256 Hz). We can think of this as a vector:
-$$x=[x_0,x_1,x_2,…,x_{255}] $$
-<span class="arithmatex">\(<span class="arithmatex">\(\bar{x}=\frac{x-\text{mean}(x)}{\text{std}(x)}\)</span>\)</span>
-where <span class="arithmatex">\(x\)</span>  and <span class="arithmatex">\(\bar{x}\)</span> are the ECG signal and the normalized ECG signal, respectively.
+<p>Each input window contains <strong>256 samples</strong>, corresponding to a short segment of the signal (one second at 256 Hz). We can think of this as a vector:</p>
+<div class="arithmatex">\[x=[x_0,x_1,x_2,…,x_{255}] \]</div>
+<div class="arithmatex">\[\bar{x}=\frac{x-\text{mean}(x)}{\text{std}(x)}\]</div>
+<p>where <span class="arithmatex">\(x\)</span>  and <span class="arithmatex">\(\bar{x}\)</span> are the ECG signal and the normalized ECG signal, respectively.
 At this stage:</p>
 <ul>
 <li>there is <strong>only one channel</strong></li>
@@ -526,9 +526,9 @@ At this stage:</p>
 <p>The network processes this window and produces <strong>256 output values</strong>, one for each time step. Each output value represents how likely that time index corresponds to a peak.</p>
 <hr />
 <h3 id="2-output-representation">2. Output representation</h3>
-<p>Instead of producing a single classification result (“peak” or “not peak”), PeakNet1D produces a <strong>score at every time index</strong>. This is achieved by using only convolutional layers with stride = 1 and “same” padding.
-$$y=[y_0,y_1,y_2,…,y_{255}] $$
-For example, <span class="arithmatex">\(y_0\)</span> is the probability that <span class="arithmatex">\(x_0\)</span> is a signal peak.</p>
+<p>Instead of producing a single classification result (“peak” or “not peak”), PeakNet1D produces a <strong>score at every time index</strong>. This is achieved by using only convolutional layers with stride = 1 and “same” padding.</p>
+<div class="arithmatex">\[y=[y_0,y_1,y_2,…,y_{255}] \]</div>
+<p>For example, <span class="arithmatex">\(y_0\)</span> is the probability that <span class="arithmatex">\(x_0\)</span> is a signal peak.</p>
 <h3 id="3-layer-by-layer-intuition">3. Layer-by-layer intuition</h3>
 <p>The network is composed of six convolutional layers:</p>
 <pre><code>// PeakNet1D layers
