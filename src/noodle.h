@@ -460,6 +460,8 @@ uint16_t noodle_conv1d(const float *in,
 uint16_t noodle_soft_max(float *input_output, uint16_t n);
 /** In-place sigmoid over a length-@p n vector. Returns @p n. */
 uint16_t noodle_sigmoid(float *input_output, uint16_t n);
+/** In-place ReLU over a length-@p n vector. Returns @p n. */
+uint16_t noodle_relu(float *input_output, uint16_t n);
 
 // ============================================================================
 // 1D Convolution
