@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-pico/">
+        <link rel="canonical" href="https://auralius.github.io/noodle/ecg-peak-detect/">
       
       
-        <link rel="prev" href="../lenet-5-esp32/">
+        <link rel="prev" href="../ad-esp32/">
       
       
-        <link rel="next" href="../lenet-5-esp32-sdio/">
+        <link rel="next" href="../vww-esp32/">
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>LeNet-5 on Pico - Noodle - The Documentation</title>
+        <title>Peak Detection on ESP32 - Noodle - The Documentation</title>
       
     
     
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#lenet-5-on-raspberry-pico" class="md-skip">
+        <a href="#peak-detection-with-a-1d-convolutional-network-peaknet1d" class="md-skip">
           Skip to content
         </a>
       
@@ -101,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              LeNet-5 on Pico
+              Peak Detection on ESP32
             
           </span>
         </div>
@@ -279,10 +279,29 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../ecg-peak-detect/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Peak Detection on ESP32
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -292,6 +311,75 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#peak-detection-with-a-1d-convolutional-network-peaknet1d" class="md-nav__link">
+    <span class="md-ellipsis">
+      Peak Detection with a 1D Convolutional Network (PeakNet1D)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Peak Detection with a 1D Convolutional Network (PeakNet1D)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-input-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Input representation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-output-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Output representation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-layer-by-layer-intuition" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Layer-by-layer intuition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-from-scores-to-peaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. From scores to peaks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -342,19 +430,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../lenet-5-pico/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -364,7 +443,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -430,13 +508,112 @@
   
 
 
-<h1 id="lenet-5-on-raspberry-pico">LeNet-5 on Raspberry Pico</h1>
-<p>Repository: https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32 
-Select the <code>[env:rpi_pico]</code> environment. </p>
-<p>In the <code>test</code> folder, there is a Python script, named <code>mnist-sender.py</code>. This Python scripts reads a line from the <a href="https://drive.google.com/file/d/10fZ4Mr9-2oMtgNPC9zn2d6VBxjyGsiWU/view?usp=sharing">MNIST dataset</a> (<span class="arithmatex">\(28 \times 28=784\)</span> bytes) and streams the data to the Pico.</p>
-<p>Raspberry Pico does not support partitioning of its internal flash as in ESP32. Therefore, both CNN and FCN are implemented as variables. The layer-by-layer implementation is exactly identical as in ESP32.</p>
-<p><img alt="" src="../attachments/bench-pico.png" /></p>
-<p>The inference time stays consistently at ~1 second.</p>
+  <h1>Peak Detection on ESP32</h1>
+
+<h2 id="peak-detection-with-a-1d-convolutional-network-peaknet1d">Peak Detection with a 1D Convolutional Network (PeakNet1D)</h2>
+<p><img alt="" src="../attachments/peak.png" /></p>
+<p>In this experiment, we implement a simple but powerful peak detection system using a one-dimensional convolutional neural network (PeakNet1D). The goal is to detect peaks (such as R-peaks in ECG signals) directly from raw time-domain data, without hand-crafted feature extraction.</p>
+<h3 id="1-input-representation">1. Input representation</h3>
+<p>Each input window contains <strong>256 samples</strong>, corresponding to a short segment of the signal (one second at 256 Hz). We can think of this as a vector:
+$$x=[x_0,x_1,x_2,…,x_{255}] $$
+<span class="arithmatex">\(<span class="arithmatex">\(\bar{x}=\frac{x-\text{mean}(x)}{\text{std}(x)}\)</span>\)</span>
+where <span class="arithmatex">\(x\)</span>  and <span class="arithmatex">\(\bar{x}\)</span> are the ECG signal and the normalized ECG signal, respectively.
+At this stage:</p>
+<ul>
+<li>there is <strong>only one channel</strong></li>
+<li>each sample represents signal amplitude at a specific time index</li>
+</ul>
+<p>The network processes this window and produces <strong>256 output values</strong>, one for each time step. Each output value represents how likely that time index corresponds to a peak.</p>
+<hr />
+<h3 id="2-output-representation">2. Output representation</h3>
+<p>Instead of producing a single classification result (“peak” or “not peak”), PeakNet1D produces a <strong>score at every time index</strong>. This is achieved by using only convolutional layers with stride = 1 and “same” padding.
+$$y=[y_0,y_1,y_2,…,y_{255}] $$
+For example, <span class="arithmatex">\(y_0\)</span> is the probability that <span class="arithmatex">\(x_0\)</span> is a signal peak.</p>
+<h3 id="3-layer-by-layer-intuition">3. Layer-by-layer intuition</h3>
+<p>The network is composed of six convolutional layers:</p>
+<pre><code>// PeakNet1D layers
+ConvMem c1; c1.K=9; c1.P=4; c1.S=1; c1.weight=w01; c1.bias=b01; c1.act=ACT_RELU; // 1-&gt;8
+ConvMem c2; c2.K=7; c2.P=3; c2.S=1; c2.weight=w02; c2.bias=b02; c2.act=ACT_RELU; // 8-&gt;16
+ConvMem c3; c3.K=7; c3.P=3; c3.S=1; c3.weight=w03; c3.bias=b03; c3.act=ACT_RELU; // 16-&gt;16
+ConvMem c4; c4.K=7; c4.P=3; c4.S=1; c4.weight=w04; c4.bias=b04; c4.act=ACT_RELU; // 16-&gt;16
+ConvMem c5; c5.K=1; c5.P=0; c5.S=1; c5.weight=w05; c5.bias=b05; c5.act=ACT_RELU; // 16-&gt;16
+ConvMem c6; c6.K=1; c6.P=0; c6.S=1; c6.weight=w06; c6.bias=b06; c6.act=ACT_NONE; // 16-&gt;1
+
+uint16_t V = L;
+
+// noodle_conv1d(in, n_inputs, out, n_outputs, W, conv)
+V = noodle_conv1d(BUFFER3, 1,  BUFFER4, 8,  V, c1, NULL);
+V = noodle_conv1d(BUFFER4, 8,  BUFFER3, 16, V, c2, NULL);
+V = noodle_conv1d(BUFFER3, 16, BUFFER4, 16, V, c3, NULL);
+V = noodle_conv1d(BUFFER4, 16, BUFFER3, 16, V, c4, NULL);
+V = noodle_conv1d(BUFFER3, 16, BUFFER4, 16, V, c5, NULL);
+V = noodle_conv1d(BUFFER4, 16, BUFFER3, 1,  V, c6, NULL);
+
+// Final sigmoid on 1 channel output
+noodle_sigmoid(BUFFER3, V);
+</code></pre>
+<p>The layers use larger kernels (7–9 samples wide). The number of channels increases (1 → 8 → 16), allowing the network to represent multiple feature types simultaneously. The last layer reduces the channel dimension from 16 to 1. After the final convolution, a sigmoid function maps each value into [0,1][0,1][0,1], producing a <strong>peak likelihood signal</strong>.</p>
+<p>In the implementation, two large buffers are used (<code>BUFFER3</code> and <code>BUFFER4</code>) with alternating roles (input and output). This is known as <strong>ping-pong buffering</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Active buffer</th>
+<th>Channels × length</th>
+<th>Floats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>BUFFER3</code></td>
+<td>1 × 256</td>
+<td>256</td>
+</tr>
+<tr>
+<td>After c1</td>
+<td><code>BUFFER4</code></td>
+<td>8 × 256</td>
+<td>2048</td>
+</tr>
+<tr>
+<td>After c2</td>
+<td><code>BUFFER3</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c3</td>
+<td><code>BUFFER4</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c4</td>
+<td><code>BUFFER3</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c5</td>
+<td><code>BUFFER4</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c6</td>
+<td><code>BUFFER3</code></td>
+<td>1 × 256</td>
+<td>256</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-from-scores-to-peaks">4. From scores to peaks</h3>
+<p>The output of the network is <strong>not yet a list of peaks</strong>. Instead, it is a smooth score curve, ranging from 0 to 1:
+$$s[t]∈[0,1],\,t=0,1,…255 $$</p>
+<p>Peak detection is completed using simple thresholding (post-processing step):
+$$\text{peak}(t)=1 \, \text{if} \, s[t]&gt;0.5 $$
+There is also additional logic to perform refractory period enforcement (to avoid double counting).</p>
 
 
 
