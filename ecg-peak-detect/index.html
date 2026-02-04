@@ -513,6 +513,7 @@
 <h2 id="peak-detection-with-a-1d-convolutional-network-peaknet1d">Peak Detection with a 1D Convolutional Network (PeakNet1D)</h2>
 <p><img alt="" src="../attachments/peak.png" /></p>
 <p>In this experiment, we implement a simple but powerful peak detection system using a one-dimensional convolutional neural network (PeakNet1D). The goal is to detect peaks (such as R-peaks in ECG signals) directly from raw time-domain data, without hand-crafted feature extraction.</p>
+<p><em>Google Colab Notebook can be found <a href="https://colab.research.google.com/drive/1PFdsJ4rrTK7F8FewhGauMTJWMXRP7i3E?usp=sharing">here</a>.</em></p>
 <h3 id="1-input-representation">1. Input representation</h3>
 <p>Each input window contains <strong>256 samples</strong>, corresponding to a short segment of the signal (one second at 256 Hz). We can think of this as a vector:</p>
 <div class="arithmatex">\[x=[x_0,x_1,x_2,…,x_{255}] \]</div>
