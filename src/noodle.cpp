@@ -1183,6 +1183,14 @@ uint16_t noodle_sigmoid(float *input_output,
   return n;
 }
 
+uint16_t noodle_relu(float *input_output,
+                        uint16_t n) {
+  for (int i = 0; i < (int)n; i++) {
+    input_output[i] = input_output[i] > 0.0f ? input_output[i] : 0.0f;
+  }
+  return n;
+}
+
 uint16_t noodle_do_conv1d(float *input,
                           float *kernel,
                           uint16_t W,
@@ -1368,18 +1376,6 @@ uint16_t noodle_conv1d(const char *in_fn,
 }
 
 // Memory -> Memory Conv1D
-// Input  (packed CHW):  in[(I*W) + x]
-// Output (packed CHW):  out[(O*V) + x], where V returned by noodle_do_conv1d()
-//
-// Weight layout assumed (same as your file loop):
-//   for O in [0..n_outputs)
-//     for I in [0..n_inputs)
-//       K floats
-// i.e. weight[((O*n_inputs + I)*K) + k]
-//
-// Bias layout:
-//   bias[O]
-//
 uint16_t noodle_conv1d(const float *in,
                        uint16_t n_inputs,
                        float *out,
@@ -1407,7 +1403,6 @@ uint16_t noodle_conv1d(const float *in,
         in_buffer[i] = in_ch[i];
       }
 
-      // "read kernel" equivalent: point to the K weights for this (O,I)
       const float *kernel = conv.weight
         + ((uint32_t)O * (uint32_t)n_inputs + (uint32_t)I) * (uint32_t)conv.K;
 
