@@ -29,5 +29,5 @@
 #endif
 
 #ifndef NOODLE_MAX_K
-  #define NOODLE_MAX_K 5   // set 3 or 5 (or 7 if you really need)
+  #define NOODLE_MAX_K 5 // define maksimum kernel size to avoid variable allocation!
 #endif
