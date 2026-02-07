@@ -12,6 +12,7 @@ nav:
 - LeNet-5 on Pico: lenet-5-pico.md
 - SD-Card–Backed LeNet-5: lenet-5-esp32-sdio.md
 - Two-Layer FCN on UNO R3: usps-fcn-uno.md
+- Mobile-LeNet: mobile-lenet-5.md
 
 theme:
   name: material

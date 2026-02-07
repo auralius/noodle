@@ -14,6 +14,7 @@
     - [Two layer fully connected network on ATmega328 (Arduino Uno R3)](usps-fcn-uno.md)
     - [LeNet-5 on Raspberry Pico](lenet-5-pico.md)
     - [SD-Card–Backed LeNet-5 Inference](lenet-5-esp32-sdio.md)
+    - [Mobile-LeNet](mobile-lenet-5.md)
      
 ---
 ## Persistent identifier
