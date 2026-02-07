@@ -1,3 +1,8 @@
+/**
+ * @file noodle.cpp
+ * @ingroup noodle_api
+ * @brief Noodle implementation (streaming kernels, filesystem init, parsing helpers).
+ */
 #include "noodle.h"
 #include <math.h>
 #include <float.h>
@@ -22,6 +27,10 @@ inline float *noodle_slice(float *flat,
 void noodle_setup_temp_buffers(void *b1,
                                void *b2) {
   temp_buff1 = b1;
+  temp_buff2 = b2;
+}
+
+void noodle_setup_temp_buffers(void *b2) {
   temp_buff2 = b2;
 }
 
@@ -190,7 +199,7 @@ void noodle_grid_to_file(byte *grid,
                          uint16_t n) {
   fo = noodle_open_file_for_write(fn);
   for (uint16_t i = 0; i < n; i++) {
-    const uint32_t row = (uint32_t)i * (uint32_t)n;
+    const uint16_t row = i * n;
     for (uint16_t j = 0; j < n; j++) {
       noodle_write_float(fo, (float)grid[row + j]);
     }
@@ -202,7 +211,7 @@ void noodle_grid_to_file(byte *grid,
                          NDL_File &fo,
                          uint16_t n) {
   for (uint16_t i = 0; i < n; i++) {
-    const uint32_t row = (uint32_t)i * (uint32_t)n;
+    const uint16_t row = i * n;
     for (uint16_t j = 0; j < n; j++) {
       noodle_write_float(fo, (float)grid[row + j]);
     }
@@ -214,7 +223,7 @@ void noodle_grid_to_file(float *grid,
                          uint16_t n) {
   fo = noodle_open_file_for_write(fn);
   for (uint16_t i = 0; i < n; i++) {
-    const uint32_t row = (uint32_t)i * (uint32_t)n;
+    const uint16_t row = i * n;
     for (uint16_t j = 0; j < n; j++) {
       noodle_write_float(fo, grid[row + j]);
     }
@@ -226,7 +235,7 @@ void noodle_grid_to_file(float *grid,
                          NDL_File &fo,
                          uint16_t n) {
   for (uint16_t i = 0; i < n; i++) {
-    const uint32_t row = (uint32_t)i * (uint32_t)n;
+    const uint16_t row = i * n;
     for (uint16_t j = 0; j < n; j++) {
       noodle_write_float(fo, grid[row + j]);
     }
@@ -259,9 +268,9 @@ uint16_t noodle_do_bias(float *output,
                         float bias,
                         uint16_t n) {
   for (uint16_t i = 0; i < n; i++) {
-    const uint32_t row = (uint32_t)i * (uint32_t)n;
+    const uint16_t row = i * n;
     for (uint16_t j = 0; j < n; j++) {
-      const uint32_t idx = row + j;
+      const uint16_t idx = row + j;
       output[idx] += bias;
       if (output[idx] < 0.0f) {
         output[idx] = 0.0f;
@@ -276,22 +285,33 @@ uint16_t noodle_do_pooling(float *input,
                            uint16_t K,
                            uint16_t S,
                            const char *fn) {
+
+#if NOODLE_POOL_MODE == NOODLE_POOL_NONE
+  // Identity pooling: write W*W values unchanged.
+  fo = noodle_open_file_for_write(fn);
+  const uint16_t n = W * W;
+  for (uint16_t i = 0; i < n; i++) 
+    noodle_write_float(fo, input[i]);
+  fo.close();
+  return W;
+
+#else
   const uint16_t Wo = (W - K) / S + 1;
   fo = noodle_open_file_for_write(fn);
 
-#if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
-  const float inv_KK = 1.0f / (float)(K * K);
-#endif
+  #if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
+    const float inv_KK = 1.0f / (float)(K * K);
+  #endif
 
   for (uint16_t out_y = 0; out_y < Wo; out_y++) {
-    const uint32_t base_y = (uint32_t)out_y * (uint32_t)S;
+    const uint16_t base_y = out_y * S;
     for (uint16_t out_x = 0; out_x < Wo; out_x++) {
-      const uint32_t base_x = (uint32_t)out_x * (uint32_t)S;
+      const uint16_t base_x = out_x * S;
 
-#if NOODLE_POOL_MODE == NOODLE_POOL_MAX
+    #if NOODLE_POOL_MODE == NOODLE_POOL_MAX
       float vmax = -FLT_MAX;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint32_t row = ((uint32_t)base_y + (uint32_t)win_y) * (uint32_t)W;
+        const uint16_t row = (base_y + win_y) * W;
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           float v = input[row + base_x + win_x];
           if (v > vmax) vmax = v;
@@ -299,21 +319,22 @@ uint16_t noodle_do_pooling(float *input,
       }
       noodle_write_float(fo, vmax);
 
-#elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
+    #elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
       float acc = 0.0f;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint32_t row = ((uint32_t)base_y + (uint32_t)win_y) * (uint32_t)W;
+        const uint16_t row = (base_y + win_y) * W;
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           acc += input[row + base_x + win_x];
         }
       }
       noodle_write_float(fo, acc * inv_KK);
-#endif
+    #endif
     }
   }
 
   fo.close();
   return Wo;
+#endif
 }
 
 uint16_t noodle_do_pooling(float *input,
@@ -321,21 +342,28 @@ uint16_t noodle_do_pooling(float *input,
                            uint16_t K,
                            uint16_t S,
                            NDL_File &fo) {
+
+#if NOODLE_POOL_MODE == NOODLE_POOL_NONE
+  const uint16_t n = W * W;
+  for (uint16_t i = 0; i < n; i++) noodle_write_float(fo, input[i]);
+  return W;
+
+#else
   const uint16_t Wo = (W - K) / S + 1;
-  
-#if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
-  const float inv_KK = 1.0f / (float)(K * K);
-#endif
+
+  #if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
+    const float inv_KK = 1.0f / (float)(K * K);
+  #endif
 
   for (uint16_t out_y = 0; out_y < Wo; out_y++) {
-    const uint32_t base_y = (uint32_t)out_y * (uint32_t)S;
+    const uint16_t base_y = out_y * S;
     for (uint16_t out_x = 0; out_x < Wo; out_x++) {
-      const uint32_t base_x = (uint32_t)out_x * (uint32_t)S;
+      const uint16_t base_x = out_x * S;
 
-#if NOODLE_POOL_MODE == NOODLE_POOL_MAX
+    #if NOODLE_POOL_MODE == NOODLE_POOL_MAX
       float vmax = -FLT_MAX;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint32_t row = ((uint32_t)base_y + (uint32_t)win_y) * (uint32_t)W;
+        const uint16_t row = (base_y + win_y) * W;
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           float v = input[row + base_x + win_x];
           if (v > vmax) vmax = v;
@@ -343,20 +371,21 @@ uint16_t noodle_do_pooling(float *input,
       }
       noodle_write_float(fo, vmax);
 
-#elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
+    #elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
       float acc = 0.0f;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint32_t row = ((uint32_t)base_y + (uint32_t)win_y) * (uint32_t)W;
+        const uint16_t row = (base_y + win_y) * W;
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           acc += input[row + base_x + win_x];
         }
       }
       noodle_write_float(fo, acc * inv_KK);
-#endif
+    #endif
     }
   }
 
   return Wo;
+#endif
 }
 
 uint16_t noodle_do_pooling(const float *input,
@@ -364,41 +393,50 @@ uint16_t noodle_do_pooling(const float *input,
                            uint16_t K,
                            uint16_t S,
                            float *output) {
+
+#if NOODLE_POOL_MODE == NOODLE_POOL_NONE
+  const uint16_t n = W * W;
+  for (uint16_t i = 0; i < n; i++) output[i] = input[i];
+  return W;
+
+#else
   const uint16_t Wo = (W - K) / S + 1;
 
-#if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
-  const float inv_KK = 1.0f / (float)(K * K);
-#endif
+  #if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
+    const float inv_KK = 1.0f / (float)(K * K);
+  #endif
 
   for (uint16_t out_y = 0; out_y < Wo; out_y++) {
-    const uint32_t base_y = (uint32_t)out_y * (uint32_t)S;
+    const uint16_t base_y = out_y * S;
     for (uint16_t out_x = 0; out_x < Wo; out_x++) {
-      const uint32_t base_x = (uint32_t)out_x * (uint32_t)S;
+      const uint16_t base_x = out_x * S;
 
-#if NOODLE_POOL_MODE == NOODLE_POOL_MAX
+    #if NOODLE_POOL_MODE == NOODLE_POOL_MAX
       float vmax = -FLT_MAX;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint32_t row = ((uint32_t)base_y + (uint32_t)win_y) * (uint32_t)W;
+        const uint16_t row = (base_y + win_y) * W;
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           float v = input[row + base_x + win_x];
           if (v > vmax) vmax = v;
         }
       }
-      output[(uint32_t)out_y * (uint32_t)Wo + out_x] = vmax;
+      output[out_y * Wo + out_x] = vmax;
 
-#elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
+    #elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
       float acc = 0.0f;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint32_t row = ((uint32_t)base_y + (uint32_t)win_y) * (uint32_t)W;
+        const uint16_t row = (base_y + win_y) * W;
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           acc += input[row + base_x + win_x];
         }
       }
-      output[(uint32_t)out_y * (uint32_t)Wo + out_x] = acc * inv_KK;
-#endif
+      output[out_y * Wo + out_x] = acc * inv_KK;
+    #endif
     }
   }
+
   return Wo;
+#endif
 }
 
 uint16_t noodle_do_conv(byte *grid,
@@ -417,7 +455,7 @@ uint16_t noodle_do_conv(byte *grid,
           v += kernel[k * K + l] * noodle_get_padded_x(grid, i * S + k, j * S + l, W, P);
         }
       }
-      output[(uint32_t)i * (uint32_t)V + (uint32_t)j] += v;
+      output[i * V + j] += v;
     }
   }
   return V;
@@ -439,7 +477,7 @@ uint16_t noodle_do_conv(float *grid,
           v += kernel[k * K + l] * noodle_get_padded_x(grid, i * S + k, j * S + l, W, P);
         }
       }
-      output[(uint32_t)i * (uint32_t)V + (uint32_t)j] += v;
+      output[i * V + j] += v;
     }
   }
   return V;
@@ -467,7 +505,7 @@ void noodle_grid_from_file(const char *fn,
   fi = noodle_fs_open_read(fn);
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
-      buffer[(uint32_t)i * (uint32_t)K + j] = noodle_read_float(fi);
+      buffer[i * K + j] = noodle_read_float(fi);
     }
   }
   fi.close();
@@ -478,7 +516,7 @@ void noodle_grid_from_file(NDL_File &fi,
                            uint16_t K) {
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
-      buffer[(uint32_t)i * (uint32_t)K + j] = noodle_read_float(fi);
+      buffer[i * K + j] = noodle_read_float(fi);
     }
   }
 }
@@ -489,7 +527,7 @@ void noodle_grid_from_file(const char *fn,
   fi = noodle_fs_open_read(fn);
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
-      buffer[(uint32_t)i * (uint32_t)K + j] = noodle_read_float(fi);
+      buffer[i * K + j] = noodle_read_float(fi);
     }
   }
   fi.close();
@@ -500,7 +538,7 @@ void noodle_grid_from_file(NDL_File &fi,
                            uint16_t K) {
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
-      buffer[(uint32_t)i * (uint32_t)K + j] = noodle_read_float(fi);
+      buffer[i * K + j] = noodle_read_float(fi);
     }
   }
 }
@@ -511,7 +549,7 @@ void noodle_grid_from_file(const char *fn,
   fi = noodle_fs_open_read(fn);
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
-      buffer[(uint32_t)i * (uint32_t)K + j] = noodle_read_float(fi);
+      buffer[i * K + j] = noodle_read_float(fi);
     }
   }
   fi.close();
@@ -522,7 +560,7 @@ void noodle_grid_from_file(NDL_File &fi,
                            uint16_t K) {
   for (uint16_t i = 0; i < K; i++) {
     for (uint16_t j = 0; j < K; j++) {
-      buffer[(uint32_t)i * (uint32_t)K + j] = noodle_read_float(fi);
+      buffer[i * K + j] = noodle_read_float(fi);
     }
   }
 }
@@ -548,7 +586,7 @@ uint16_t noodle_conv_byte(const char *in_fn,
   float *out_buffer = (float *)temp_buff2;
 
   float progress = 0.0f;
-  const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
+  const uint16_t total = n_inputs * n_outputs;
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
   fb = noodle_fs_open_read(conv.bias_fn);
@@ -641,7 +679,7 @@ uint16_t noodle_conv_float(const char *in_fn,
   float *out_buffer = (float *)temp_buff2;
 
   float progress = 0.0f;
-  const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
+  const uint16_t total = n_inputs * n_outputs;
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
   fb = noodle_fs_open_read(conv.bias_fn);
@@ -691,7 +729,7 @@ uint16_t noodle_conv_float(float *input,
   float *out_buffer = (float *)temp_buff2;
 
   float progress = 0.0f;
-  const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
+  const uint16_t total = n_inputs * n_outputs;
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
   fb = noodle_fs_open_read(conv.bias_fn);
@@ -702,7 +740,7 @@ uint16_t noodle_conv_float(float *input,
   float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
 
   for (uint16_t O = 0; O < n_outputs; O++) {
-    noodle_reset_buffer(out_buffer, (uint16_t)((uint32_t)W * (uint32_t)W));
+    noodle_reset_buffer(out_buffer, W * W);
     float bias = noodle_read_float(fb);
 
     for (uint16_t I = 0; I < n_inputs; I++) {
@@ -735,7 +773,7 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb)
 {
-  float *out_buffer = (float *)temp_buff1;
+  float *out_buffer = (float *)temp_buff2;
 
   float progress = 0.0f;
   float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
@@ -745,12 +783,12 @@ uint16_t noodle_conv_float(float *input,
   uint16_t V = 0;
 
   for (uint16_t O = 0; O < n_outputs; O++) {
-    noodle_reset_buffer(out_buffer, (uint16_t)((uint32_t)W * (uint32_t)W));
+    noodle_reset_buffer(out_buffer, W * W);
     const float bias = conv.bias[O];
 
     // Accumulate over input channels
     for (uint16_t I = 0; I < n_inputs; I++) {
-      const float *kernel = conv.weight + (uint32_t)(O * n_inputs + I) * (uint32_t)(conv.K * conv.K);
+      const float *kernel = conv.weight + (O * n_inputs + I) * (conv.K * conv.K);
       float *in_plane = noodle_slice(input, W, I);  // expects CHW in memory
       V = noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
       if (progress_cb) progress_cb(progress);
@@ -775,7 +813,7 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb) {
   float *in_buffer;
-  float *out_buffer = (float *)temp_buff1;
+  float *out_buffer = (float *)temp_buff2;
 
   float progress = 0;
   float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
@@ -812,18 +850,19 @@ uint16_t noodle_conv_float(float *input,
                            const ConvMem &conv,
                            const Pool &pool,
                            CBFPtr progress_cb) {
-  float *in_buffer;
-  float *out_buffer = (float *)temp_buff1;
+  float *in_buffer = nullptr;
+  float *out_buffer = (float *)temp_buff2;
 
-  float progress = 0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
-  
+  float progress = 0.0f;
+  const float denom = (float)((n_inputs * n_outputs > 1) ? (n_inputs * n_outputs - 1) : 1);
+  const float progress_step = (denom > 0.0f) ? (1.0f / denom) : 1.0f;
+
   uint16_t V = 0;
-
   for (uint16_t O = 0; O < n_outputs; O++) {
-    noodle_reset_buffer(out_buffer, W * W);
-    float bias = conv.bias[O];
-    for (uint16_t I = 0; I < n_inputs; I++) {      
+    noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
+    const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
+
+    for (uint16_t I = 0; I < n_inputs; I++) {
       const float *kernel = conv.weight + (O * n_inputs + I) * (conv.K * conv.K);
       in_buffer = noodle_slice(input, W, I);
       V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
@@ -831,11 +870,14 @@ uint16_t noodle_conv_float(float *input,
       progress += progress_step;
     }
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
-    uint16_t Wo = (V - pool.M) / pool.T + 1;
+
+    const uint16_t Wo = (uint16_t)((V - pool.M) / pool.T + 1);
     V = noodle_do_pooling(out_buffer, V, pool.M, pool.T, noodle_slice(output, Wo, O));
   }
+
   return V;
 }
+
 
 // File CHW → Memory HWC-flatten
 uint16_t noodle_flat(const char *in_fn,
@@ -844,20 +886,20 @@ uint16_t noodle_flat(const char *in_fn,
                      uint16_t n_filters) {
   fi = noodle_fs_open_read(in_fn);
 
-  const uint32_t plane = (uint32_t)V * (uint32_t)V;
+  const uint16_t plane = V * V;
 
   // Input file is CHW: [ch0 plane][ch1 plane]...[chK plane]
   // Output wants HWC-flatten: output[i*n_filters + k]
   for (uint16_t k = 0; k < n_filters; k++) {
-    for (uint32_t i = 0; i < plane; i++) {
+    for (uint16_t i = 0; i < plane; i++) {
       float x = noodle_read_float(fi);
-      output[i * (uint32_t)n_filters + k] = x;
+      output[i * n_filters + k] = x;
     }
   }
 
   fi.close();
   // NOTE: return type is uint16_t for compatibility; caller should ensure plane*n_filters <= 65535 if it matters.
-  return (uint16_t)(plane * (uint32_t)n_filters);
+  return (plane * n_filters);
 }
 
 
@@ -866,14 +908,14 @@ uint16_t noodle_flat(float *input,
                      float *output,
                      uint16_t V,
                      uint16_t n_filters) {
-  const uint32_t plane = (uint32_t)V * (uint32_t)V;
+  const uint16_t plane = V * V;
   for (uint16_t k = 0; k < n_filters; k++) {
     float *sliced_input = noodle_slice(input, V, k);
-    for (uint32_t i = 0; i < plane; i++) {
-      output[i * (uint32_t)n_filters + k] = sliced_input[i];
+    for (uint16_t i = 0; i < plane; i++) {
+      output[i * n_filters + k] = sliced_input[i];
     }
   }
-  return (uint16_t)(plane * (uint32_t)n_filters);
+  return (plane * n_filters);
 }
 
 // Memory HWC-flatten → File HWC-flatten
@@ -1158,18 +1200,18 @@ uint16_t noodle_fcn(const float *input,
 uint16_t noodle_soft_max(float *input_output,
                          uint16_t n) {
   float max_val = input_output[0];
-  for (int i = 1; i < (int)n; i++) {
+  for (uint16_t i = 1; i < n; i++) {
     if (input_output[i] > max_val)
       max_val = input_output[i];
   }
 
   float sum = 0.0;
-  for (int i = 0; i < (int)n; i++) {
+  for (uint16_t i = 0; i < n; i++) {
     input_output[i] = expf(input_output[i] - max_val);
     sum += input_output[i];
   }
 
-  for (int i = 0; i < (int)n; i++) {
+  for (uint16_t i = 0; i < n; i++) {
     input_output[i] /= sum;
   }
   return n;
@@ -1177,15 +1219,15 @@ uint16_t noodle_soft_max(float *input_output,
 
 uint16_t noodle_sigmoid(float *input_output,
                         uint16_t n) {
-  for (int i = 0; i < (int)n; i++) {
+  for (uint16_t i = 0; i < n; i++) {
     input_output[i] = 1.0f / (1.0f + expf(-input_output[i]));
   }
   return n;
 }
 
 uint16_t noodle_relu(float *input_output,
-                        uint16_t n) {
-  for (int i = 0; i < (int)n; i++) {
+                     uint16_t n) {
+  for (uint16_t i = 0; i < n; i++) {
     input_output[i] = input_output[i] > 0.0f ? input_output[i] : 0.0f;
   }
   return n;
@@ -1263,7 +1305,7 @@ uint16_t noodle_conv1d(const char *in_fn,
   float *out_buffer = (float *)temp_buff2;
 
   float progress = 0.0f;
-  const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
+  const uint16_t total = n_inputs * n_outputs;
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
   fb = noodle_fs_open_read(conv.bias_fn);
@@ -1324,7 +1366,7 @@ uint16_t noodle_conv1d(const char *in_fn,
   float *out_buffer = (float *)temp_buff2;
 
   float progress = 0.0f;
-  const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
+  const uint16_t total = n_inputs * n_outputs;
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
   fb = noodle_fs_open_read(conv.bias_fn);
@@ -1387,7 +1429,7 @@ uint16_t noodle_conv1d(const float *in,
   float *out_buffer = (float *)temp_buff2; // needs >= W floats (safe upper bound)
 
   float progress = 0.0f;
-  const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
+  const uint16_t total = n_inputs * n_outputs;
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
   uint16_t V = 0;
@@ -1398,13 +1440,12 @@ uint16_t noodle_conv1d(const float *in,
 
     for (uint16_t I = 0; I < n_inputs; I++) {
       // read W samples of input channel I into in_buffer (same as your fi reads)
-      const float *in_ch = in + (uint32_t)I * (uint32_t)W;
+      const float *in_ch = in + I * W;
       for (uint16_t i = 0; i < W; i++) {
         in_buffer[i] = in_ch[i];
       }
 
-      const float *kernel = conv.weight
-        + ((uint32_t)O * (uint32_t)n_inputs + (uint32_t)I) * (uint32_t)conv.K;
+      const float *kernel = conv.weight + (O * n_inputs + I) * conv.K;
 
       // Accumulate into out_buffer
       V = noodle_do_conv1d(in_buffer,
@@ -1426,9 +1467,7 @@ uint16_t noodle_conv1d(const float *in,
       out_buffer[i] = v;
     }
 
-    // "append raw V samples for this output channel" -> write to out plane
-    // packed output CHW: [O0 plane][O1 plane]...
-    float *out_ch = out + (uint32_t)O * (uint32_t)V;
+    float *out_ch = out + O * V;
     for (uint16_t i = 0; i < V; i++) {
       out_ch[i] = out_buffer[i];
     }
@@ -1491,8 +1530,8 @@ uint16_t noodle_dwconv_float(const char *in_fn,
   float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
 
   fi = noodle_fs_open_read(in_fn);
-  fb = noodle_fs_open_read(conv.bias_fn);     // one bias per channel
-  fw = noodle_fs_open_read(conv.weight_fn);   // one KxK kernel per channel (stacked)
+  fb = noodle_fs_open_read(conv.bias_fn);    
+  fw = noodle_fs_open_read(conv.weight_fn); 
   fo = noodle_fs_open_write(out_fn);
 
   uint16_t V = 0;
@@ -1530,7 +1569,7 @@ uint16_t noodle_dwconv_float(float *input,
                              CBFPtr progress_cb)
 {
   // Scratch buffer for intermediate conv output (size W*W floats)
-  float *out_buffer = (float *)temp_buff1;
+  float *out_buffer = (float *)temp_buff2;
 
   float progress = 0.0f;
   const float denom = (float)((n_channels > 1) ? (n_channels - 1) : 1);
@@ -1552,13 +1591,7 @@ uint16_t noodle_dwconv_float(float *input,
     noodle_grid_from_file(fw, (float *)kernel, conv.K);
 
     noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
-    V = noodle_do_conv(in_plane,
-                       (float *)kernel,
-                       conv.K,
-                       W,
-                       out_buffer,
-                       conv.P,
-                       conv.S);
+    V = noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
 
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
     const uint16_t Wo = (uint16_t)((V - pool.M) / pool.T + 1);
@@ -1571,41 +1604,156 @@ uint16_t noodle_dwconv_float(float *input,
 
   fw.close();
   fb.close();
-  return V; // spatial size after pooling
+  return V; 
 }
 
-void noodle_gap(float *inout,
-                uint16_t C,
-                uint16_t W) {
-  const uint32_t n = (uint32_t)W * (uint32_t)W;
+uint16_t noodle_dwconv_float(float *input,
+                             uint16_t n_channels,
+                             float *output,
+                             uint16_t W,
+                             const ConvMem &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb)
+{
+  float *out_buffer = (float *)temp_buff2;
+
+  float progress = 0.0f;
+  const float denom = (float)((n_channels > 1) ? (n_channels - 1) : 1);
+  const float progress_step = (denom > 0.0f) ? (1.0f / denom) : 1.0f;
+
+  // Kernel buffer (max K)
+  float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
+
+  uint16_t V = 0;
+
+  // Assumes M == 1
+  for (uint16_t C = 0; C < n_channels; C++) {
+    float *in_plane = noodle_slice(input, W, C);
+    const float bias = (conv.bias != nullptr) ? conv.bias[C] : 0.0f;
+
+    const float *kernel = conv.weight + (C * conv.K * conv.K);
+
+    noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
+    V = noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
+    V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
+
+    const uint16_t Wo = (uint16_t)((V - pool.M) / pool.T + 1);
+    float *out_plane = noodle_slice(output, Wo, C);
+    V = noodle_do_pooling(out_buffer, V, pool.M, pool.T, out_plane);
+
+    if (progress_cb) progress_cb(progress);
+    progress += progress_step;
+  }
+  return V;
+}
+
+uint16_t noodle_gap(float *inout, uint16_t C, uint16_t W) {
+  const uint16_t n = W * W;
+
+  // If output region overlaps unread input (n < C), compute into a temp buffer.
+  // Use temp_buff1 if it's available and large enough.
+  if (n < C) {
+    float *tmp = (float*)temp_buff1; // must be >= C floats
+    for (uint16_t c = 0; c < C; c++) {
+      const float *plane = inout + c * n;
+      double acc = 0.0;
+      for (uint16_t i = 0; i < n; i++) acc += (double)plane[i];
+      tmp[c] = (float)(acc / (double)n);
+    }
+    for (uint16_t c = 0; c < C; c++) inout[c] = tmp[c];
+    return C;
+  }
+
+  // Normal fast in-place case (safe when n >= C)
   for (uint16_t c = 0; c < C; c++) {
-    float *plane = inout + (uint32_t)c * n;
+    const float *plane = inout + c * n;
     double acc = 0.0;
-    for (uint32_t i = 0; i < n; i++) acc += (double)plane[i];
-    // Write to the front of the buffer. Safe because we finish reading the plane first.
+    for (uint16_t i = 0; i < n; i++) acc += (double)plane[i];
     inout[c] = (float)(acc / (double)n);
   }
+  return C;
 }
 
-void noodle_bn(float *x,
-               uint16_t C,
-               uint16_t W,
-               const float *gamma,
-               const float *beta,
-               const float *mean,
-               const float *var,
-               float eps) {
-  const uint32_t plane = (uint32_t)W * (uint32_t)W;
+
+void noodle_unpack_bn_params(const float *bn_params,
+                             uint16_t C,
+                             const float **gamma,
+                             const float **beta,
+                             const float **mean,
+                             const float **var){
+  *gamma = bn_params;
+  *beta  = bn_params + C;
+  *mean  = bn_params + 2 * C;
+  *var   = bn_params + 3 * C;
+}
+
+uint16_t noodle_bn(float *x,
+                   uint16_t C,
+                   uint16_t W,
+                   const float *gamma,
+                   const float *beta,
+                   const float *mean,
+                   const float *var,
+                   float eps) {
+  const uint16_t plane = W * W;
   for (uint16_t c = 0; c < C; ++c) {
     const float inv_std = 1.0f / sqrtf(var[c] + eps);
     const float s = gamma[c] * inv_std;
     const float t = beta[c] - s * mean[c];
 
-    float *p = x + (uint32_t)c * plane;
-    for (uint32_t i = 0; i < plane; ++i) p[i] = s * p[i] + t;
+    float *p = x + c * plane;
+    for (uint16_t i = 0; i < plane; ++i) 
+      p[i] = s * p[i] + t;
   }
+  return W;
 }
 
+uint16_t noodle_bn(float *x,
+                   uint16_t C,
+                   uint16_t W,
+                   const float *bn_params,
+                   float eps){
+  const float *gamma, *beta, *mean, *var;
+  noodle_unpack_bn_params(bn_params, C, &gamma, &beta, &mean, &var);
+  noodle_bn(x, C, W, gamma, beta, mean, var, eps);
+  return W;
+}
+
+uint16_t noodle_bn_relu(float *x,
+                        uint16_t C,
+                        uint16_t W,
+                        const float *bn_params,
+                        float eps)
+{
+  const float *gamma, *beta, *mean, *var;
+  noodle_unpack_bn_params(bn_params, C, &gamma, &beta, &mean, &var);
+  noodle_bn_relu(x, C, W, gamma, beta, mean, var, eps);
+  return W;
+}
+
+uint16_t noodle_bn_relu(float *x,
+                    uint16_t C,
+                    uint16_t W,
+                    const float *gamma,
+                    const float *beta,
+                    const float *mean,
+                    const float *var,
+                    float eps)
+{
+  const uint16_t plane = W * W;
+  for (uint16_t c = 0; c < C; ++c) {
+    const float inv_std = 1.0f / sqrtf(var[c] + eps);
+    const float s = gamma[c] * inv_std;
+    const float t = beta[c] - s * mean[c];
+
+    float *p = x + c * plane;
+    for (uint16_t i = 0; i < plane; ++i) {
+      float y = s * p[i] + t;
+      p[i] = (y > 0.0f) ? y : 0.0f;   // ReLU fused
+    }
+  }
+  return W;
+}
 
 void noodle_find_max(float *input,
                      uint16_t n,

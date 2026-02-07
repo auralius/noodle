@@ -7,13 +7,12 @@
  * routines that operate either entirely in memory or by streaming tensors/parameters to
  * and from a filesystem (SD/FFat/SD_MMC). Backends are selected in @ref noodle_fs.h via
  * preprocessor flags. The library is designed for extremely small RAM budgets, so most
- * file-based APIs reuse two caller-supplied temporary buffers 
+ * file-based APIs reuse two caller-supplied temporary buffers
  * (see @ref noodle_setup_temp_buffers).
  *
  * ### Backends
- * Select exactly one of `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, or `NOODLE_USE_FFAT`, 
- * or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_LITTLEFS` before
- * including this header; see @ref noodle_fs.h for details.
+ * Select exactly one backend flag before including this header: `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, `NOODLE_USE_FFAT`, or `NOODLE_USE_LITTLEFS`.
+ * See @ref noodle_fs.h for backend details and required platform libraries.
  *
  * ### Temporary buffers
  * Call ::noodle_setup_temp_buffers() once prior to convolution/FCN routines that read from files.
@@ -21,10 +20,36 @@
  *  - temp buffer #1: at least `W*W*sizeof(input_element)` bytes
  *  - temp buffer #2: at least `W*W*sizeof(float)` bytes (accumulator)
  *
+ * ### Tensor layout and file format
+ * File-based APIs use *packed CHW* by default: channel-major planes stored back-to-back.
+ * Each plane is stored in row-major order as whitespace-separated numeric tokens (ASCII).
+ *
+ * - Packed 2D feature map file: `[ch0 W×W][ch1 W×W]...[ch(C-1) W×W]`
+ * - Packed 1D feature map file: `[ch0 W][ch1 W]...[ch(C-1) W]`
+ * - Weights file (Conv): ordered by output-major then input: `(O0,I0) kernel, (O0,I1) kernel, ...`
+ * - Bias file: one scalar per output channel (n_outputs values).
+ *
+ * For low-RAM MCUs, streaming routines repeatedly rewind the packed input file for each output channel.
+ *
  * ### Pooling mode
  * 2D pooling mode is compile-time selectable via @ref NOODLE_POOL_MODE in @ref noodle_config.h
  * (MAX or MEAN).
  */
+
+/**
+ * @defgroup noodle_api Noodle Public API
+ * @brief Low-RAM CNN/ML primitives with optional filesystem streaming.
+ *
+ * These APIs are designed for microcontrollers where RAM is scarce and parameters/activations may be streamed
+ * from a filesystem (SD/FFat/SD_MMC/LittleFS).
+ */
+
+/** @defgroup noodle_types Types and configuration */
+/** @defgroup noodle_utils Utilities */
+/** @defgroup noodle_conv Convolution and activation */
+/** @defgroup noodle_pool Pooling */
+/** @defgroup noodle_fcn Fully-connected layers */
+/** @defgroup noodle_tensor Tensor reshaping (flatten / transpose helpers) */
 #pragma once
 
 #include <stdint.h>
@@ -41,44 +66,72 @@ typedef unsigned char byte;    ///< Minimal Arduino-compatible alias when not bu
 // ============================================================================
 
 /** 2D convolution parameters. */
+/**
+ * @ingroup noodle_types
+ * @enum Activation
+ * @brief Post-layer activation applied after bias (when supported).
+ *
+ * Notes:
+ * - ACT_SOFTMAX is typically used only for the final classification layer/head.
+ * - Most convolution routines support ACT_RELU and ACT_NONE; check each function's docs.
+ */
 enum Activation : uint8_t { ACT_NONE = 0, ACT_RELU = 1 , ACT_SOFTMAX = 2};
 
+/** File-backed parameters */
+/**
+ * @ingroup noodle_types
+ * @brief File-backed convolution parameters.
+ *
+ * The weight and bias files are read sequentially:
+ * - @p weight_fn stores kernels ordered by output-major then input-major.
+ * - @p bias_fn stores one scalar bias per output channel.
+ */
 struct Conv {
-  // Shared conv params for 1D/2D
   uint16_t K;        ///< Kernel size
   uint16_t P = 0;    ///< Padding
   uint16_t S = 1;    ///< Stride
 
-  // File-backed weights/bias filenames
   const char *weight_fn = nullptr;
   const char *bias_fn   = nullptr;
 
-  // Activation to apply after bias
   Activation act = ACT_RELU;
 };
 
+/** Variable-backed parameters */
+/**
+ * @ingroup noodle_types
+ * @brief Memory-backed convolution parameters.
+ *
+ * The @p weight array is laid out as `(O * n_inputs + I) * (K*K)` contiguous floats (output-major).
+ * The @p bias array stores @c n_outputs floats.
+ */
 struct ConvMem {
-  // Shared conv params for 1D/2D
   uint16_t K;        ///< Kernel size
   uint16_t P = 0;    ///< Padding
   uint16_t S = 1;    ///< Stride
 
-  // File-backed weights/bias filenames
   const float *weight = nullptr;
   const float *bias   = nullptr;
 
-  // Activation to apply after bias
   Activation act = ACT_RELU;
 };
 
 /** 2D pooling parameters. Use enabled=false for identity (no pooling). */
+/**
+ * @ingroup noodle_types
+ * @brief Pooling parameters for 1D/2D pooling.
+ *
+ * To disable pooling, use identity parameters (e.g., M=1 and T=1), or pass a Pool where your caller logic
+ * skips pooling.
+ */
 struct Pool {
-  uint16_t M = 2;    ///< Pool kernel
-  uint16_t T = 2;    ///< Pool stride
+  uint16_t M = 1;    ///< Pool kernel
+  uint16_t T = 1;    ///< Pool stride
 };
 
 // ============================================================================
 /** Progress callback type used by long-running routines.
+ * @ingroup noodle_utils
  *  @param progress A normalized progress in [0,1], monotonically nondecreasing.
  */
 typedef void (*CBFPtr)(float progress);
@@ -107,6 +160,7 @@ typedef void (*CBFPtr)(float progress);
 // ============================================================================
 
 /** Slice a stacked [Z, W, W] tensor laid out as contiguous planes.
+ * @ingroup noodle_utils
  *  @param flat Pointer to base of the contiguous array.
  *  @param W    Width/height of each 2D plane.
  *  @param z    Plane index to slice.
@@ -115,11 +169,24 @@ typedef void (*CBFPtr)(float progress);
 inline float* noodle_slice(float* flat, size_t W, size_t z);
 
 /** Provide two reusable temporary buffers used internally by file-streaming ops.
+ * @ingroup noodle_utils
  *  Must be called before conv/FCN variants that read from files.
+ *  Two temp buffers are needed for operations that read from a file.
+ *  For C*W*W tensor, the buffer should be W*W
  *  @param b1 Buffer #1 (input scratch). See size guidance above.
  *  @param b2 Buffer #2 (float accumulator). See size guidance above.
  */
-void   noodle_setup_temp_buffers(void *b1, void *b2 = NULL);
+void   noodle_setup_temp_buffers(void *b1, void *b2);
+
+/** Provide a single reusable temporary buffer used internally by file-streaming ops.
+ * @ingroup noodle_utils
+ *  Must be called before conv/FCN variants that read from files.
+ *  One temp buffer is needed for operations that reads from a variable.
+ *  Hence, only output accumulator buffe is needed.
+ *  For C*W*W tensor, the buffer should be W*W
+ *  @param b2 Buffer #2 (float accumulator). See size guidance above.
+ */
+void   noodle_setup_temp_buffers(void *b2);
 
 // ============================================================================
 // Filesystem helpers
@@ -145,13 +212,6 @@ bool noodle_fs_init(uint8_t clk_pin, uint8_t cmd_pin, uint8_t d0_pin, uint8_t d1
 bool noodle_fs_init();
 /** Initialize SD/FS backend with a specific CS_PIN. */
 bool noodle_fs_init(uint8_t cs_pin);
-
-
-/** Convert an integer 0..675 into a two-letter base-26 code ("aa".."zz").
- *  @param number Index to encode.
- *  @param out    Destination buffer of at least 2 bytes (no terminator written).
- */
-void noodle_n2ll(uint16_t number, char *out);
 
 // ============================================================================
 // Scalar I/O helpers
@@ -296,6 +356,16 @@ uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t 
  */
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
+/** @name 2D Convolution (packed-file and memory variants)
+ * @ingroup noodle_conv
+ *
+ * Packed-file conventions:
+ * - Input file: packed CHW planes (each plane W×W).
+ * - Output file: packed CHW planes (each plane V_out×V_out) in output-channel order.
+ *
+ * These functions may rewind the input file for each output channel to keep RAM usage low.
+ */
+///@{
 // --- 2D Convolution (Conv + optional Pool) ---
 
 /** File→File 2D conv with BYTE input feature maps. */
@@ -391,6 +461,8 @@ uint16_t noodle_conv_float(float *input,
  *  @param pool        Pool parameters (kernel M, stride T).
  *  @param progress_cb Optional progress callback in [0,1].
  *  @return V_out after pooling.
+///@}
+
  */
 uint16_t noodle_conv1d(const char *in_fn,
                        uint16_t n_inputs,
@@ -542,8 +614,8 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  *  @param progress_cb Optional progress callback in [0,1].
  *  @return n_outputs.
  */
-uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs, 
-                    float *output, const FCNMem &fcn, 
+uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
+                    float *output, const FCNMem &fcn,
                     CBFPtr progress_cb = NULL);
 
 
@@ -603,19 +675,19 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  */
 uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNFile &fcn,
-                    CBFPtr progress_cb); 
+                    CBFPtr progress_cb);
 
 /** Memory→File fully-connected layer (float inputs; params from files).
  *  Computes y = W·x + b, optionally applies activation, and writes @p n_outputs lines to @p out_fn.
  *  @param input       Pointer to @p n_inputs float values.
  *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.     
+ *  @param n_outputs   Number of outputs.
  *  @param out_fn      Output filename (one float per line).
  *  @param fcn         Filenames for weights and bias; weights read row-major [O, I].
  *  @param progress_cb Optional progress callback in [0,1].
  *  @return n_outputs.
  */
-uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs, 
+uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
                     const char *out_fn, const FCNFile &fcn,
                     CBFPtr progress_cb);
 
@@ -665,7 +737,7 @@ uint16_t noodle_dwconv_float(const char *in_fn,
                              uint16_t n_channels,
                              const char *out_fn,
                              uint16_t W,
-                             const Conv &conv,     
+                             const Conv &conv,
                              const Pool &pool,
                              CBFPtr progress_cb);
 
@@ -674,38 +746,147 @@ uint16_t noodle_dwconv_float(const char *in_fn,
  *  Assumes:
  *  - input layout:  [C][W][W] flattened
  *  - output layout: [C][Wo][Wo] flattened (Wo depends on pooling)
- *  - weights on FS: conv.weight_fn pattern "/w##xxyy.txt"
- *    for depthwise, we set xx == yy == channel index (so it matches your exporter decision)
- *  - bias on FS: conv.bias_fn pattern "/b##.txt" with one bias per channel
+ * @param input       Pointer to the input tensor in [C][W][W] layout.
+ * @param n_channels  Number of input/output channels.
+ * @param output      Pointer to the output tensor in [C][Wo][Wo] layout.
+ * @param W           Input width/height.
+ * @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
+ * @param pool        Pool parameters (kernel M, stride T).
+ * @param progress_cb Optional progress callback in [0,1].
+ * @return Output width after pooling.  
  */
 uint16_t noodle_dwconv_float(float *input,
-                            uint16_t n_channels,
-                            float *output,
-                            uint16_t W,
-                            const Conv &conv,
-                            const Pool &pool,
-                            CBFPtr progress_cb);
-
-/** 
+                             uint16_t n_channels,
+                             float *output,
+                             uint16_t W,
+                             const Conv &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb);
+/**
+ * Memory → memory depthwise conv (float input) with in-memory weights/bias. 
+ * Assumes:
+ *  - input layout:  [C][W][W] flattened
+ *  - output layout: [C][Wo][Wo] flattened (Wo depends on pooling )
+ * @param input       Pointer to the input tensor in [C][W][W] layout.
+ * @param n_channels  Number of input/output channels.
+ * @param output      Pointer to the output tensor in [C][Wo][Wo] layout.
+ * @param W           Input width/height.
+ * @param conv        Convolution parameters with in-memory weights/bias.
+ * @param pool        Pool parameters (kernel M, stride T).
+ * @param progress_cb Optional progress callback in [0,1].
+ * @return Output width after pooling.  
+ */                             
+uint16_t noodle_dwconv_float(float *input,
+                             uint16_t n_channels,
+                             float *output,
+                             uint16_t W,
+                             const ConvMem &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb);
+                             
+/**
  * Global Average Pooling for a channel-first tensor in memory.
  * @param x_chw Pointer to the input tensor in [C][W][W] layout.
  * @param C Number of channels.
  * @param W Width/height of each channel plane.
+ * @return Number of channels C
+ */
+uint16_t noodle_gap(float *inout,
+                    uint16_t C,
+                    uint16_t W);
+
+
+/**
+ * Unpack batch normalization parameters from a flat array.
+ * @param bn_params Pointer to the packed batch normalization parameters.
+ * @param C Number of channels.
+ * @param gamma Output pointer to the per-channel scale parameters.
+ * @param beta Output pointer to the per-channel shift parameters.
+ * @param mean Output pointer to the per-channel mean parameters.
+ * @param var Output pointer to the per-channel variance parameters.
+ */
+void noodle_unpack_bn_params(const float *bn_params,
+                             uint16_t C,
+                             const float **gamma,
+                             const float **beta,
+                             const float **mean,
+                             const float **var);
+
+/**
+ * Batch Normalization for a channel-first tensor in memory.
+ * @param x Pointer to the input tensor in [C][W][W] layout.
+ * @param C Number of channels.
+ * @param W Width/height of each channel plane.
+ * @param gamma Pointer to the per-channel scale parameters.
+ * @param beta Pointer to the per-channel shift parameters.
+ * @param mean Pointer to the per-channel mean parameters.
+ * @param var Pointer to the per-channel variance parameters.
+ * @param eps Small constant to avoid division by zero. 
+ */
+uint16_t noodle_bn(float *x,
+                   uint16_t C,
+                   uint16_t W,
+                   const float *gamma,
+                   const float *beta,
+                   const float *mean,
+                   const float *var,
+                   float eps=1e-3);
+
+/*
+ * Batch Normalization followed by ReLU for a channel-first tensor in memory.
+ * @param x Pointer to the input tensor in [C][W][W] layout.
+ * @param C Number of channels.
+ * @param W Width/height of each channel plane.
+ * @param gamma Pointer to the per-channel scale parameters.
+ * @param beta Pointer to the per-channel shift parameters.
+ * @param mean Pointer to the per-channel mean parameters.
+ * @param var Pointer to the per-channel variance parameters.
+ * @param eps Small constant to avoid division by zero. 
+ */
+uint16_t noodle_bn_relu(float *x,
+                        uint16_t C,
+                        uint16_t W,
+                        const float *gamma,
+                        const float *beta,
+                        const float *mean,
+                        const float *var,
+                        float eps=1e-3);
+
+/**
+ * Batch Normalization for a channel-first tensor in memory.
+ * @param x Pointer to the input tensor in [C][W][W] layout.
+ * @param C Number of channels.
+ * @param W Width/height of each channel plane.
+ * @param bn_params Pointer to the packed batch normalization parameters.
+ * @param eps Small constant to avoid division by zero.
  */ 
-void noodle_gap(float *inout,
-                uint16_t C,
-                uint16_t W);
-                
-void noodle_bn(float *x,
-               uint16_t C,
-               uint16_t W,
-               const float *gamma,
-               const float *beta,
-               const float *mean,
-               const float *var,
-               float eps);
+uint16_t noodle_bn(float *x,
+                   uint16_t C,
+                   uint16_t W,
+                   const float *bn_params,
+                   float eps=1e-3);
 
+/*
+ * Batch Normalization followed by ReLU for a channel-first tensor in memory.
+ * @param x Pointer to the input tensor in [C][W][W] layout.
+ * @param C Number of channels.
+ * @param W Width/height of each channel plane.
+ * @param bn_params Pointer to the packed batch normalization parameters.
+ * @param eps Small constant to avoid division by zero.
+ */
+uint16_t noodle_bn_relu(float *x,
+                        uint16_t C,
+                        uint16_t W,
+                        const float *bn_params,
+                        float eps=1e-3);
 
+/**
+ * Find the maximum value and its index in a float array.
+ * @param input Pointer to the input float array.
+ * @param n Length of the input array.
+ * @param max_val Reference to store the maximum value found.
+ * @param max_idx Reference to store the index of the maximum value.
+ */
 void noodle_find_max(float *input,
           uint16_t n,
           float &max_val,

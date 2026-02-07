@@ -14,6 +14,27 @@
  *   - NOODLE_FS (SdFat object for SdFat; FFat/SD_MMC/LittleFS singleton otherwise; not used for NONE)
  *   - noodle_fs_open_read / noodle_fs_open_write / noodle_fs_remove
  */
+
+/**
+ * @defgroup noodle_fs Filesystem backend layer
+ * @ingroup noodle_api
+ * @brief Backend-agnostic filesystem adapter used by Noodle streaming layers.
+ *
+ * Noodle supports multiple storage backends (SdFat, SD_MMC, FFat, LittleFS, or NONE).
+ * This header normalizes the file type and the small set of operations Noodle needs
+ * (open read/write, remove, rewind).
+ *
+ * @par Path normalization
+ * Some Arduino filesystem APIs require paths to start with a leading slash (e.g. "/w01.txt"),
+ * while SdFat commonly uses bare names (e.g. "w01.txt"). The helper
+ * noodle_norm_filename() applies this rule.
+ *
+ * @warning noodle_norm_filename() returns a pointer to a static buffer when a leading slash is needed.
+ *          That means it is **not re-entrant** and **not thread-safe**: do not store the returned pointer;
+ *          use it immediately for open/remove.
+ */
+
+
 #pragma once
 
 // -----------------------------
@@ -82,7 +103,7 @@
       using NDL_File = File;     // SdFat on AVR often uses File wrapper
     #endif
 
-    extern SdFat NOODLE_FS;  // defined in noodle.cpp
+    extern SdFat NOODLE_FS;      // defined in noodle.cpp
 
   #elif defined(NOODLE_USE_FFAT)
     #include <FFat.h>
@@ -108,6 +129,8 @@
 // Safe string copy with NUL-termination
 
 // Minimal bounded copy for short filenames
+/** @brief Copy a C string into a bounded buffer with NUL-termination. */
+
 static inline void noodle_copy_name(char* dst, size_t cap, const char* src) {
   if (!dst || cap == 0) return;
   if (!src) { dst[0] = '\0'; return; }
@@ -122,6 +145,17 @@ static inline void noodle_copy_name(char* dst, size_t cap, const char* src) {
 
 // Normalize path according to backend policy
 // Only safe for immediate use (open/remove); do not store returned pointer!
+/**
+ * @brief Normalize a filename/path for the selected filesystem backend.
+ *
+ * For backends that require a leading '/', this function prepends it.
+ * For SdFat, the input is returned as-is.
+ *
+ * @param name Input filename, e.g. "w01.txt".
+ * @return Pointer to a normalized path string.
+ * @warning For slash-requiring backends, the returned pointer refers to a static buffer.
+ */
+
 static inline const char* noodle_norm_filename(const char* name) {
   if (!name) return "";
 
@@ -140,6 +174,8 @@ static inline const char* noodle_norm_filename(const char* name) {
 }
 
 // Open a file for reading
+/** @brief Open a file for reading using the selected backend. */
+
 inline NDL_File noodle_fs_open_read(const char* path) {
   path = noodle_norm_filename(path);
 #if defined(NOODLE_USE_NONE)
@@ -153,6 +189,8 @@ inline NDL_File noodle_fs_open_read(const char* path) {
 }
 
 // Open a file for writing (creates or truncates)
+/** @brief Open a file for writing (create or truncate) using the selected backend. */
+
 inline NDL_File noodle_fs_open_write(const char* path) {
     path = noodle_norm_filename(path);
 #if defined(NOODLE_USE_NONE)
@@ -166,6 +204,9 @@ inline NDL_File noodle_fs_open_write(const char* path) {
 #endif
 }
 
+/** @brief Remove a file using the selected backend. */
+
+
 inline bool noodle_fs_remove(const char* path) {
     path = noodle_norm_filename(path);
 #if defined(NOODLE_USE_NONE)
@@ -175,6 +216,13 @@ inline bool noodle_fs_remove(const char* path) {
   return NOODLE_FS.remove(path);
 #endif
 }
+
+/**
+ * @brief Rewind a file handle to position 0.
+ *
+ * Different backends expose different seek APIs (seekSet vs seek).
+ */
+
 
 inline void noodle_rewind_file(NDL_File &fi) {
 #if defined(NOODLE_USE_SDFAT)
