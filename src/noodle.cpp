@@ -30,10 +30,6 @@ void noodle_setup_temp_buffers(void *b1,
   temp_buff2 = b2;
 }
 
-void noodle_setup_temp_buffers(void *b2) {
-  temp_buff2 = b2;
-}
-
 NDL_File noodle_open_file_for_write(const char *fn) {
   noodle_fs_remove(fn);
   return noodle_fs_open_write(fn);
@@ -697,7 +693,7 @@ uint16_t noodle_conv_float(const char *in_fn,
                            const Pool &pool,
                            CBFPtr progress_cb) {
   float *in_buffer  = (float *)temp_buff1;
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = nullptr;
 
   float progress = 0.0f;
   const uint16_t total = n_inputs * n_outputs;
@@ -711,6 +707,7 @@ uint16_t noodle_conv_float(const char *in_fn,
   float kernel[NOODLE_MAX_K][NOODLE_MAX_K]; 
 
   for (uint16_t O = 0; O < n_outputs; O++) {
+    out_buffer = noodle_slice(output, W, O);
     noodle_reset_buffer(out_buffer, W * W);
     float bias = noodle_read_float(fb);
 
@@ -834,7 +831,7 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb) {
   float *in_buffer;
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = nullptr;
 
   float progress = 0;
   float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
@@ -844,6 +841,7 @@ uint16_t noodle_conv_float(float *input,
   uint16_t V = 0;
 
   for (uint16_t O = 0; O < n_outputs; O++) {
+    out_buffer = noodle_slice(output, W, O);
     noodle_reset_buffer(out_buffer, W * W);
     float bias = noodle_read_float(fb);
     for (uint16_t I = 0; I < n_inputs; I++) {      
@@ -872,7 +870,7 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb) {
   float *in_buffer = nullptr;
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = nullptr;
 
   float progress = 0.0f;
   const float denom = (float)((n_inputs * n_outputs > 1) ? (n_inputs * n_outputs - 1) : 1);
@@ -880,6 +878,7 @@ uint16_t noodle_conv_float(float *input,
 
   uint16_t V = 0;
   for (uint16_t O = 0; O < n_outputs; O++) {
+    out_buffer = noodle_slice(output, W, O);
     noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
     const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
 

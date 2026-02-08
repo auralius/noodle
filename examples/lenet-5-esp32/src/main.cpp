@@ -34,7 +34,6 @@ static const int IMG_SIZE = IMG_W * IMG_H;
 
 float *GRID;
 float *BUFFER1;
-float *BUFFER2;
 float *BUFFER3;
 
 static uint8_t RX_BYTES[IMG_SIZE];
@@ -50,13 +49,10 @@ void alloc_buffers()
   GRID    = (float *)malloc(IMG_SIZE * sizeof(float));
   BUFFER1 = GRID;
 
-  // Temp buffer for Noodle internals (user provided)
-  BUFFER2 = (float *)malloc(IMG_SIZE * sizeof(float));
-
   // Big feature map scratch (your original)
   BUFFER3 = (float *)malloc(14 * 14 * 6 * sizeof(float));
 
-  if (!GRID || !BUFFER2 || !BUFFER3) {
+  if (!GRID || !BUFFER3) {
     Serial.println(F("ERROR: malloc failed (out of RAM)"));
     while (true) delay(1000);
   }
@@ -146,7 +142,6 @@ void setup()
   //Serial.println(F("FFAT OK!"));
 
   alloc_buffers();
-  noodle_setup_temp_buffers((void *)BUFFER2);
 
   // Tell Python we are alive
   Serial.println(F("READY"));
