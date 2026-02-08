@@ -250,7 +250,7 @@ float noodle_get_padded_x(byte *grid,
   if ((i < P) || (j < P) || (i > (W - 1 + P)) || (j > (W - 1 + P))) {
     return 0.0;
   }
-  return (float)grid[(int32_t)(i - P) * (int32_t)W + (int32_t)(j - P)];
+  return (float)grid[(i - P) * W + (j - P)];
 }
 
 float noodle_get_padded_x(float *grid,
@@ -261,7 +261,7 @@ float noodle_get_padded_x(float *grid,
   if ((i < P) || (j < P) || (i > (W - 1 + P)) || (j > (W - 1 + P))) {
     return 0.0;
   }
-  return grid[(int32_t)(i - P) * (int32_t)W + (int32_t)(j - P)];
+  return grid[(i - P) * W + (j - P)];
 }
 
 uint16_t noodle_do_bias(float *output,
@@ -280,23 +280,25 @@ uint16_t noodle_do_bias(float *output,
   return n;
 }
 
-uint16_t noodle_do_pooling(float *input,
+uint16_t noodle_do_pooling(const float *input,
                            uint16_t W,
                            uint16_t K,
                            uint16_t S,
                            const char *fn) {
 
 #if NOODLE_POOL_MODE == NOODLE_POOL_NONE
-  // Identity pooling: write W*W values unchanged.
   fo = noodle_open_file_for_write(fn);
-  const uint16_t n = W * W;
-  for (uint16_t i = 0; i < n; i++) 
+  const uint32_t n = (uint32_t)W * (uint32_t)W;
+  for (uint32_t i = 0; i < n; i++)
     noodle_write_float(fo, input[i]);
   fo.close();
   return W;
 
 #else
-  const uint16_t Wo = (W - K) / S + 1;
+  if (S == 0) return 0;
+  if (W < K) return 0;
+
+  const uint16_t Wo = (uint16_t)((W - K) / S + 1);
   fo = noodle_open_file_for_write(fn);
 
   #if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
@@ -304,16 +306,16 @@ uint16_t noodle_do_pooling(float *input,
   #endif
 
   for (uint16_t out_y = 0; out_y < Wo; out_y++) {
-    const uint16_t base_y = out_y * S;
+    const uint16_t base_y = (uint16_t)(out_y * S);
     for (uint16_t out_x = 0; out_x < Wo; out_x++) {
-      const uint16_t base_x = out_x * S;
+      const uint16_t base_x = (uint16_t)(out_x * S);
 
     #if NOODLE_POOL_MODE == NOODLE_POOL_MAX
       float vmax = -FLT_MAX;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint16_t row = (base_y + win_y) * W;
+        const uint16_t row = (uint16_t)((base_y + win_y) * W);
         for (uint16_t win_x = 0; win_x < K; win_x++) {
-          float v = input[row + base_x + win_x];
+          const float v = input[row + base_x + win_x];
           if (v > vmax) vmax = v;
         }
       }
@@ -322,7 +324,7 @@ uint16_t noodle_do_pooling(float *input,
     #elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
       float acc = 0.0f;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint16_t row = (base_y + win_y) * W;
+        const uint16_t row = (uint16_t)((base_y + win_y) * W);
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           acc += input[row + base_x + win_x];
         }
@@ -337,35 +339,42 @@ uint16_t noodle_do_pooling(float *input,
 #endif
 }
 
-uint16_t noodle_do_pooling(float *input,
+
+uint16_t noodle_do_pooling(const float *input,
                            uint16_t W,
                            uint16_t K,
                            uint16_t S,
                            NDL_File &fo) {
 
 #if NOODLE_POOL_MODE == NOODLE_POOL_NONE
-  const uint16_t n = W * W;
-  for (uint16_t i = 0; i < n; i++) noodle_write_float(fo, input[i]);
+  // Identity pooling: write W*W values unchanged.
+  const uint32_t n = (uint32_t)W * (uint32_t)W;
+  for (uint32_t i = 0; i < n; i++) {
+    noodle_write_float(fo, input[i]);
+  }
   return W;
 
 #else
-  const uint16_t Wo = (W - K) / S + 1;
+  if (S == 0) return 0;
+  if (W < K)  return 0;
+
+  const uint16_t Wo = (uint16_t)((W - K) / S + 1);
 
   #if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
     const float inv_KK = 1.0f / (float)(K * K);
   #endif
 
   for (uint16_t out_y = 0; out_y < Wo; out_y++) {
-    const uint16_t base_y = out_y * S;
+    const uint16_t base_y = (uint16_t)(out_y * S);
     for (uint16_t out_x = 0; out_x < Wo; out_x++) {
-      const uint16_t base_x = out_x * S;
+      const uint16_t base_x = (uint16_t)(out_x * S);
 
     #if NOODLE_POOL_MODE == NOODLE_POOL_MAX
       float vmax = -FLT_MAX;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint16_t row = (base_y + win_y) * W;
+        const uint16_t row = (uint16_t)((base_y + win_y) * W);
         for (uint16_t win_x = 0; win_x < K; win_x++) {
-          float v = input[row + base_x + win_x];
+          const float v = input[row + base_x + win_x];
           if (v > vmax) vmax = v;
         }
       }
@@ -374,7 +383,7 @@ uint16_t noodle_do_pooling(float *input,
     #elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
       float acc = 0.0f;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint16_t row = (base_y + win_y) * W;
+        const uint16_t row = (uint16_t)((base_y + win_y) * W);
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           acc += input[row + base_x + win_x];
         }
@@ -395,42 +404,51 @@ uint16_t noodle_do_pooling(const float *input,
                            float *output) {
 
 #if NOODLE_POOL_MODE == NOODLE_POOL_NONE
-  const uint16_t n = W * W;
-  for (uint16_t i = 0; i < n; i++) output[i] = input[i];
+  // Identity pooling: copy W*W values unchanged.
+  const uint32_t n = (uint32_t)W * (uint32_t)W;
+  for (uint32_t i = 0; i < n; i++) {
+    output[i] = input[i];
+  }
   return W;
 
 #else
-  const uint16_t Wo = (W - K) / S + 1;
+  if (S == 0) return 0;
+  if (W < K)  return 0;
+
+  const uint16_t Wo = (uint16_t)((W - K) / S + 1);
 
   #if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
     const float inv_KK = 1.0f / (float)(K * K);
   #endif
 
   for (uint16_t out_y = 0; out_y < Wo; out_y++) {
-    const uint16_t base_y = out_y * S;
+    const uint16_t base_y = (uint16_t)(out_y * S);
+    const uint16_t out_row = (uint16_t)(out_y * Wo);
+
     for (uint16_t out_x = 0; out_x < Wo; out_x++) {
-      const uint16_t base_x = out_x * S;
+      const uint16_t base_x = (uint16_t)(out_x * S);
+      const uint16_t out_idx = (uint16_t)(out_row + out_x);
 
     #if NOODLE_POOL_MODE == NOODLE_POOL_MAX
       float vmax = -FLT_MAX;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint16_t row = (base_y + win_y) * W;
+        const uint16_t row = (uint16_t)((base_y + win_y) * W);
         for (uint16_t win_x = 0; win_x < K; win_x++) {
-          float v = input[row + base_x + win_x];
+          const float v = input[row + base_x + win_x];
           if (v > vmax) vmax = v;
         }
       }
-      output[out_y * Wo + out_x] = vmax;
+      output[out_idx] = vmax;
 
     #elif NOODLE_POOL_MODE == NOODLE_POOL_MEAN
       float acc = 0.0f;
       for (uint16_t win_y = 0; win_y < K; win_y++) {
-        const uint16_t row = (base_y + win_y) * W;
+        const uint16_t row = (uint16_t)((base_y + win_y) * W);
         for (uint16_t win_x = 0; win_x < K; win_x++) {
           acc += input[row + base_x + win_x];
         }
       }
-      output[out_y * Wo + out_x] = acc * inv_KK;
+      output[out_idx] = acc * inv_KK;
     #endif
     }
   }
@@ -468,6 +486,9 @@ uint16_t noodle_do_conv(float *grid,
                         float *output,
                         uint16_t P,
                         uint16_t S) {
+  if(P == -1) // Automatic symmetric padding, K should be odd!
+    P = (K-1) / 2;
+  
   uint16_t V = (W - K + 2 * P) / S + 1;
   for (uint16_t i = 0; i < V; i++) {
     for (uint16_t j = 0; j < V; j++) {
