@@ -17,7 +17,7 @@
  * ### Temporary buffers
  * Call ::noodle_setup_temp_buffers() once prior to convolution/FCN routines that read from files.
  * Unless otherwise stated:
- *  - temp buffer #1: at least `W*W*sizeof(input_element)` bytes
+ *  - temp buffer #1: at least `W*W*sizeof(float)` bytes
  *  - temp buffer #2: at least `W*W*sizeof(float)` bytes (accumulator)
  *
  * ### Tensor layout and file format
@@ -29,7 +29,8 @@
  * - Weights file (Conv): ordered by output-major then input: `(O0,I0) kernel, (O0,I1) kernel, ...`
  * - Bias file: one scalar per output channel (n_outputs values).
  *
- * For low-RAM MCUs, streaming routines repeatedly rewind the packed input file for each output channel.
+ * ### Convolution
+ *  All convolutions in Noodle use symmetric padding.
  *
  * ### Pooling mode
  * 2D pooling mode is compile-time selectable via @ref NOODLE_POOL_MODE in @ref noodle_config.h
@@ -267,6 +268,7 @@ void noodle_grid_from_file(const char *fn, float *buffer, uint16_t K);
 void noodle_grid_from_file(NDL_File &fi, float *buffer, uint16_t K);
 
 /** Return padded input sample from a byte grid with zero padding.
+ *  Noodle uses symmetric, stride-independent padding for all convolutions.
  *  @param grid  Input @p W×@p W bytes.
  *  @param i,j   Padded coordinates in [0, W+2P).
  *  @param W,P   See common semantics.
@@ -325,6 +327,7 @@ uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation ac
 
 /** 2D pooling over a V×V map, writing results to a file (one float per line).
  *  Pooling mode (MAX or MEAN) is selected via NOODLE_POOL_MODE at compile time.
+ *  This layer uses valid pooling. NO PADDING IS APPLIED!
  *  @param input  Input V×V map (float).
  *  @param W      V (input width/height).
  *  @param K      Pool kernel size (M).
@@ -332,18 +335,10 @@ uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation ac
  *  @param fn     Output filename template (receives O where applicable).
  *  @return V_out = (V - K)/S + 1.
  */
-uint16_t noodle_do_pooling(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
-uint16_t noodle_do_pooling(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
-
-/** 2D pooling over a V×V map, writing results to a provided output buffer.
- *  Pooling mode (MAX or MEAN) is selected via NOODLE_POOL_MODE at compile time.
- *  @param input   Input V×V map (float).
- *  @param W       V (input width/height).
- *  @param K       Pool kernel size (M).
- *  @param S       Pool stride (T).
- *  @param output  Output buffer of size V_out×V_out.
- *  @return V_out = (V - K)/S + 1.
- */
+uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
+/** @overload using NDL_File output handle. */
+uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
+/** @overload using float output buffer. */
 uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t S, float *output);
 
 /** 1D MAX pooling (file output). Writes V_out values (one per line) to @p fn.
@@ -355,7 +350,9 @@ uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t 
  *  @return V_out = (V - K)/S + 1.
  */
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
+/** @overload using NDL_File output handle. */
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
+
 /** @name 2D Convolution (packed-file and memory variants)
  * @ingroup noodle_conv
  *
@@ -363,8 +360,17 @@ uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, N
  * - Input file: packed CHW planes (each plane W×W).
  * - Output file: packed CHW planes (each plane V_out×V_out) in output-channel order.
  *
- * These functions may rewind the input file for each output channel to keep RAM usage low.
+ * Padding:
+ * - Noodle uses symmetric, stride-independent padding.
+ * - If P >= 0, that value is used as the symmetric padding on all sides.
+ * - If P = -1, padding is computed automatically as:
+ *     P = floor((K - 1) / 2)
+ *   which preserves spatial size when S = 1 and K is odd.
+ *
+ * Requires temporary buffers set via ::noodle_setup_temp_buffers.
+ * Buffer sizes are typically W×W floats, used as per-channel scratch space.
  */
+
 ///@{
 // --- 2D Convolution (Conv + optional Pool) ---
 
