@@ -172,22 +172,16 @@ inline float* noodle_slice(float* flat, size_t W, size_t z);
 /** Provide two reusable temporary buffers used internally by file-streaming ops.
  * @ingroup noodle_utils
  *  Must be called before conv/FCN variants that read from files.
- *  Two temp buffers are needed for operations that read from a file.
- *  For C*W*W tensor, the buffer should be W*W
+ *  For C x W x W tensor, the buffer should be W x W.
+ 
+ *  - First temp buffer is operation that reads from a file.
+ *  - Second temp buffer is operation that writes to a file.
+ *  - File-to-memory operations only need one temp buffer.
+ *  - Temp buffers are NOT needed for memory-to-memory operations.
  *  @param b1 Buffer #1 (input scratch). See size guidance above.
  *  @param b2 Buffer #2 (float accumulator). See size guidance above.
  */
-void   noodle_setup_temp_buffers(void *b1, void *b2);
-
-/** Provide a single reusable temporary buffer used internally by file-streaming ops.
- * @ingroup noodle_utils
- *  Must be called before conv/FCN variants that read from files.
- *  One temp buffer is needed for operations that reads from a variable.
- *  Hence, only output accumulator buffe is needed.
- *  For C*W*W tensor, the buffer should be W*W
- *  @param b2 Buffer #2 (float accumulator). See size guidance above.
- */
-void   noodle_setup_temp_buffers(void *b2);
+void   noodle_setup_temp_buffers(void *b1, void *b2=nullptr
 
 // ============================================================================
 // Filesystem helpers
