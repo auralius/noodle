@@ -585,7 +585,8 @@ uint16_t noodle_conv1d(const char *in_fn,
 
 
 /** 
- *  Memory→Memory 1D convolution with optional bias+activation and a pooling stage.
+ *  Memory→Memory 1D convolution with optional bias+activation and NO pooling stage.
+ *  This operation does NOT need temp buffers!
  *  @ingroup noodle_public
  *  @param in          Input array (CHW).
  *  @param n_inputs    Number of input channels I.
@@ -594,9 +595,9 @@ uint16_t noodle_conv1d(const char *in_fn,
  *  @param W           Input length.
  *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
  *  @param progress_cb Optional progress callback in [0,1].
- *  @return V_out after pooling.
+ *  @return V (pre-pooling output length).
  */
-uint16_t noodle_conv1d(const float *in,
+uint16_t noodle_conv1d(float *in,
                        uint16_t n_inputs,
                        float *out,
                        uint16_t n_outputs,

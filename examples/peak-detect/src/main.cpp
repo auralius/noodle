@@ -66,13 +66,10 @@ static float read_f32_le(const uint8_t *p) {
 // Allocate buffers
 // -----------------------------
 static void alloc_buffers() {
-  BUFFER1 = (float*)malloc(L * sizeof(float));
-  BUFFER2 = (float*)malloc(L * sizeof(float));
-
   BUFFER3 = (float*)malloc(BUF_N * sizeof(float));
   BUFFER4 = (float*)malloc(BUF_N * sizeof(float));
 
-  if (!BUFFER1 || !BUFFER2 || !BUFFER3 || !BUFFER4) {
+  if (!BUFFER3 || !BUFFER4) {
     Serial.println(F("ERROR: malloc failed (out of RAM)"));
     while (true) delay(1000);
   }
@@ -126,7 +123,6 @@ void setup() {
   while (!Serial) delay(2);
 
   alloc_buffers();
-  noodle_setup_temp_buffers(BUFFER1, BUFFER2);
   Serial.println(F("READY")); // Python can wait for this
 }
 
