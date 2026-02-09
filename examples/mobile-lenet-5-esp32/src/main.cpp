@@ -118,15 +118,10 @@ static void alloc_buffers()
   FEAT_A = (float *)malloc(MAX_FEAT_FLOATS * sizeof(float));
   FEAT_B = (float *)malloc(MAX_FEAT_FLOATS * sizeof(float));
 
-  TEMP1  = (float *)malloc((uint32_t)28 * 28 * sizeof(float));
-  TEMP2  = (float *)malloc((uint32_t)28 * 28 * sizeof(float));
-
-  if (!FEAT_A || !FEAT_B || !TEMP1 || !TEMP2) {
+  if (!FEAT_A || !FEAT_B) {
     Serial.println(F("ERROR: malloc failed (out of RAM)"));
     while (true) delay(1000);
   }
-
-  noodle_setup_temp_buffers((void *)TEMP1, (void *)TEMP2);
 }
 
 // ------------------------------------------------------------
