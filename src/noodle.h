@@ -181,14 +181,11 @@ inline float* noodle_slice(float* flat, size_t W, size_t z);
  *  @param b1 Buffer #1 (input scratch). See size guidance above.
  *  @param b2 Buffer #2 (float accumulator). See size guidance above.
  */
-void   noodle_setup_temp_buffers(void *b1, void *b2=nullptr
+void   noodle_setup_temp_buffers(void *b1, void *b2=nullptr);
 
 // ============================================================================
 // Filesystem helpers
 // ============================================================================
-
-/** Open a file for write (removing an existing file first). */
-NDL_File noodle_open_file_for_write(const char* fn);
 
 /** Read bytes from a file until a terminator or length-1, NUL-terminating the buffer.
  *  @param file Open file handle.
@@ -348,21 +345,19 @@ uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, c
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
 
 /** @name 2D Convolution (packed-file and memory variants)
- * @ingroup noodle_conv
+ *  @ingroup noodle_conv
  *
- * Packed-file conventions:
- * - Input file: packed CHW planes (each plane W×W).
- * - Output file: packed CHW planes (each plane V_out×V_out) in output-channel order.
+ *  Packed-file conventions:
+ *  - Input file: packed CHW planes (each plane W×W).
+ *  - Output file: packed CHW planes (each plane V_out×V_out) in output-channel order.
  *
- * Padding:
- * - Noodle uses symmetric, stride-independent padding.
- * - If P >= 0, that value is used as the symmetric padding on all sides.
- * - If P = -1, padding is computed automatically as:
- *     P = floor((K - 1) / 2)
- *   which preserves spatial size when S = 1 and K is odd.
+ *  Padding:
+ *  - Noodle uses symmetric, stride-independent padding.
+ *  - If P >= 0, that value is used as the symmetric padding on all sides.
+ *  - If P = -1, padding is computed automatically as: P = floor((K - 1) / 2)
+ *    which preserves spatial size when S = 1 and K is odd.
  *
- * Requires temporary buffers set via ::noodle_setup_temp_buffers.
- * Buffer sizes are typically W×W floats, used as per-channel scratch space.
+ * May require temporary buffers set via ::noodle_setup_temp_buffers.
  */
 
 ///@{
@@ -435,9 +430,8 @@ uint16_t noodle_conv_float(float *input,
                            const ConvMem &conv,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
+
 // --- 1D Convolution (Conv.K used as kernel length) ---
-
-
 /** File CHW→File CHW 1D convolution with optional bias+activation and a 1D MAX pooling stage.
  *
  *  This follows the same I/O convention as noodle_conv_float():
@@ -461,8 +455,6 @@ uint16_t noodle_conv_float(float *input,
  *  @param pool        Pool parameters (kernel M, stride T).
  *  @param progress_cb Optional progress callback in [0,1].
  *  @return V_out after pooling.
-///@}
-
  */
 uint16_t noodle_conv1d(const char *in_fn,
                        uint16_t n_inputs,
@@ -524,6 +516,8 @@ uint16_t noodle_conv1d(const float *in,
 /** Memory→Memory FCN with explicit in-memory weight & bias arrays (row-major weights).
  *  Weight layout is `[n_outputs, n_inputs]` flattened row-major.
  */
+///@}
+
 // ============================================================================
 // Activations
 // ============================================================================
@@ -723,8 +717,8 @@ void noodle_read_top_line(const char* fn, char *line, size_t maxlen);
  *  convolves it with the depthwise kernel read from @p conv.weight_fn (also tokenized by I),
  *  adds bias from @p conv.bias_fn (one bias per input channel), applies activation,
  *  and writes the output feature map to @p out_fn (tokenized by I).
- *  Requires temp buffers set via ::noodle_setup_temp_buffers.
- *  @param in_fn       Base input filename template (receives I).
+ *  May requires temp buffers set via ::noodle_setup_temp_buffers.
+ *  @param in_fn       Base input filename template (receives I).float *out_buffer = noodle_slice(output, W, C);
  *  @param n_channels  Number of input/output channels.
  *  @param out_fn      Base output filename template (receives I).
  *  @param W           Input width/height.

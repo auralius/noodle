@@ -30,11 +30,6 @@ void noodle_setup_temp_buffers(void *b1,
   temp_buff2 = b2;
 }
 
-NDL_File noodle_open_file_for_write(const char *fn) {
-  noodle_fs_remove(fn);
-  return noodle_fs_open_write(fn);
-}
-
 size_t noodle_read_bytes_until(NDL_File &file,
                                char terminator,
                                char *buffer,
@@ -177,7 +172,7 @@ void noodle_delete_buffer(float *buffer) {
 void noodle_array_to_file(float *array,
                           const char *fn,
                           uint16_t n) {
-  fo = noodle_open_file_for_write(fn);
+  fo = noodle_fs_open_write(fn);
   for (uint16_t i = 0; i < n; i++)
     noodle_write_float(fo, array[i]);
   fo.close();
@@ -193,7 +188,7 @@ void noodle_array_to_file(float *array,
 void noodle_grid_to_file(byte *grid,
                          const char *fn,
                          uint16_t n) {
-  fo = noodle_open_file_for_write(fn);
+  fo = noodle_fs_open_write(fn);
   for (uint16_t i = 0; i < n; i++) {
     const uint16_t row = i * n;
     for (uint16_t j = 0; j < n; j++) {
@@ -217,7 +212,7 @@ void noodle_grid_to_file(byte *grid,
 void noodle_grid_to_file(float *grid,
                          const char *fn,
                          uint16_t n) {
-  fo = noodle_open_file_for_write(fn);
+  fo = noodle_fs_open_write(fn);
   for (uint16_t i = 0; i < n; i++) {
     const uint16_t row = i * n;
     for (uint16_t j = 0; j < n; j++) {
@@ -283,7 +278,7 @@ uint16_t noodle_do_pooling(const float *input,
                            const char *fn) {
 
 #if NOODLE_POOL_MODE == NOODLE_POOL_NONE
-  fo = noodle_open_file_for_write(fn);
+  fo = noodle_fs_open_write(fn);
   const uint32_t n = (uint32_t)W * (uint32_t)W;
   for (uint32_t i = 0; i < n; i++)
     noodle_write_float(fo, input[i]);
@@ -295,7 +290,7 @@ uint16_t noodle_do_pooling(const float *input,
   if (W < K) return 0;
 
   const uint16_t Wo = (uint16_t)((W - K) / S + 1);
-  fo = noodle_open_file_for_write(fn);
+  fo = noodle_fs_open_write(fn);
 
   #if NOODLE_POOL_MODE == NOODLE_POOL_MEAN
     const float inv_KK = 1.0f / (float)(K * K);
@@ -950,7 +945,7 @@ uint16_t noodle_fcn(const int8_t *input,
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
-  fo = noodle_open_file_for_write(out_fn);
+  fo = noodle_fs_open_write(out_fn);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = noodle_read_float(fb);
@@ -980,7 +975,7 @@ uint16_t noodle_fcn(const byte *input,
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
-  fo = noodle_open_file_for_write(out_fn);
+  fo = noodle_fs_open_write(out_fn);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = noodle_read_float(fb);
@@ -1072,7 +1067,7 @@ uint16_t noodle_fcn(const float *input,
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
-  fo = noodle_open_file_for_write(out_fn);
+  fo = noodle_fs_open_write(out_fn);
 
   for (uint16_t k = 0; k < n_outputs; k++) {
     float output = noodle_read_float(fb);
@@ -1170,7 +1165,7 @@ uint16_t noodle_fcn(const char *in_fn,
 
   fw = noodle_fs_open_read(fcn.weight_fn);
   fb = noodle_fs_open_read(fcn.bias_fn);
-  fo = noodle_open_file_for_write(out_fn);
+  fo = noodle_fs_open_write(out_fn);
   fi = noodle_fs_open_read(in_fn);
 
   for (uint16_t j = 0; j < n_outputs; j++) {
@@ -1280,7 +1275,7 @@ uint16_t noodle_do_pooling1d(float *input,
                              uint16_t K,
                              uint16_t S,
                              const char *fn) {
-  fo = noodle_open_file_for_write(fn);
+  fo = noodle_fs_open_write(fn);
 
   uint16_t Wo = (W - K) / S + 1;
   for (uint16_t i = 0; i < Wo; i++) {
@@ -1589,7 +1584,7 @@ uint16_t noodle_dwconv_float(float *input,
                              CBFPtr progress_cb)
 {
   // Scratch buffer for intermediate conv output (size W*W floats)
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = nullptr;
 
   float progress = 0.0f;
   const float denom = (float)((n_channels > 1) ? (n_channels - 1) : 1);
@@ -1607,6 +1602,8 @@ uint16_t noodle_dwconv_float(float *input,
   // This function assumes multiplier M == 1.
   for (uint16_t C = 0; C < n_channels; C++) {
     float *in_plane = noodle_slice(input, W, C);
+    float *out_buffer = noodle_slice(output, W, C);
+
     const float bias = noodle_read_float(fb);
     noodle_grid_from_file(fw, (float *)kernel, conv.K);
 
@@ -1635,7 +1632,7 @@ uint16_t noodle_dwconv_float(float *input,
                              const Pool &pool,
                              CBFPtr progress_cb)
 {
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = nullptr;
 
   float progress = 0.0f;
   const float denom = (float)((n_channels > 1) ? (n_channels - 1) : 1);
@@ -1649,8 +1646,9 @@ uint16_t noodle_dwconv_float(float *input,
   // Assumes M == 1
   for (uint16_t C = 0; C < n_channels; C++) {
     float *in_plane = noodle_slice(input, W, C);
-    const float bias = (conv.bias != nullptr) ? conv.bias[C] : 0.0f;
+    float *out_buffer = noodle_slice(output, W, C);
 
+    const float bias = (conv.bias != nullptr) ? conv.bias[C] : 0.0f;
     const float *kernel = conv.weight + (C * conv.K * conv.K);
 
     noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
