@@ -131,7 +131,7 @@
 // Minimal bounded copy for short filenames
 /** @brief Copy a C string into a bounded buffer with NUL-termination. */
 
-static inline void noodle_copy_name(char* dst, size_t cap, const char* src) {
+inline void noodle_copy_name(char* dst, size_t cap, const char* src) {
   if (!dst || cap == 0) return;
   if (!src) { dst[0] = '\0'; return; }
 
@@ -156,7 +156,7 @@ static inline void noodle_copy_name(char* dst, size_t cap, const char* src) {
  * @warning For slash-requiring backends, the returned pointer refers to a static buffer.
  */
 
-static inline const char* noodle_norm_filename(const char* name) {
+inline const char* noodle_norm_filename(const char* name) {
   if (!name) return "";
 
 #if NOODLE_FS_NEEDS_LEADING_SLASH
