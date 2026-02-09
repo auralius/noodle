@@ -33,6 +33,7 @@
   #error "invalid NOODLE_POOL_MODE"
 #endif
 
+// Define maksimum kernel size to avoid variable allocation!
 #ifndef NOODLE_MAX_K
-  #define NOODLE_MAX_K 5 // define maksimum kernel size to avoid variable allocation!
+  #define NOODLE_MAX_K 5 
 #endif

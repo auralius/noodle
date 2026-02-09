@@ -1,7 +1,10 @@
 /**
  * @file noodle_fs.h
- * @brief Backend selector for Noodle: SdFat, SD_MMC, FFat, LittleFS, or NONE.
+ * @defgroup noodle_fs Filesystem backend layer
+ * @ingroup noodle_fs
  *
+ * Backend selector for Noodle: SdFat, SD_MMC, FFat, LittleFS, or NONE.
+ * Noodle supports multiple storage backends (SdFat, SD_MMC, FFat, LittleFS, or NONE).
  * Define exactly ONE of:
  *   - NOODLE_USE_SDFAT
  *   - NOODLE_USE_SD_MMC
@@ -13,16 +16,8 @@
  *   - NDL_File (FsFile for SdFat, File otherwise, or NDL_NullFile for NONE)
  *   - NOODLE_FS (SdFat object for SdFat; FFat/SD_MMC/LittleFS singleton otherwise; not used for NONE)
  *   - noodle_fs_open_read / noodle_fs_open_write / noodle_fs_remove
- */
-
-/**
- * @defgroup noodle_fs Filesystem backend layer
- * @ingroup noodle_api
- * @brief Backend-agnostic filesystem adapter used by Noodle streaming layers.
+ *   - other file operations
  *
- * Noodle supports multiple storage backends (SdFat, SD_MMC, FFat, LittleFS, or NONE).
- * This header normalizes the file type and the small set of operations Noodle needs
- * (open read/write, remove, rewind).
  *
  * @par Path normalization
  * Some Arduino filesystem APIs require paths to start with a leading slash (e.g. "/w01.txt"),
@@ -93,7 +88,6 @@
 // ------------------------------
 // 3) Real backends
 // ------------------------------
-
   #if defined(NOODLE_USE_SDFAT)
     #include <SdFat.h>
 
@@ -234,4 +228,3 @@ inline void noodle_rewind_file(NDL_File &fi) {
   fi.close();
 #endif
 }
-
