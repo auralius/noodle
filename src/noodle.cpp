@@ -825,7 +825,7 @@ uint16_t noodle_conv_float(float *input,
                            const Conv &conv,
                            const Pool &pool,
                            CBFPtr progress_cb) {
-  float *in_buffer;
+  float *in_buffer = nullptr;
   float *out_buffer = nullptr;
 
   float progress = 0;
@@ -1433,15 +1433,15 @@ uint16_t noodle_conv1d(const char *in_fn,
 }
 
 // Memory -> Memory Conv1D
-uint16_t noodle_conv1d(const float *in,
+uint16_t noodle_conv1d(float *in,
                        uint16_t n_inputs,
                        float *out,
                        uint16_t n_outputs,
                        uint16_t W,
                        const ConvMem &conv,
                        CBFPtr progress_cb) {
-  float *in_buffer  = (float *)temp_buff1; // needs >= W floats
-  float *out_buffer = (float *)temp_buff2; // needs >= W floats (safe upper bound)
+  float *in_buffer = nullptr;
+  float *out_buffer = nullptr;
 
   float progress = 0.0f;
   const uint16_t total = n_inputs * n_outputs;
@@ -1450,16 +1450,13 @@ uint16_t noodle_conv1d(const float *in,
   uint16_t V = 0;
 
   for (uint16_t O = 0; O < n_outputs; O++) {
+    out_buffer = out + O * W;
     noodle_reset_buffer(out_buffer, W);
     const float bias = conv.bias[O];
 
     for (uint16_t I = 0; I < n_inputs; I++) {
-      // read W samples of input channel I into in_buffer (same as your fi reads)
-      const float *in_ch = in + I * W;
-      for (uint16_t i = 0; i < W; i++) {
-        in_buffer[i] = in_ch[i];
-      }
-
+      // read W samples of input channel I into in_buffer
+      in_buffer = in + I * W;
       const float *kernel = conv.weight + (O * n_inputs + I) * conv.K;
 
       // Accumulate into out_buffer
@@ -1481,16 +1478,10 @@ uint16_t noodle_conv1d(const float *in,
       if ((conv.act == ACT_RELU) && (v < 0.0f)) v = 0.0f;
       out_buffer[i] = v;
     }
-
-    float *out_ch = out + O * V;
-    for (uint16_t i = 0; i < V; i++) {
-      out_ch[i] = out_buffer[i];
-    }
   }
 
   return V;
 }
-
 
 uint16_t noodle_do_bias_act(float *output,
                             float bias,
