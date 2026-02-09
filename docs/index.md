@@ -5,7 +5,7 @@
 ---
 ## Contents
 
-- [API Reference Documentation](api.md)
+- [API Reference Documentation](https://auralius.github.io/noodle/doxygen/)
 - [MLPerf Tiny Anomaly Detection on ESP32](ad-esp32.md)    
 - [MLPerf Tiny Visual Wake Word on ESP32](vww-esp32.md)    
 - [Simple 1D Peak Detection](ecg-peak-detect.md)
