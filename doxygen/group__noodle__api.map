@@ -1,0 +1,5 @@
+<map id="Noodle Public API" name="Noodle Public API">
+<area shape="rect" id="Node000001" title="Low&#45;RAM CNN/ML primitives with optional filesystem streaming." alt="" coords="5,35,133,60"/>
+<area shape="rect" id="Node000002" href="$group__noodle__config.html" title="Compile&#45;time configuration knobs (filesystem backend selection, pooling mode, limits)." alt="" coords="201,5,300,31"/>
+<area shape="rect" id="Node000003" href="$group__noodle__fs.html" title="Backend&#45;agnostic filesystem adapter used by Noodle streaming layers." alt="" coords="181,55,320,95"/>
+</map>

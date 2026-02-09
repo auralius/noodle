@@ -1,0 +1,4 @@
+<map id="Pooling" name="Pooling">
+<area shape="rect" id="Node000002" href="$group__noodle__api.html" title="Low&#45;RAM CNN/ML primitives with optional filesystem streaming." alt="" coords="5,5,133,31"/>
+<area shape="rect" id="Node000001" title="1D/2D pooling primitives (valid pooling; no implicit padding)." alt="" coords="181,5,247,31"/>
+</map>
