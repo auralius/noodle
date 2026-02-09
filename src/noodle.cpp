@@ -477,7 +477,7 @@ uint16_t noodle_do_conv(float *grid,
                         float *output,
                         uint16_t P,
                         uint16_t S) {
-  if(P == -1) // Automatic symmetric padding, K should be odd!
+  if(P == 65535) // Automatic symmetric padding, K should be odd!
     P = (K-1) / 2;
   
   uint16_t V = (W - K + 2 * P) / S + 1;
