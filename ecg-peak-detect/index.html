@@ -657,12 +657,14 @@ noodle_sigmoid(BUFFER3, V);
 <p>There is also additional logic to perform refractory period enforcement (to avoid double counting).</p>
 <hr />
 <h3 id="uno-r4">Uno R4</h3>
-<p>The implementation above fits flawlessly in general ESP32 (320KB of RAM). However, in Uno R4 with 32KB of RAM, that implementation will not work. The main challenges are dealing with in the input, output and intermediate activation variables that actually contribute to the memory peaks.
-<img alt="" src="../attachments/peak-r4.png" /></p>
-<p>As expected, the inference time takes longer, which is ~26 seconds. For flexible manipulation, Noodle offers the following configuration for some layer operations.
-- File → Variable layer operation requires input scratch
-* Variable → File layer operation requires output scratch 
-* File → File layer operation requires input and output scratch </p>
+<p>The implementation above fits flawlessly in general ESP32 (320KB of RAM). However, in Uno R4 with 32KB of RAM, that implementation will not work. The main challenges are dealing with in the input, output and intermediate activation variables that actually contribute to the memory peaks.</p>
+<p><img alt="" src="../attachments/peak-r4.png" /></p>
+<p>As expected, the inference time takes longer, which is ~26 seconds. For flexible manipulation, Noodle offers the following configuration for some layer operations.</p>
+<ul>
+<li>File → Variable layer operation requires input scratch</li>
+<li>Variable → File layer operation requires output scratch </li>
+<li>File → File layer operation requires input and output scratch </li>
+</ul>
 <p>For <span class="arithmatex">\(C \times W \times W\)</span> tensor,  the size of the scratch buffer is <span class="arithmatex">\(W \times W\)</span>. This, we can safely use input and output variables as scratch buffer. </p>
 <table>
 <thead>
