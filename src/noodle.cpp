@@ -1432,6 +1432,63 @@ uint16_t noodle_conv1d(const char *in_fn,
   return V;
 }
 
+uint16_t noodle_conv1d(const char *in_fn,
+                       uint16_t n_inputs,
+                       const char *out_fn,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       CBFPtr progress_cb) {
+  if (!temp_buff1 || !temp_buff2) return 0;
+
+  float *in_buffer  = (float *)temp_buff1;  // must hold W floats
+  float *out_buffer = (float *)temp_buff2;  // must hold Vmax floats
+
+  const uint16_t Vmax = (uint16_t)((W - conv.K + 2 * conv.P) / conv.S + 1);
+  uint16_t V = 0;
+
+  float progress = 0.0f;
+  const uint16_t total = n_inputs * n_outputs;
+  const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+
+  fi = noodle_fs_open_read(in_fn);
+  fo = noodle_fs_open_write(out_fn);
+
+  for (uint16_t O = 0; O < n_outputs; O++) {
+    noodle_reset_buffer(out_buffer, Vmax);
+    const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
+    noodle_rewind_file(fi);
+
+    for (uint16_t I = 0; I < n_inputs; I++) {
+      const float *kptr = conv.weight + (O * n_inputs + I) * conv.K; // Conv1D stride
+
+      for (uint16_t i = 0; i < W; i++) {
+        in_buffer[i] = noodle_read_float(fi);
+      }
+
+      V = noodle_do_conv1d(in_buffer, (float *)kptr, W, conv.K, out_buffer, conv.P, conv.S);
+
+      if (progress_cb) progress_cb(progress);
+      progress += progress_step;
+    }
+
+    // Bias + activation for valid region
+    for (uint16_t i = 0; i < V; i++) {
+      float v = out_buffer[i] + bias;
+      if ((conv.act == ACT_RELU) && (v < 0.0f)) v = 0.0f;
+      out_buffer[i] = v;
+    }
+
+    for (uint16_t i = 0; i < V; i++) {
+      noodle_write_float(fo, out_buffer[i]);
+    }
+  }
+
+  fi.close();
+  fo.close();
+  return V;
+}
+
 // Memory -> Memory Conv1D
 uint16_t noodle_conv1d(float *in,
                        uint16_t n_inputs,
@@ -1482,6 +1539,131 @@ uint16_t noodle_conv1d(float *in,
 
   return V;
 }
+
+// Memory -> File Conv1D (input packed CHW in RAM, output packed CHW in file)
+uint16_t noodle_conv1d(float *in,
+                       uint16_t n_inputs,
+                       const char *out_fn,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       CBFPtr progress_cb) {
+  if (!temp_buff2) return 0; // need an accumulation buffer
+
+  float *out_buffer = (float *)temp_buff2;
+
+  float progress = 0.0f;
+  const uint16_t total = n_inputs * n_outputs;
+  const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+
+  // Output length per channel
+  const uint16_t Vmax = (uint16_t)((W - conv.K + 2 * conv.P) / conv.S + 1);
+  uint16_t V = 0;
+
+  fo = noodle_fs_open_write(out_fn);  // packed output CHW (append per output channel)
+
+  for (uint16_t O = 0; O < n_outputs; O++) {
+    // reset accumulation buffer for this output channel
+    noodle_reset_buffer(out_buffer, Vmax);
+
+    const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
+
+    for (uint16_t I = 0; I < n_inputs; I++) {
+      const float *in_buffer = in + I * W;
+      const float *kernel    = conv.weight + (O * n_inputs + I) * conv.K;
+
+      // Accumulate into out_buffer
+      V = noodle_do_conv1d((float *)in_buffer,   // noodle_do_conv1d takes non-const float*
+                           (float *)kernel,
+                           W,
+                           conv.K,
+                           out_buffer,
+                           conv.P,
+                           conv.S);
+
+      if (progress_cb) progress_cb(progress);
+      progress += progress_step;
+    }
+
+    // Bias + activation in-place
+    for (uint16_t i = 0; i < V; i++) {
+      float v = out_buffer[i] + bias;
+      if ((conv.act == ACT_RELU) && (v < 0.0f)) v = 0.0f;
+      out_buffer[i] = v;
+    }
+
+    // Append raw V samples for this output channel
+    for (uint16_t i = 0; i < V; i++) {
+      noodle_write_float(fo, out_buffer[i]);
+    }
+  }
+
+  fo.close();
+  return V;
+}
+
+// File -> Memory Conv1D (input packed CHW in file, output packed CHW in RAM)
+uint16_t noodle_conv1d(const char *in_fn,
+                       uint16_t n_inputs,
+                       float *out,              // packed output: [O][Vmax]
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       CBFPtr progress_cb) {
+  float *in_buffer = (float *)temp_buff1;
+
+  float progress = 0.0f;
+  const uint16_t total = n_inputs * n_outputs;
+  const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+
+  // Output length per channel
+  const uint16_t Vmax = (uint16_t)((W - conv.K + 2 * conv.P) / conv.S + 1);
+  uint16_t V = 0;
+
+  fi = noodle_fs_open_read(in_fn);   // packed input CHW
+
+  for (uint16_t O = 0; O < n_outputs; O++) {
+    float *out_buffer = out + (uint32_t)O * Vmax;
+    noodle_reset_buffer(out_buffer, Vmax);
+
+    const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
+
+    // Rewind packed input for each output channel
+    noodle_rewind_file(fi);
+
+    for (uint16_t I = 0; I < n_inputs; I++) {
+      // Read one input channel (W samples) into RAM buffer
+      for (uint16_t i = 0; i < W; i++) {
+        in_buffer[i] = noodle_read_float(fi);
+      }
+
+      const float *kernel = conv.weight + (O * n_inputs + I) * conv.K;
+
+      // Accumulate into output channel buffer
+      V = noodle_do_conv1d(in_buffer,
+                           (float *)kernel,   // noodle_do_conv1d expects float*
+                           W,
+                           conv.K,
+                           out_buffer,
+                           conv.P,
+                           conv.S);
+
+      if (progress_cb) progress_cb(progress);
+      progress += progress_step;
+    }
+
+    // Bias + activation in-place
+    for (uint16_t i = 0; i < V; i++) {
+      float v = out_buffer[i] + bias;
+      if ((conv.act == ACT_RELU) && (v < 0.0f)) v = 0.0f;
+      out_buffer[i] = v;
+    }
+  }
+
+  fi.close();
+  return V;
+}
+
 
 uint16_t noodle_do_bias_act(float *output,
                             float bias,
