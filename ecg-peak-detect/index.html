@@ -240,7 +240,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/" class="md-nav__link">
+      <a href="https://auralius.github.io/noodle/doxygen/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -336,6 +336,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#esp32" class="md-nav__link">
+    <span class="md-ellipsis">
+      ESP32
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#1-input-representation" class="md-nav__link">
     <span class="md-ellipsis">
       1. Input representation
@@ -366,6 +375,15 @@
   <a href="#4-from-scores-to-peaks" class="md-nav__link">
     <span class="md-ellipsis">
       4. From scores to peaks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uno-r4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uno R4
     </span>
   </a>
   
@@ -532,6 +550,7 @@
   <h1>Peak Detection on ESP32</h1>
 
 <h2 id="peak-detection-with-a-1d-convolutional-network-peaknet1d">Peak Detection with a 1D Convolutional Network (PeakNet1D)</h2>
+<h3 id="esp32">ESP32</h3>
 <p><img alt="" src="../attachments/peak.png" /></p>
 <p>In this experiment, we implement a simple but powerful peak detection system using a one-dimensional convolutional neural network (PeakNet1D). The goal is to detect peaks (such as R-peaks in ECG signals) directly from raw time-domain data, without hand-crafted feature extraction.</p>
 <p><em>Google Colab Notebook can be found <a href="https://colab.research.google.com/drive/1PFdsJ4rrTK7F8FewhGauMTJWMXRP7i3E?usp=sharing">here</a>.</em></p>
@@ -636,6 +655,27 @@ noodle_sigmoid(BUFFER3, V);
 <p>Peak detection is completed using simple thresholding (post-processing step):</p>
 <div class="arithmatex">\[\text{peak}(t)=1 \, \text{if} \, y[t]&gt;0.5 \]</div>
 <p>There is also additional logic to perform refractory period enforcement (to avoid double counting).</p>
+<hr />
+<h3 id="uno-r4">Uno R4</h3>
+<p>The implementation above fits flawlessly in general ESP32 (320KB of RAM). However, in Uno R4 with 32KB of RAM, that implementation will not work. The main challenges are dealing with in the input, output and intermediate activation variables that actually contribute to the memory peaks.
+<img alt="" src="../attachments/peak-r4.png" /></p>
+<p>As expected, the inference time takes longer, which is ~26 seconds. For flexible manipulation, Noodle offers the following configuration for some layer operations.
+- File → Variable layer operation requires input scratch
+* Variable → File layer operation requires output scratch 
+* File → File layer operation requires input and output scratch </p>
+<p>For <span class="arithmatex">\(C \times W \times W\)</span> tensor,  the size of the scratch buffer is <span class="arithmatex">\(W \times W\)</span>. This, we can safely use input and output variables as scratch buffer. </p>
+<table>
+<thead>
+<tr>
+<th><img alt="" src="../attachments/diagram.png" /></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 
 

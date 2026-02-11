@@ -8,10 +8,8 @@
       
       
       
-        <link rel="canonical" href="https://auralius.github.io/noodle/mobile-lenet-5/">
+        <link rel="canonical" href="https://auralius.github.io/noodle/mobile-lenet/">
       
-      
-        <link rel="prev" href="../usps-fcn-uno/">
       
       
       
@@ -403,31 +401,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Mobile-LeNet
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../mobile-lenet-5/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -437,164 +414,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#design-choices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Design Choices
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architectural-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Architectural Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stem-convolution" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stem Convolution
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#depth-wise-separable-blocks-dw-pw" class="md-nav__link">
-    <span class="md-ellipsis">
-      Depth-wise Separable Blocks (DW → PW)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Depth-wise Separable Blocks (DW → PW)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-depth-wise-convolution-dwconv" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Depth-wise Convolution (DWConv)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-point-wise-convolution-pwconv-11" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Point-wise Convolution (PWConv, 1×1)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stage-wise-organization" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage-wise Organization
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Stage-wise Organization">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#stage-1-feature-refinement-2828" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage 1 — Feature Refinement (28×28)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stage-2-first-downsampling-1414" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage 2 — First Downsampling (14×14)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stage-3-second-downsampling-77" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage 3 — Second Downsampling (7×7)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#padding-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Padding Strategy
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#global-average-pooling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Global Average Pooling
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#classification-layer" class="md-nav__link">
-    <span class="md-ellipsis">
-      Classification Layer
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#noodle-implementation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Noodle Implementation
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -619,7 +438,7 @@
 
 
 <h1 id="mobile-lenet">Mobile-LeNet</h1>
-<p><img alt="" src="../attachments/mobile-lenet.png" /></p>
+<p><img alt="" src="mobile-lenet.png" /></p>
 <ul>
 <li><a href="https://colab.research.google.com/drive/1WQ1yPFyfsqXl6NcWHlDjNY3L3Xgk8aC2?usp=sharing"><em>Google Colab notebook can be found here.</em></a></li>
 <li><a href="https://github.com/auralius/noodle/tree/main/examples/mobile-lenet-5-esp32"><em>Noodle Implementation can be found here.</em></a></li>
@@ -637,7 +456,7 @@
 <li>Dense classification (or fully connected network / FCN)</li>
 </ul>
 <p>The target dataset is <strong>MNIST (28×28 grayscale)</strong></p>
-<p><img alt="" src="../attachments/dw-pw-counts.png" /></p>
+<p><img alt="" src="dw-pw-counts.png" /></p>
 <h2 id="architectural-overview">Architectural Overview</h2>
 <table>
 <thead>
