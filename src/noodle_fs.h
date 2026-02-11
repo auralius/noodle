@@ -91,7 +91,9 @@
   #if defined(NOODLE_USE_SDFAT)
     #include <SdFat.h>
 
-    #if defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040)
+#if defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || \
+    defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266) || \
+    defined(ARDUINO_ARCH_RP2040)
       using NDL_File = FsFile;   // SdFat on ESP32 typically uses FsFile
     #else
       using NDL_File = File;     // SdFat on AVR often uses File wrapper

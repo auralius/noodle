@@ -26,13 +26,11 @@
 // -----------------------------
 static const uint16_t L = 256;      // window length
 static const uint16_t MAX_CH = 16;  // PeakNet max channels in mid layers
-static const uint32_t BUF_N = (uint32_t)L * (uint32_t)MAX_CH; // 4096 floats
+static const uint32_t BUF_N = L * MAX_CH; // 4096 floats
 
 // -----------------------------
 // Buffers (CHW packed: [ch0 plane][ch1 plane]...)
 // -----------------------------
-float *BUFFER1;
-float *BUFFER2;
 float *BUFFER3;
 float *BUFFER4;
 
@@ -113,6 +111,7 @@ static void predict_peaknet() {
     Serial.print(BUFFER3[i], 6);
   }
   Serial.println();
+  Serial.flush();
 }
 
 // -----------------------------

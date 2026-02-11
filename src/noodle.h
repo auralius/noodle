@@ -583,7 +583,14 @@ uint16_t noodle_conv1d(const char *in_fn,
                        const Conv &conv,
                        CBFPtr progress_cb=NULL);
 
-
+uint16_t noodle_conv1d(const char *in_fn,
+                       uint16_t n_inputs,
+                       const char *out_fn,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       CBFPtr progress_cb);
+                       
 /** 
  *  Memory→Memory 1D convolution with optional bias+activation and NO pooling stage.
  *  This operation does NOT need temp buffers!
@@ -604,6 +611,22 @@ uint16_t noodle_conv1d(float *in,
                        uint16_t W,
                        const ConvMem &conv,
                        CBFPtr progress_cb=NULL);
+
+uint16_t noodle_conv1d(float *in,
+                       uint16_t n_inputs,
+                       const char *out_fn,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       CBFPtr progress_cb);
+
+uint16_t noodle_conv1d(const char *in_fn,
+                       uint16_t n_inputs,
+                       float *out,              // packed output: [O][Vmax]
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       CBFPtr progress_cb);
 
 /** 
  * @name Internal Helpers for Convolution 
