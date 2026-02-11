@@ -1,4 +1,5 @@
 ## Peak Detection with a 1D Convolutional Network (PeakNet1D)
+### ESP32
 
 ![](attachments/peak.png)
 
@@ -82,4 +83,21 @@ Peak detection is completed using simple thresholding (post-processing step):
 $$\text{peak}(t)=1 \, \text{if} \, y[t]>0.5 $$
 
 There is also additional logic to perform refractory period enforcement (to avoid double counting).
+
+---
+### Uno R4
+
+The implementation above fits flawlessly in general ESP32 (320KB of RAM). However, in Uno R4 with 32KB of RAM, that implementation will not work. The main challenges are dealing with in the input, output and intermediate activation variables that actually contribute to the memory peaks.
+![](attachments/peak-r4.png)
+
+
+As expected, the inference time takes longer, which is ~26 seconds. For flexible manipulation, Noodle offers the following configuration for some layer operations.
+- File → Variable layer operation requires input scratch
+* Variable → File layer operation requires output scratch 
+* File → File layer operation requires input and output scratch 
+
+For $C \times W \times W$ tensor,  the size of the scratch buffer is $W \times W$. This, we can safely use input and output variables as scratch buffer. 
+
+| ![](attachments/diagram.png) |
+| ---------------------------- |
 

@@ -4,7 +4,7 @@ repo_url: https://github.com/auralius/noodle/
 
 nav:
 - Home: index.md
-- API References: api.md
+- API References: https://auralius.github.io/noodle/doxygen/
 - Anomali Detection on ESP32: ad-esp32.md
 - Peak Detection on ESP32: ecg-peak-detect.md
 - Visual Wake Word on ESP32: vww-esp32.md
@@ -12,7 +12,7 @@ nav:
 - LeNet-5 on Pico: lenet-5-pico.md
 - SD-Card–Backed LeNet-5: lenet-5-esp32-sdio.md
 - Two-Layer FCN on UNO R3: usps-fcn-uno.md
-- Mobile-LeNet: mobile-lenet-5.md
+- Mobile-LeNet: mobile-lenet.md
 
 theme:
   name: material
