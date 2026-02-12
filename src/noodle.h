@@ -4,9 +4,9 @@
  *  @ingroup noodle_public
  *
  *  @details
- *  Noodle provides minimal convolution, pooling, flatten, fully-connected and activation
- *  routines that operate either entirely in memory or by streaming tensors/parameters to
- *  and from a filesystem (SD/FFat/SD_MMC). Backends are selected in @ref noodle_fs.h via
+ *  Noodle provides minimal convolution, pooling, flattening, fully-connected and activation
+ *  routines that operate either entirely in variables on in files (streaming tensors/parameters to
+ *  and from a filesystem (SD/FFat/SD_MMC)). Backends are selected in @ref noodle_fs.h via
  *  preprocessor flags. The library is designed for extremely small RAM budgets, so most
  *  file-based APIs reuse two caller-supplied temporary buffers
  *  (see @ref noodle_setup_temp_buffers).
@@ -530,7 +530,7 @@ uint16_t noodle_conv_float(float *input,
  */
  
 /**
- *  File CHW→File CHW 1D convolution with optional bias+activation and a pooling stage.
+ *  File CHW→File CW 1D convolution with optional bias+activation and a pooling stage.
  *  @ingroup noodle_public
  *
  *  This follows the same I/O convention as noodle_conv_float():
@@ -542,7 +542,7 @@ uint16_t noodle_conv_float(float *input,
  *    and I in [0..n_inputs), read K floats (kernel taps).
  *  - Biases are read sequentially from @p conv.bias_fn (one float per output channel).
  *
- *  @param in_fn       Packed input filename (CHW).
+ *  @param in_fn       Packed input filename (CW).
  *  @param n_inputs    Number of input channels I.
  *  @param out_fn      Packed output filename (CHW).
  *  @param n_outputs   Number of output channels O.
@@ -562,11 +562,12 @@ uint16_t noodle_conv1d(const char *in_fn,
                        CBFPtr progress_cb=NULL);
 
 /** 
- *  File CHW→File CHW 1D convolution with bias+activation and NO pooling stage.
+ *  File CHW→File CW 1D convolution with bias+activation and NO pooling stage.
+ *  Convolution parameters are in files.
  *  @ingroup noodle_public
  *  Semantics as above but appends raw conv+bias(+ReLU) sequences for each output channel to
  *  @p out_fn.
- *  @param in_fn       Packed input filename (CHW).
+ *  @param in_fn       Packed input filename (CW).
  *  @param n_inputs    Number of input channels I.
  *  @param out_fn      Packed output filename (CHW).
  *  @param n_outputs   Number of output channels O.
@@ -583,6 +584,21 @@ uint16_t noodle_conv1d(const char *in_fn,
                        const Conv &conv,
                        CBFPtr progress_cb=NULL);
 
+/**
+ *  File CW →File CW 1D convolution with bias+activation and NO pooling stage. 
+ *  Convolution parameters are in variables.
+ *  @ingroup noodle_public
+ *  Semantics as above but appends raw conv+bias(+ReLU) sequences for each output channel to
+ *  @p out_fn.
+ *  @param in_fn       Packed input filename (CW).
+ *  @param n_inputs    Number of input channels I.
+ *  @param out_fn      Packed output filename (CHW).
+ *  @param n_outputs   Number of output channels O.
+ *  @param W           Input length.
+ *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
+ *  @param progress_cb Optional progress callback in [0,1].
+ *  @return V (pre-pooling output length).
+ */
 uint16_t noodle_conv1d(const char *in_fn,
                        uint16_t n_inputs,
                        const char *out_fn,
@@ -595,9 +611,9 @@ uint16_t noodle_conv1d(const char *in_fn,
  *  Memory→Memory 1D convolution with optional bias+activation and NO pooling stage.
  *  This operation does NOT need temp buffers!
  *  @ingroup noodle_public
- *  @param in          Input array (CHW).
+ *  @param in          Input array (CW).
  *  @param n_inputs    Number of input channels I.
- *  @param out         Output array (CHW).
+ *  @param out         Output array (CW).
  *  @param n_outputs   Number of output channels O.
  *  @param W           Input length.
  *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
