@@ -234,25 +234,39 @@ void noodle_grid_to_file(float *grid,
 }
 
 float noodle_get_padded_x(byte *grid,
-                          int16_t i,
-                          int16_t j,
+                          int16_t i, int16_t j,
                           int16_t W,
-                          int16_t P) {
-  if ((i < P) || (j < P) || (i > (W - 1 + P)) || (j > (W - 1 + P))) {
-    return 0.0;
-  }
-  return (float)grid[(i - P) * W + (j - P)];
+                          int16_t P0, int16_t P1) {
+  const int16_t Wpad = W + P0 + P1;
+
+  // outside padded tensor
+  if (i < 0 || j < 0 || i >= Wpad || j >= Wpad) return 0.0f;
+
+  // padded -> input
+  const int16_t ii = i - P0;
+  const int16_t jj = j - P0;
+
+  if (ii < 0 || jj < 0 || ii >= W || jj >= W) return 0.0f;
+
+  return (float)grid[ii * W + jj];
 }
 
 float noodle_get_padded_x(float *grid,
-                          int16_t i,
-                          int16_t j,
+                          int16_t i, int16_t j,
                           int16_t W,
-                          int16_t P) {
-  if ((i < P) || (j < P) || (i > (W - 1 + P)) || (j > (W - 1 + P))) {
-    return 0.0;
-  }
-  return grid[(i - P) * W + (j - P)];
+                          int16_t P0, int16_t P1) {
+  const int16_t Wpad = W + P0 + P1;
+
+  // outside padded tensor
+  if (i < 0 || j < 0 || i >= Wpad || j >= Wpad) return 0.0f;
+
+  // padded -> input
+  const int16_t ii = i - P0;
+  const int16_t jj = j - P0;
+
+  if (ii < 0 || jj < 0 || ii >= W || jj >= W) return 0.0f;
+
+  return grid[ii * W + jj];
 }
 
 uint16_t noodle_do_bias(float *output,
@@ -455,13 +469,30 @@ uint16_t noodle_do_conv(byte *grid,
                         float *output,
                         uint16_t P,
                         uint16_t S) {
-  uint16_t V = (W - K + 2 * P) / S + 1;
+  uint16_t V;
+  uint16_t P0 = P;   // top/left
+  uint16_t P1 = P;   // bottom/right
+
+  if (P == 65535) { // TF/Keras SAME padding (square case)
+    V = (W + S - 1) / S;   // ceil(W / S)
+
+    int32_t Ptot = (int32_t)(V - 1) * (int32_t)S + (int32_t)K - (int32_t)W;
+    if (Ptot < 0) Ptot = 0;
+
+    P0 = (uint16_t)Ptot / 2;
+    P1 = (uint16_t)Ptot - P0;
+  } else {
+    // explicit symmetric padding
+    V = (W - K + 2 * P) / S + 1;
+  }
+
   for (uint16_t i = 0; i < V; i++) {
     for (uint16_t j = 0; j < V; j++) {
-      float v = 0;
+      float v = 0.0f;
       for (uint16_t k = 0; k < K; k++) {
         for (uint16_t l = 0; l < K; l++) {
-          v += kernel[k * K + l] * noodle_get_padded_x(grid, i * S + k, j * S + l, W, P);
+          v += kernel[k * K + l] *
+               noodle_get_padded_x(grid, i * S + k, j * S + l, W, P0, P1);
         }
       }
       output[i * V + j] += v;
@@ -477,16 +508,30 @@ uint16_t noodle_do_conv(float *grid,
                         float *output,
                         uint16_t P,
                         uint16_t S) {
-  if(P == 65535) // Automatic symmetric padding, K should be odd!
-    P = (K-1) / 2;
-  
-  uint16_t V = (W - K + 2 * P) / S + 1;
+  uint16_t V;
+  uint16_t P0 = P;   // top/left
+  uint16_t P1 = P;   // bottom/right
+
+  if (P == 65535) { // TF/Keras SAME padding (square case)
+    V = (W + S - 1) / S;   // ceil(W / S)
+
+    int32_t Ptot = (int32_t)(V - 1) * (int32_t)S + (int32_t)K - (int32_t)W;
+    if (Ptot < 0) Ptot = 0;
+
+    P0 = (uint16_t)Ptot / 2;
+    P1 = (uint16_t)Ptot - P0;
+  } else {
+    // explicit symmetric padding
+    V = (W - K + 2 * P) / S + 1;
+  }
+
   for (uint16_t i = 0; i < V; i++) {
     for (uint16_t j = 0; j < V; j++) {
-      float v = 0;
+      float v = 0.0f;
       for (uint16_t k = 0; k < K; k++) {
         for (uint16_t l = 0; l < K; l++) {
-          v += kernel[k * K + l] * noodle_get_padded_x(grid, i * S + k, j * S + l, W, P);
+          v += kernel[k * K + l] *
+               noodle_get_padded_x(grid, i * S + k, j * S + l, W, P0, P1);
         }
       }
       output[i * V + j] += v;
@@ -1198,7 +1243,7 @@ uint16_t noodle_fcn(const float *input,
 
   uint16_t l = 0;
   for (uint16_t k = 0; k < n_outputs; k++) {
-    float h = fcn.bias[k];
+    float h = fcn.bias ? fcn.bias[k] : 0.0f;
     for (uint16_t j = 0; j < n_inputs; j++)
       h += input[j] * fcn.weight[l++];  // <-- was ++l
     if ((fcn.act == ACT_RELU) && (h < 0.f)) h = 0.f;
@@ -1756,9 +1801,6 @@ uint16_t noodle_dwconv_float(float *input,
                              const Pool &pool,
                              CBFPtr progress_cb)
 {
-  // Scratch buffer for intermediate conv output (size W*W floats)
-  float *out_buffer = nullptr;
-
   float progress = 0.0f;
   const float denom = (float)((n_channels > 1) ? (n_channels - 1) : 1);
   const float progress_step = (denom > 0.0f) ? (1.0f / denom) : 1.0f;
@@ -1805,8 +1847,6 @@ uint16_t noodle_dwconv_float(float *input,
                              const Pool &pool,
                              CBFPtr progress_cb)
 {
-  float *out_buffer = nullptr;
-
   float progress = 0.0f;
   const float denom = (float)((n_channels > 1) ? (n_channels - 1) : 1);
   const float progress_step = (denom > 0.0f) ? (1.0f / denom) : 1.0f;
