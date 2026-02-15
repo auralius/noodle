@@ -139,7 +139,9 @@ typedef void (*CBFPtr)(float progress);
  *  @param W   Input spatial width (2D) or length (1D).
  *  @param K   Kernel size (2D: KxK, 1D: K).
  *  @param S   Stride.
- *  @param P   Zero-padding (per side). 2D uses top/left padding of size @p P.
+ *  @param P   Zero-padding (per side). 2D-symmetrical uses top/left/bot/right padding of size @p P.
+ *  @param P0  Zero-padding (per side). 2D-same uses top/left padding of size @p P0.
+ * *@param P1  Zero-padding (per side). 2D-same uses bot/right padding of size @p P1.
  *  @param M   Pool kernel size (2D: MxM).
  *  @param T   Pool stride.
  *  @param n_inputs  Number of input channels/features.
@@ -700,20 +702,19 @@ uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation ac
 /** 
  *  @brief Get padded input sample from a byte grid with zero padding.
  *  @ingroup noodle_internal
- *  Noodle uses symmetric, stride-independent padding for all convolutions.
- *  @param grid  Input @p W×@p W bytes.
- *  @param i,j   Padded coordinates in [0, W+2P).
- *  @param W,P   See common semantics.
+ *  @param grid      Input @p W×@p W bytes.
+ *  @param i,j       Padded coordinates in [0, W+2P).
+ *  @param W,P0,P1   See common semantics.
  *  @return Grid value as float, or 0 outside bounds.
  */
-float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P);
+float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
 
 /** 
  *  @overload 
  *  @brief Get padded input sample from a float grid with zero padding.
  *  @ingroup noodle_internal
  */
-float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P);
+float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
 
 
 /** 
