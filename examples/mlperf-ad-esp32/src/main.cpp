@@ -4,6 +4,27 @@
 #include <FS.h>
 #include <FFat.h>
 
+#include "w01.h"
+#include "w02.h"
+#include "w03.h"
+#include "w04.h"
+#include "w05.h"
+#include "w06.h"
+#include "w07.h"
+#include "w08.h"
+#include "w09.h"
+#include "w10.h"
+#include "w11.h"
+#include "w12.h"
+#include "w13.h"
+#include "w14.h"
+#include "w15.h"
+#include "w16.h"
+#include "w17.h"
+#include "w18.h"
+#include "w19.h"
+#include "w20.h"
+
 // -------- Model dims --------
 static constexpr uint16_t INPUT_DIM = 640;
 static constexpr uint16_t HIDDEN_DIM = 128;
@@ -24,29 +45,39 @@ static float mse_640(const float* a, const float* b) {
 }
 
 static void run_aefc_forward() {
-  FCNFile L1;  L1.weight_fn  = "/w01.txt"; L1.bias_fn  = "/w02.txt"; L1.act  = ACT_RELU;
-  FCNFile L2;  L2.weight_fn  = "/w03.txt"; L2.bias_fn  = "/w04.txt"; L2.act  = ACT_RELU;
-  FCNFile L3;  L3.weight_fn  = "/w05.txt"; L3.bias_fn  = "/w06.txt"; L3.act  = ACT_RELU;
-  FCNFile L4;  L4.weight_fn  = "/w07.txt"; L4.bias_fn  = "/w08.txt"; L4.act  = ACT_RELU;
-  FCNFile L5;  L5.weight_fn  = "/w09.txt"; L5.bias_fn  = "/w10.txt"; L5.act  = ACT_RELU;
-  FCNFile L6;  L6.weight_fn  = "/w11.txt"; L6.bias_fn  = "/w12.txt"; L6.act  = ACT_RELU;
-  FCNFile L7;  L7.weight_fn  = "/w13.txt"; L7.bias_fn  = "/w14.txt"; L7.act  = ACT_RELU;
-  FCNFile L8;  L8.weight_fn  = "/w15.txt"; L8.bias_fn  = "/w16.txt"; L8.act  = ACT_RELU;
-  FCNFile L9;  L9.weight_fn  = "/w17.txt"; L9.bias_fn  = "/w18.txt"; L9.act  = ACT_RELU;
-  FCNFile L10; L10.weight_fn = "/w19.txt"; L10.bias_fn = "/w20.txt"; L10.act = ACT_NONE;
+  FCNMem L1;  L1.weight  = w01; L1.bias  = w02; L1.act  = ACT_RELU;
+  FCNMem L2;  L2.weight  = w03; L2.bias  = w04; L2.act  = ACT_RELU;
+  FCNMem L3;  L3.weight  = w05; L3.bias  = w06; L3.act  = ACT_RELU;
+  FCNMem L4;  L4.weight  = w07; L4.bias  = w08; L4.act  = ACT_RELU;
+  FCNMem L5;  L5.weight  = w09; L5.bias  = w10; L5.act  = ACT_RELU;
+  FCNMem L6;  L6.weight  = w11; L6.bias  = w12; L6.act  = ACT_RELU;
+  FCNMem L7;  L7.weight  = w13; L7.bias  = w14; L7.act  = ACT_RELU;
+  FCNMem L8;  L8.weight  = w15, L8.bias  = w16; L8.act  = ACT_RELU;
+  FCNMem L9;  L9.weight  = w17; L9.bias  = w18; L9.act  = ACT_RELU;
+  FCNMem L10; L10.weight = w19; L10.bias = w20; L10.act = ACT_NONE;
 
   uint16_t V = INPUT_DIM;
 
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L1,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L2,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L3,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L4,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF1, V, BOTTLENECK_DIM,  BUF2, L5,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L6,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L7,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L8,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L9,  NULL);
+  Serial.println(V);
   V = noodle_fcn(BUF2, V, INPUT_DIM,       BUF1, L10, NULL);
+  Serial.println(V);
 
   if (V != INPUT_DIM) Serial.printf("WARN bad_V=%u\n", V);
 }
@@ -93,7 +124,7 @@ void setup() {
   Serial.begin(115200);
   delay(300);
 
-  while (!noodle_sd_init())
+  while (!noodle_fs_init())
   { // 4-bit
     delay(500);
     Serial.println(".");
