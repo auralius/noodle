@@ -24,6 +24,17 @@ from typing import List
 
 _FLOAT_RE = re.compile(r'[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?')
 
+def c_float_literal(x: float) -> str:
+    # Optional polish: avoid "-0.0f"
+    if x == 0.0:
+        return "0.0f"
+
+    s = f"{x:.9g}"  # compact but accurate enough for weights
+    # Ensure it's a valid floating literal before adding 'f'
+    if "e" not in s and "E" not in s and "." not in s:
+        s += ".0"
+    return s + "f"
+
 def read_numbers(path: Path) -> List[float]:
     nums: List[float] = []
     with path.open("r", encoding="utf-8", errors="ignore") as f:
@@ -67,7 +78,7 @@ def emit_header(nums: List[float], *, name: str, dtype: str, progmem: bool,
     for i in range(0, n, columns):
         chunk = nums[i:i+columns]
         if dtype == "float":
-            row = ", ".join(f"{x:.9g}f" for x in chunk)
+            row = ", ".join(c_float_literal(x) for x in chunk)
         else:
             row = ", ".join(f"{x:.9g}" for x in chunk)
         lines.append(f"  {row},")
