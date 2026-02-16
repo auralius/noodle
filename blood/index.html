@@ -523,8 +523,8 @@
 
 <h1 id="bloodmnist-with-mobile-lenet">BloodMNIST with Mobile-Lenet</h1>
 <p><img alt="" src="../attachments/blood.gif" /></p>
-<p>Google Colab notebook: 
-https://colab.research.google.com/drive/11kruiJu38hOgvQOHUBaZbBQD61lMgXFa?usp=sharing</p>
+<p><a href="https://colab.research.google.com/drive/11kruiJu38hOgvQOHUBaZbBQD61lMgXFa?usp=sharing">Google Colab notebook can be downloaded from here.</a></p>
+<p><a href="https://medmnist.com/">Here, we can find more information about MedMNIST.</a></p>
 <h2 id="machine-learning-model">Machine learning model</h2>
 <p>We will use the same Mobile-LeNet model but now with 3-channel input.</p>
 <table>
@@ -974,6 +974,8 @@ https://colab.research.google.com/drive/11kruiJu38hOgvQOHUBaZbBQD61lMgXFa?usp=sh
 </tbody>
 </table>
 <h2 id="layer-by-layer-implementation">Layer-by layer implementation</h2>
+<p>The following lines of code show the layer-by-layer implementation on a standard ESP32. From the table above, we can conclude that the peak memory usage is <code>28 * 28 * 8 * 4</code> bytes. Since we will use variable-to-variable operations, we will need to ping-pong buffers of that size (<code>FEAT_A</code> and <code>FEAT_B</code>).</p>
+<p>```).</p>
 <pre><code class="language-cpp">⋮
 ⋮
 // ---- Input ----
