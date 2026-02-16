@@ -33,7 +33,7 @@ static constexpr uint16_t BOTTLENECK_DIM = 8;
 // Ping-pong buffers
 static float BUF1[INPUT_DIM];
 static float BUF2[INPUT_DIM];
-static float X0[INPUT_DIM];
+static float X0[INPUT_DIM]; // We need to preserve input for later comparison
 
 static float mse_640(const float* a, const float* b) {
   double acc = 0.0;
@@ -59,25 +59,25 @@ static void run_aefc_forward() {
   uint16_t V = INPUT_DIM;
 
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L1,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L2,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L3,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L4,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF1, V, BOTTLENECK_DIM,  BUF2, L5,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L6,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L7,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF2, V, HIDDEN_DIM,      BUF1, L8,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF1, V, HIDDEN_DIM,      BUF2, L9,  NULL);
-  Serial.println(V);
+  //Serial.println(V);
   V = noodle_fcn(BUF2, V, INPUT_DIM,       BUF1, L10, NULL);
-  Serial.println(V);
+  //Serial.println(V);
 
   if (V != INPUT_DIM) Serial.printf("WARN bad_V=%u\n", V);
 }
