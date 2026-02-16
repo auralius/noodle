@@ -1879,32 +1879,18 @@ uint16_t noodle_dwconv_float(float *input,
 }
 
 uint16_t noodle_gap(float *inout, uint16_t C, uint16_t W) {
-  const uint16_t n = W * W;
+  const uint16_t n = (uint16_t)(W * W);
 
-  // If output region overlaps unread input (n < C), compute into a temp buffer.
-  // Use temp_buff1 if it's available and large enough.
-  if (n < C) {
-    float *tmp = (float*)temp_buff1; // must be >= C floats
-    for (uint16_t c = 0; c < C; c++) {
-      const float *plane = inout + c * n;
-      double acc = 0.0;
-      for (uint16_t i = 0; i < n; i++) acc += (double)plane[i];
-      tmp[c] = (float)(acc / (double)n);
-    }
-    for (uint16_t c = 0; c < C; c++) inout[c] = tmp[c];
-    return C;
-  }
-
-  // Normal fast in-place case (safe when n >= C)
-  for (uint16_t c = 0; c < C; c++) {
-    const float *plane = inout + c * n;
+  // Always safe in-place if we write outputs from high->low channel index.
+  // This avoids needing temp_buff1 even when n < C.
+  for (int32_t c = (int32_t)C - 1; c >= 0; --c) {
+    const float *plane = inout + (uint32_t)c * n;
     double acc = 0.0;
     for (uint16_t i = 0; i < n; i++) acc += (double)plane[i];
     inout[c] = (float)(acc / (double)n);
   }
   return C;
 }
-
 
 void noodle_unpack_bn_params(const float *bn_params,
                              uint16_t C,
