@@ -1,21 +1,6 @@
 #!/usr/bin/env python3
-"""
-txt2h.py — Convert a whitespace/newline separated numeric .txt file into a C/C++ header (.h).
-
-Typical use (Noodle-style weights):
-  python3 txt2h.py w19.txt --name w19 --out w19.h
-
-The input may contain:
-  - one number per line (recommended)
-  - extra tokens per line (we take the first float-like token)
-  - scientific notation (e.g., 1.23e-4)
-
-Outputs:
-  - const float <name>[N] = { ... };
-  - optional PROGMEM placement (AVR/Arduino)
-"""
-
 from __future__ import annotations
+
 import argparse
 import datetime
 import re
@@ -25,12 +10,9 @@ from typing import List
 _FLOAT_RE = re.compile(r'[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?')
 
 def c_float_literal(x: float) -> str:
-    # Optional polish: avoid "-0.0f"
     if x == 0.0:
         return "0.0f"
-
-    s = f"{x:.9g}"  # compact but accurate enough for weights
-    # Ensure it's a valid floating literal before adding 'f'
+    s = f"{x:.9g}"
     if "e" not in s and "E" not in s and "." not in s:
         s += ".0"
     return s + "f"
@@ -42,7 +24,6 @@ def read_numbers(path: Path) -> List[float]:
             s = line.strip()
             if not s:
                 continue
-            # allow commas as separators
             s = s.replace(",", " ")
             m = _FLOAT_RE.search(s)
             if m:
@@ -53,9 +34,7 @@ def read_numbers(path: Path) -> List[float]:
 
 def to_guard(name: str) -> str:
     g = re.sub(r'[^0-9A-Za-z]+', '_', name).strip('_').upper()
-    if not g:
-        g = "TXT2H_OUT"
-    return f"{g}_H"
+    return f"{g or 'TXT2H_OUT'}_H"
 
 def emit_header(nums: List[float], *, name: str, dtype: str, progmem: bool,
                 include_arduino: bool, columns: int) -> str:
@@ -89,26 +68,77 @@ def emit_header(nums: List[float], *, name: str, dtype: str, progmem: bool,
     lines.append(f"#endif // {guard}")
     return "\n".join(lines)
 
+def convert_one(inp: Path, out: Path, name: str, args) -> None:
+    nums = read_numbers(inp)
+    header = emit_header(
+        nums,
+        name=name,
+        dtype=args.dtype,
+        progmem=args.progmem,
+        include_arduino=not args.no_arduino_includes,
+        columns=max(1, args.columns),
+    )
+    out.write_text(header, encoding="utf-8")
+    print(f"Wrote {out}  (N={len(nums)})")
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Convert numeric .txt to a C/C++ header (.h)")
-    ap.add_argument("inp", type=Path, help="Input .txt file with numbers")
-    ap.add_argument("--out", type=Path, default=None, help="Output .h path (default: <inp>.h)")
-    ap.add_argument("--name", default=None, help="C array name (default: stem of input filename)")
+
+    # single-file mode: make inp optional so --dir works
+    ap.add_argument("inp", type=Path, nargs="?", default=None,
+                    help="Input .txt file with numbers (omit when using --dir)")
+
+    ap.add_argument("--out", type=Path, default=None,
+                    help="Output .h path (single-file mode default: <inp>.h)")
+    ap.add_argument("--name", default=None,
+                    help="C array name (single-file mode default: stem of input filename)")
+
     ap.add_argument("--dtype", default="float", choices=["float", "double"], help="C element type")
-    ap.add_argument("--progmem", action="store_true", help="Add PROGMEM (AVR/Arduino). Adds <avr/pgmspace.h> include.")
-    ap.add_argument("--no-arduino-includes", action="store_true", help="Do not include Arduino-ish headers")
-    ap.add_argument("--columns", type=int, default=8, help="How many values per line in the initializer")
+    ap.add_argument("--progmem", action="store_true",
+                    help="Add PROGMEM (AVR/Arduino). Adds <avr/pgmspace.h> include.")
+    ap.add_argument("--no-arduino-includes", action="store_true",
+                    help="Do not include Arduino-ish headers")
+    ap.add_argument("--columns", type=int, default=8,
+                    help="How many values per line in the initializer")
+
+    # bulk mode
+    ap.add_argument("--dir", type=Path, default=None,
+                    help="Bulk convert: directory containing .txt files")
+    ap.add_argument("--glob", default="*.txt",
+                    help="Glob pattern inside --dir (default: *.txt)")
+    ap.add_argument("--outdir", type=Path, default=None,
+                    help="Output directory for bulk mode (default: same as --dir)")
+    ap.add_argument("--prefix", default="",
+                    help="Prefix for C array names in bulk mode")
+
     args = ap.parse_args()
+
+    # bulk mode
+    if args.dir is not None:
+        indir: Path = args.dir
+        outdir: Path = args.outdir if args.outdir is not None else indir
+        outdir.mkdir(parents=True, exist_ok=True)
+
+        files = sorted(indir.glob(args.glob))
+        if not files:
+            raise SystemExit(f"No files matched {args.glob} in {indir}")
+
+        for inp in files:
+            name = args.prefix + inp.stem
+            out = outdir / (inp.stem + ".h")
+            convert_one(inp, out, name, args)
+
+        return 0
+
+    # single-file mode
+    if args.inp is None:
+        raise SystemExit("Provide an input file, or use --dir for bulk mode.")
 
     inp: Path = args.inp
     out: Path = args.out if args.out is not None else inp.with_suffix(".h")
     name: str = args.name if args.name is not None else inp.stem
 
-    nums = read_numbers(inp)
-    header = emit_header(nums, name=name, dtype=args.dtype, progmem=args.progmem,
-                         include_arduino=not args.no_arduino_includes, columns=max(1, args.columns))
-    out.write_text(header, encoding="utf-8")
-    print(f"Wrote {out}  (N={len(nums)})")
+    convert_one(inp, out, name, args)
     return 0
 
 if __name__ == "__main__":
