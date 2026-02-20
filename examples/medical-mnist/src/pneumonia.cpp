@@ -44,45 +44,6 @@ static uint8_t RX_BYTES[IMG_SIZE];
 static bool recv_exact(uint8_t *dst, size_t n, unsigned long timeout_ms);
 static void bytes_to_float_image(const uint8_t *src, float *dst, size_t n);
 
-
-// ------------------------------------------------------------
-// Depthwise + Pointwise block (ping-pong):
-//   DW:  in -> out  (+ BN + ReLU in-place on out)
-//   PW:  out -> in  (+ BN + ReLU in-place on in)
-// Final output lives in 'in'.
-// ------------------------------------------------------------
-uint16_t    noodle_dw_pw_block(float *in, float *out,
-                            uint16_t W_in,
-                            uint16_t Cin,
-                            uint16_t Cout,
-                            uint16_t stride_dw,
-                            const float *w_dw, const float *bn_dw,
-                            const float *w_pw, const float *bn_pw)
-{
-  const float BN_EPS = 1e-3f;   // match Keras default
-  Pool none{}; // M=1,T=1 by default
-
-  // DW (Cin -> Cin)
-  ConvMem dw{}; 
-  dw.K = 3; dw.P = 1; dw.S = stride_dw;
-  dw.weight = w_dw; 
-  dw.bias   = nullptr; 
-  dw.act    = ACT_NONE;
-  uint16_t W = noodle_dwconv_float(in, Cin, out, W_in, dw, none, nullptr);
-  noodle_bn_relu(out, Cin, W, bn_dw, BN_EPS);  
-
-  // PW (Cin -> Cout)
-  ConvMem pw{}; 
-  pw.K = 1; pw.P = 0; pw.S = 1;
-  pw.weight = w_pw; 
-  pw.bias   = nullptr; 
-  pw.act    = ACT_NONE;
-  W = noodle_conv_float(out, Cin, Cout, in, W, pw, none, nullptr);
-  noodle_bn_relu(in, Cout, W, bn_pw, BN_EPS);
-  return W;
-}
-
-
 static void alloc_buffers()
 {
   A = (float *)malloc(MAX_FEAT_FLOATS * sizeof(float));
@@ -133,12 +94,11 @@ void predict()
   V = noodle_fcn(A, V, 1, B, head, nullptr);
   
   // In-place logit
-  noodle_logit(B, 8);
+  noodle_logit(B, 1);
 
   // Argmax
   uint16_t pred;
-  float max_val;
-  noodle_find_max(B, 8, max_val, pred);
+  if (B[0] < 0.5) pred = 0; else pred = 1;
 
   const float et = (float)(micros() - t0) * 1e-6f;
 
@@ -149,7 +109,7 @@ void predict()
   Serial.print(' ');
   Serial.print(et, 4);
   Serial.print(' ');
-  Serial.print(max_val, 4);
+  Serial.print(B[0], 4);
   
   Serial.println();
 }
