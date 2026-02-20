@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <WiFi.h>
+
 #include "noodle.h"
 #include "w01.h"
 #include "w02.h"
@@ -111,12 +113,8 @@ static bool recv_exact(uint8_t *dst, size_t n, unsigned long timeout_ms)
 
 void bytes_to_float_image(const uint8_t *src, float *dst, size_t n)
 {
-#ifdef NORMALIZE_0_1
   const float inv = 1.0f / 255.0f;
   for (size_t i = 0; i < n; i++) dst[i] = (float)src[i] * inv;
-#else
-  for (size_t i = 0; i < n; i++) dst[i] = (float)src[i];
-#endif
 }
 
 
@@ -159,11 +157,8 @@ void rgb_u8_to_planar_float_0_1(const uint8_t *rgb, float *out_chw, uint16_t W) 
 // Allocate buffers
 // =====================================
 void alloc_buffers() {
-  const uint32_t maxTensor = (uint32_t)48 * 48 * 32; // 36864 floats
-  A   = (float*)malloc(maxTensor * sizeof(float));
-  B   = (float*)malloc(maxTensor * sizeof(float));
-  //TMP = (float*)malloc((uint32_t)IN_W * (uint32_t)IN_W * sizeof(float));      // 96*96 floats
-  //IN  = (float*)malloc((uint32_t)IN_W * (uint32_t)IN_W * IN_C * sizeof(float)); // 96*96*3 floats
+  A   = (float*)malloc(48 * 48 * 16 * sizeof(float)); // 2nd largest
+  B   = (float*)malloc(48 * 48 * 16 * sizeof(float)); //largest
   RGB = (uint8_t*)malloc(IN_RGB_BYTES); // 27648 bytes
 }
 
@@ -299,7 +294,10 @@ void run_vww_on_IN_and_report() {
 // Arduino setup/loop
 // =====================================
 void setup() {
-  Serial.begin(115200);
+  WiFi.mode(WIFI_OFF);
+  btStop();
+  
+  Serial.begin(921600);
   delay(200);
 
   //while (!noodle_fs_init()) {

@@ -48,8 +48,6 @@ void alloc_buffers()
   // Input image as float (BUFFER1)
   GRID    = (float *)malloc(IMG_SIZE * sizeof(float));
   BUFFER1 = GRID;
-
-  // Big feature map scratch (your original)
   BUFFER3 = (float *)malloc(14 * 14 * 6 * sizeof(float));
 
   if (!GRID || !BUFFER3) {
