@@ -30,6 +30,11 @@ void noodle_setup_temp_buffers(void *b1,
   temp_buff2 = b2;
 }
 
+void noodle_setup_temp_buffers(void *b2) {
+  temp_buff2 = b2;
+}
+
+
 size_t noodle_read_bytes_until(NDL_File &file,
                                char terminator,
                                char *buffer,
@@ -417,8 +422,11 @@ uint16_t noodle_do_pooling(const float *input,
   return W;
 
 #else
-  if (S == 0) return 0;
-  if (W < K)  return 0;
+  if (K == 1 && S == 1) { // identity, skip pooling!
+    const uint32_t n = (uint32_t)W * (uint32_t)W;
+    for (uint32_t i = 0; i < n; i++) output[i] = input[i];
+    return W;
+  }
 
   const uint16_t Wo = (uint16_t)((W - K) / S + 1);
 
@@ -512,19 +520,8 @@ uint16_t noodle_do_conv(float *grid,
   uint16_t P0 = P;   // top/left
   uint16_t P1 = P;   // bottom/right
 
-  if (P == 65535) { // TF/Keras SAME padding (square case)
-    V = (W + S - 1) / S;   // ceil(W / S)
-
-    int32_t Ptot = (int32_t)(V - 1) * (int32_t)S + (int32_t)K - (int32_t)W;
-    if (Ptot < 0) Ptot = 0;
-
-    P0 = (uint16_t)Ptot / 2;
-    P1 = (uint16_t)Ptot - P0;
-  } else {
-    // explicit symmetric padding
-    V = (W - K + 2 * P) / S + 1;
-  }
-
+  V = noodle_compute_V(K, W, P, S);
+  
   for (uint16_t i = 0; i < V; i++) {
     for (uint16_t j = 0; j < V; j++) {
       float v = 0.0f;
@@ -690,8 +687,10 @@ uint16_t noodle_conv_float(const char *in_fn,
   float *in_buffer = (float *)temp_buff1;
   float *out_buffer = (float *)temp_buff2;
 
-  float progress = 0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress = 0.0;
+  float progress_step = 0.0;
+  if (progress_cb)
+    progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
 
   fb = noodle_fs_open_read(conv.bias_fn);
   fw = noodle_fs_open_read(conv.weight_fn);
@@ -709,8 +708,10 @@ uint16_t noodle_conv_float(const char *in_fn,
       noodle_grid_from_file(fi, in_buffer, W);
       noodle_grid_from_file(fw, (float *)kernel, conv.K);
       V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
-      if (progress_cb) progress_cb(progress);
-      progress += progress_step;
+      if (progress_cb){ 
+        progress_cb(progress);
+        progress += progress_step;
+      }
     }
 
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
@@ -735,19 +736,23 @@ uint16_t noodle_conv_float(const char *in_fn,
   float *in_buffer  = (float *)temp_buff1;
   float *out_buffer = nullptr;
 
-  float progress = 0.0f;
-  const uint16_t total = n_inputs * n_outputs;
-  const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+  float progress = 0.0;
+  float progress_step = 0.0;
+  if (progress_cb){
+    uint16_t total = n_inputs * n_outputs;
+    progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+  }
 
   fb = noodle_fs_open_read(conv.bias_fn);
   fw = noodle_fs_open_read(conv.weight_fn);
   fi = noodle_fs_open_read(in_fn);  // packed input
 
-  uint16_t V = 0;
+  uint16_t V = noodle_compute_V(conv.K, W, conv.P, conv.S);
+
   float kernel[NOODLE_MAX_K][NOODLE_MAX_K]; 
 
   for (uint16_t O = 0; O < n_outputs; O++) {
-    out_buffer = noodle_slice(output, W, O);
+    out_buffer = noodle_slice(output, V, O);
     noodle_reset_buffer(out_buffer, W * W);
     float bias = noodle_read_float(fb);
 
@@ -758,8 +763,10 @@ uint16_t noodle_conv_float(const char *in_fn,
       noodle_grid_from_file(fi, in_buffer, W);
       noodle_grid_from_file(fw, (float *)kernel, conv.K);
       V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
-      if (progress_cb) progress_cb(progress);
-      progress += progress_step;
+      if (progress_cb) {
+        progress_cb(progress);
+        progress += progress_step;
+      }
     }
 
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
@@ -786,9 +793,12 @@ uint16_t noodle_conv_float(float *input,
                            CBFPtr progress_cb) {
   float *out_buffer = (float *)temp_buff2;
 
-  float progress = 0.0f;
-  const uint16_t total = n_inputs * n_outputs;
-  const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+  float progress = 0.0;
+  float progress_step = 0.0;
+  if (progress_cb){
+    uint16_t total = n_inputs * n_outputs;
+    progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+  }
 
   fb = noodle_fs_open_read(conv.bias_fn);
   fw = noodle_fs_open_read(conv.weight_fn);
@@ -807,8 +817,10 @@ uint16_t noodle_conv_float(float *input,
 
       V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
 
-      if (progress_cb) progress_cb(progress);
-      progress += progress_step;
+      if (progress_cb) {
+        progress_cb(progress);
+        progress += progress_step;
+      }
     }
 
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
@@ -832,9 +844,10 @@ uint16_t noodle_conv_float(float *input,
                            CBFPtr progress_cb)
 {
   float *out_buffer = (float *)temp_buff2;
-
-  float progress = 0.0f;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress = 0.0;
+  float progress_step = 0.0;
+  if (progress_cb)
+    progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
 
   fo = noodle_fs_open_write(out_fn);
 
@@ -849,8 +862,10 @@ uint16_t noodle_conv_float(float *input,
       const float *kernel = conv.weight + (O * n_inputs + I) * (conv.K * conv.K);
       float *in_plane = noodle_slice(input, W, I);  // expects CHW in memory
       V = noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
-      if (progress_cb) progress_cb(progress);
-      progress += progress_step;
+      if (progress_cb) {
+        progress_cb(progress);
+        progress += progress_step;
+      }
     }
 
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
@@ -873,23 +888,28 @@ uint16_t noodle_conv_float(float *input,
   float *in_buffer = nullptr;
   float *out_buffer = nullptr;
 
-  float progress = 0;
-  float progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+  float progress = 0.0;
+  float progress_step = 0.0;
+  if (progress_cb)
+    progress_step = 1.0f / (float)(n_inputs * n_outputs - 1);
+
   float kernel[conv.K][conv.K];
   fb = noodle_fs_open_read(conv.bias_fn);
   fw = noodle_fs_open_read(conv.weight_fn);
-  uint16_t V = 0;
+  uint16_t V = noodle_compute_V(conv.K, W, conv.P, conv.S);
 
   for (uint16_t O = 0; O < n_outputs; O++) {
-    out_buffer = noodle_slice(output, W, O);
+    out_buffer = noodle_slice(output, V, O);
     noodle_reset_buffer(out_buffer, W * W);
     float bias = noodle_read_float(fb);
     for (uint16_t I = 0; I < n_inputs; I++) {      
       in_buffer = noodle_slice(input, W, I);
       noodle_grid_from_file(fw, (float *)kernel, conv.K);
       V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
-      if (progress_cb) progress_cb(progress);
-      progress += progress_step;
+      if (progress_cb) {
+        progress_cb(progress);
+        progress += progress_step;
+      }
     }
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
     uint16_t Wo = (V - pool.M) / pool.T + 1;
@@ -912,22 +932,28 @@ uint16_t noodle_conv_float(float *input,
   float *in_buffer = nullptr;
   float *out_buffer = nullptr;
 
-  float progress = 0.0f;
-  const float denom = (float)((n_inputs * n_outputs > 1) ? (n_inputs * n_outputs - 1) : 1);
-  const float progress_step = (denom > 0.0f) ? (1.0f / denom) : 1.0f;
+  float progress = 0.0;
+  float progress_step = 0.0;
+  if (progress_cb){
+    float denom = (float)((n_inputs * n_outputs > 1) ? (n_inputs * n_outputs - 1) : 1);
+    progress_step = (denom > 0.0f) ? (1.0f / denom) : 1.0f;
+  }
 
-  uint16_t V = 0;
+  uint16_t V = noodle_compute_V(conv.K, W, conv.P, conv.S);
+
   for (uint16_t O = 0; O < n_outputs; O++) {
-    out_buffer = noodle_slice(output, W, O);
-    noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
+    out_buffer = noodle_slice(output, V, O);
+    noodle_reset_buffer(out_buffer, W * W);
     const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
 
     for (uint16_t I = 0; I < n_inputs; I++) {
       const float *kernel = conv.weight + (O * n_inputs + I) * (conv.K * conv.K);
       in_buffer = noodle_slice(input, W, I);
       V = noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
-      if (progress_cb) progress_cb(progress);
-      progress += progress_step;
+      if (progress_cb) {
+        progress_cb(progress);
+        progress += progress_step;
+      }
     }
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
 
@@ -937,7 +963,6 @@ uint16_t noodle_conv_float(float *input,
 
   return V;
 }
-
 
 // File CHW → Memory HWC-flatten
 uint16_t noodle_flat(const char *in_fn,
@@ -1277,10 +1302,32 @@ uint16_t noodle_soft_max(float *input_output,
   return n;
 }
 
-uint16_t noodle_sigmoid(float *input_output,
+uint16_t noodle_sigmoid(float *input_output, 
                         uint16_t n) {
   for (uint16_t i = 0; i < n; i++) {
-    input_output[i] = 1.0f / (1.0f + expf(-input_output[i]));
+    const float x = input_output[i];
+    if (x >= 0.0f) {
+      const float z = expf(-x);
+      input_output[i] = 1.0f / (1.0f + z);
+    } else {
+      const float z = expf(x);
+      input_output[i] = z / (1.0f + z);
+    }
+  }
+  return n;
+}
+
+uint16_t noodle_logit(float *input_output, 
+                      uint16_t n) {
+  for (uint16_t i = 0; i < n; i++) {
+    float v = input_output[i];
+    if (v >= 0.0f) {
+      float z = expf(-v);
+      input_output[i] = 1.0f / (1.0f + z);
+    } else {
+      float z = expf(v);
+      input_output[i] = z / (1.0f + z);
+    }
   }
   return n;
 }
@@ -1487,9 +1534,9 @@ uint16_t noodle_conv1d(const char *in_fn,
   if (!temp_buff1 || !temp_buff2) return 0;
 
   float *in_buffer  = (float *)temp_buff1;  // must hold W floats
-  float *out_buffer = (float *)temp_buff2;  // must hold Vmax floats
+  float *out_buffer = (float *)temp_buff2;  // must hold W floats
 
-  const uint16_t Vmax = (uint16_t)((W - conv.K + 2 * conv.P) / conv.S + 1);
+  //const uint16_t Vmax = (uint16_t)((W - conv.K + 2 * conv.P) / conv.S + 1);
   uint16_t V = 0;
 
   float progress = 0.0f;
@@ -1500,7 +1547,8 @@ uint16_t noodle_conv1d(const char *in_fn,
   fo = noodle_fs_open_write(out_fn);
 
   for (uint16_t O = 0; O < n_outputs; O++) {
-    noodle_reset_buffer(out_buffer, Vmax);
+    //oodle_reset_buffer(out_buffer, Vmax);
+    noodle_reset_buffer(out_buffer, W);
     const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
     noodle_rewind_file(fi);
 
@@ -1602,14 +1650,15 @@ uint16_t noodle_conv1d(float *in,
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
   // Output length per channel
-  const uint16_t Vmax = (uint16_t)((W - conv.K + 2 * conv.P) / conv.S + 1);
+  //const uint16_t Vmax = (uint16_t)((W - conv.K + 2 * conv.P) / conv.S + 1);
   uint16_t V = 0;
 
   fo = noodle_fs_open_write(out_fn);  // packed output CHW (append per output channel)
 
   for (uint16_t O = 0; O < n_outputs; O++) {
     // reset accumulation buffer for this output channel
-    noodle_reset_buffer(out_buffer, Vmax);
+    //noodle_reset_buffer(out_buffer, Vmax);
+    noodle_reset_buffer(out_buffer, W);
 
     const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
 
@@ -1668,8 +1717,9 @@ uint16_t noodle_conv1d(const char *in_fn,
   fi = noodle_fs_open_read(in_fn);   // packed input CHW
 
   for (uint16_t O = 0; O < n_outputs; O++) {
-    float *out_buffer = out + (uint32_t)O * Vmax;
-    noodle_reset_buffer(out_buffer, Vmax);
+    float *out_buffer = out + (uint32_t)O * Vmax; // slicing
+    //noodle_reset_buffer(out_buffer, Vmax);
+    noodle_reset_buffer(out_buffer, W);
 
     const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
 
@@ -1822,11 +1872,11 @@ uint16_t noodle_dwconv_float(float *input,
     const float bias = noodle_read_float(fb);
     noodle_grid_from_file(fw, (float *)kernel, conv.K);
 
-    noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
+    noodle_reset_buffer(out_buffer, W * W);
     V = noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
 
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
-    const uint16_t Wo = (uint16_t)((V - pool.M) / pool.T + 1);
+    const uint16_t Wo = (V - pool.M) / pool.T + 1;
     float *out_plane = noodle_slice(output, Wo, C);
     V = noodle_do_pooling(out_buffer, V, pool.M, pool.T, out_plane);
 
@@ -1851,9 +1901,6 @@ uint16_t noodle_dwconv_float(float *input,
   const float denom = (float)((n_channels > 1) ? (n_channels - 1) : 1);
   const float progress_step = (denom > 0.0f) ? (1.0f / denom) : 1.0f;
 
-  // Kernel buffer (max K)
-  float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
-
   uint16_t V = 0;
 
   // Assumes M == 1
@@ -1864,7 +1911,7 @@ uint16_t noodle_dwconv_float(float *input,
     const float bias = (conv.bias != nullptr) ? conv.bias[C] : 0.0f;
     const float *kernel = conv.weight + (C * conv.K * conv.K);
 
-    noodle_reset_buffer(out_buffer, (uint16_t)(W * W));
+    noodle_reset_buffer(out_buffer, W * W);
     V = noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
     V = noodle_do_bias_act(out_buffer, bias, V, conv.act);
 
@@ -1984,4 +2031,79 @@ void noodle_find_max(float *input,
       max_idx = i;
     }
   }
+}
+
+uint16_t noodle_compute_V(uint16_t K,
+                          uint16_t W, 
+                          uint16_t P, 
+                          uint16_t S){
+  uint16_t V;
+  uint16_t P0 = P;   // top/left
+  uint16_t P1 = P;   // bottom/right
+
+  if (P == 65535) { // TF/Keras SAME padding (square case)
+    V = (W + S - 1) / S;   // ceil(W / S)
+
+    int32_t Ptot = (int32_t)(V - 1) * (int32_t)S + (int32_t)K - (int32_t)W;
+    if (Ptot < 0) Ptot = 0;
+
+    P0 = (uint16_t)Ptot / 2;
+    P1 = (uint16_t)Ptot - P0;
+  } else {
+    // explicit symmetric padding
+    V = (W - K + 2 * P) / S + 1;
+  }
+
+  return V;
+}
+
+uint16_t noodle_valid_max_pool(float *inplace,
+                               uint16_t W,
+                               uint16_t C,
+                               const Pool &pool)
+{
+  const uint16_t M = pool.M;  // Kernel
+  const uint16_t T = pool.T;  // Stride
+
+  if (!inplace) return 0;
+  if (W == 0 || C == 0 || M == 0 || T == 0) return 0;
+  if (M > W) return 0;
+
+  const uint16_t Wo = (W - M) / T + 1;
+
+  // Identity: M=1, T=1 => nothing changes; still stacked as W*W per channel
+  if (M == 1 && T == 1) return W;
+
+  const uint16_t in_ch_stride  = W  * W;   // floats per input channel
+  const uint16_t out_ch_stride = Wo * Wo;  // floats per output channel
+
+  for (uint16_t c = 0; c < C; c++) {
+    float *in_ch  = inplace + c * in_ch_stride;
+    float *out_ch = inplace + c * out_ch_stride;
+
+    for (uint16_t oy = 0; oy < Wo; oy++) {
+      const uint16_t base_y = oy * T;
+      const uint16_t out_row = oy * Wo;
+
+      for (uint16_t ox = 0; ox < Wo; ox++) {
+        const uint16_t base_x = ox * T;
+
+        float vmax = -FLT_MAX;
+
+        for (uint16_t ky = 0; ky < M; ky++) {
+          const uint16_t row = (base_y + ky) * W;
+          const uint16_t idx0 = row + base_x;
+
+          for (uint16_t kx = 0; kx < M; kx++) {
+            const float v = in_ch[idx0 + kx];
+            if (v > vmax) vmax = v;
+          }
+        }
+
+        out_ch[out_row + ox] = vmax;
+      }
+    }
+  }
+
+  return Wo;
 }

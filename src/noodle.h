@@ -732,6 +732,11 @@ uint16_t noodle_soft_max(float *input_output, uint16_t n);
  */
 uint16_t noodle_sigmoid(float *input_output, uint16_t n);
 /** 
+ *  In-place logit over a length-@p n vector. Returns @p n. 
+ *  @ingroup noodle_public
+ */
+uint16_t noodle_logit(float *input_output, uint16_t n);
+/** 
  *  In-place ReLU over a length-@p n vector. Returns @p n.
  *  @ingroup noodle_public
  */
@@ -1124,3 +1129,13 @@ uint16_t noodle_bn_relu(float *x,
                         const float *bn_params,
                         float eps=1e-3);
 
+uint16_t noodle_compute_V(uint16_t K, 
+                          uint16_t W , 
+                          uint16_t P, 
+                          uint16_t S);
+
+
+uint16_t noodle_valid_max_pool(float *inplace,
+                               uint16_t W,
+                               uint16_t C,
+                               const Pool &pool);
