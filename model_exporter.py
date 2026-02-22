@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import tensorflow as tf
 
 def to_two_digit_string(n: int) -> str:
     return f"{n:02d}"
@@ -262,3 +263,165 @@ def exporter(weights, out_dir: str):
 
         print("Skipping unsupported tensor with shape:", getattr(w, "shape", None))
         k += 1
+
+###############################################################################
+
+# -------------------------------------------------------------------------------------------------
+# TFLite front-end: extract weights in execution order and reuse exporter() unchanged.
+#
+# Goal: "do exactly as current model exporter but with a .tflite input".
+# - Reconstruct Keras-like kernel layouts:
+#     Conv2D:          HWIO  (Kh, Kw, Cin, Cout)
+#     DepthwiseConv2D: HWIM  (Kh, Kw, Cin, M)
+#     Dense:           (Din, Dout)
+# - Then pass the list to exporter(weights, out_dir) so flattening + channel stacking stays identical.
+#
+# Notes:
+# - BatchNorm is typically folded into Conv/DWConv in TFLite, so you will usually only see kernel+bias.
+# - This implementation targets FLOAT models (float32 weights/bias).
+# -------------------------------------------------------------------------------------------------
+
+def _tflite_get_tensor(interpreter, tensor_index: int):
+    """Return numpy tensor for a TFLite tensor index, or None if not readable."""
+    if tensor_index is None or int(tensor_index) < 0:
+        return None
+    try:
+        return interpreter.get_tensor(int(tensor_index))
+    except Exception:
+        return None
+
+def _tflite_conv2d_to_keras_hwio(w_raw: np.ndarray) -> np.ndarray:
+    """TFLite Conv2D weights are commonly OHWI: (Cout, Kh, Kw, Cin).
+    Convert to Keras HWIO: (Kh, Kw, Cin, Cout).
+    """
+    if w_raw is None or w_raw.ndim != 4:
+        raise ValueError("Conv2D kernel must be 4D")
+    return np.transpose(w_raw, (1, 2, 3, 0)).astype(np.float32)
+
+def _tflite_dwconv2d_to_keras_hwim(w_raw: np.ndarray, cin: int) -> np.ndarray:
+    """Keras DepthwiseConv2D kernel: (Kh, Kw, Cin, M)
+
+    Common TFLite layout for DEPTHWISE_CONV_2D is either:
+      - already HWIM (Kh, Kw, Cin, M), OR
+      - (1, Kh, Kw, Cout) with Cout=Cin*M
+    """
+    if w_raw is None or w_raw.ndim != 4:
+        raise ValueError("DepthwiseConv2D kernel must be 4D")
+
+    sh = tuple(int(x) for x in w_raw.shape)
+
+    # already HWIM
+    if sh[0] != 1 and sh[2] == int(cin):
+        return w_raw.astype(np.float32)
+
+    # (1, Kh, Kw, Cout) -> HWIM
+    if sh[0] == 1:
+        kh, kw, cout = sh[1], sh[2], sh[3]
+        if cin <= 0 or (cout % cin) != 0:
+            raise ValueError(f"DEPTHWISE_CONV_2D: cannot infer M from cin={cin}, cout={cout}")
+        m = cout // cin
+        w = w_raw[0, :, :, :]          # (Kh, Kw, Cout)
+        return w.reshape((kh, kw, cin, m)).astype(np.float32)
+
+    return w_raw.astype(np.float32)
+
+def _tflite_dense_to_keras_din_dout(w_raw: np.ndarray, dout_hint: int | None) -> np.ndarray:
+    """TFLite FULLY_CONNECTED weights are commonly (Dout, Din).
+    Convert to Keras Dense kernel (Din, Dout).
+    """
+    if w_raw is None or w_raw.ndim != 2:
+        raise ValueError("Dense kernel must be 2D")
+
+    if dout_hint is not None:
+        dout_hint = int(dout_hint)
+        if int(w_raw.shape[0]) == dout_hint:
+            return w_raw.transpose().astype(np.float32)
+        if int(w_raw.shape[1]) == dout_hint:
+            return w_raw.astype(np.float32)
+
+    # default: treat as (Dout, Din)
+    return w_raw.transpose().astype(np.float32)
+
+def weights_from_tflite(tflite_path: str) -> list:
+    """Extract a Keras-like weights list from a float .tflite file.
+    The returned list is compatible with exporter(weights, out_dir).
+    """
+    import tensorflow as tf
+
+    interpreter = tf.lite.Interpreter(model_path=tflite_path)
+    interpreter.allocate_tensors()
+
+    tensor_details = {d["index"]: d for d in interpreter.get_tensor_details()}
+    ops = interpreter._get_ops_details()  # execution order
+
+    out_weights = []
+
+    for op in ops:
+        op_name = op.get("op_name", "")
+
+        ins = op.get("inputs", None)
+        ins = [] if ins is None else list(ins)
+
+        if len(ins) < 2:
+            continue
+
+        # Infer Cin from input activation (NHWC)
+        in0 = int(ins[0])
+        in0_shape = tensor_details.get(in0, {}).get("shape", None)
+        cin = None
+        if in0_shape is not None and len(in0_shape) == 4:
+            cin = int(in0_shape[3])
+
+        w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
+        b_raw = _tflite_get_tensor(interpreter, int(ins[2])) if len(ins) >= 3 else None
+
+        # float-only path
+        if w_raw is None or w_raw.dtype != np.float32:
+            continue
+        if b_raw is not None and b_raw.dtype != np.float32:
+            b_raw = None
+
+        if op_name == "CONV_2D":
+            out_weights.append(_tflite_conv2d_to_keras_hwio(w_raw))
+            if b_raw is not None:
+                out_weights.append(np.float32(b_raw).reshape(-1))
+
+        elif op_name == "DEPTHWISE_CONV_2D":
+            if cin is None:
+                raise ValueError("DEPTHWISE_CONV_2D: cannot infer Cin from input shape.")
+            out_weights.append(_tflite_dwconv2d_to_keras_hwim(w_raw, cin))
+            if b_raw is not None:
+                out_weights.append(np.float32(b_raw).reshape(-1))
+
+        elif op_name == "FULLY_CONNECTED":
+            dout_hint = int(b_raw.shape[0]) if b_raw is not None else None
+            out_weights.append(_tflite_dense_to_keras_din_dout(w_raw, dout_hint))
+            if b_raw is not None:
+                out_weights.append(np.float32(b_raw).reshape(-1))
+
+        # ignore activations, reshape, etc.
+
+    return out_weights
+
+def exporter_tflite(tflite_path: str, out_dir: str):
+    """Export a float .tflite model into Noodle-friendly files using the same layout as exporter()."""
+    ws = weights_from_tflite(tflite_path)
+    exporter(ws, out_dir)
+
+def debug_tflite_ops(tflite_path):
+    itp = tf.lite.Interpreter(model_path=tflite_path)
+    itp.allocate_tensors()
+    td = {d["index"]: d for d in itp.get_tensor_details()}
+    ops = itp._get_ops_details()
+
+    allowed = {"CONV_2D", "DEPTHWISE_CONV_2D", "FULLY_CONNECTED"}
+
+    for i, op in enumerate(ops):
+        op_name = op.get("op_name", "")
+        ins = list(op.get("inputs", []))
+        if op_name not in allowed or len(ins) < 2:
+            continue
+        w = itp.get_tensor(ins[1]) if ins[1] >= 0 else None
+        b = itp.get_tensor(ins[2]) if len(ins) >= 3 and ins[2] >= 0 else None
+        print(i, op_name, "W:", (None if w is None else (w.shape, w.dtype)),
+            "B:", (None if b is None else (b.shape, b.dtype)))
