@@ -707,6 +707,7 @@ uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation ac
  *  @param W,P0,P1   See common semantics.
  *  @return Grid value as float, or 0 outside bounds.
  */
+static inline __attribute__((always_inline))
 float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
 
 /** 
@@ -714,6 +715,7 @@ float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P
  *  @brief Get padded input sample from a float grid with zero padding.
  *  @ingroup noodle_internal
  */
+static inline __attribute__((always_inline))
 float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
 
 
@@ -732,10 +734,15 @@ uint16_t noodle_soft_max(float *input_output, uint16_t n);
  */
 uint16_t noodle_sigmoid(float *input_output, uint16_t n);
 /** 
+ *  Sigmoid function for a single float value. 
+ *  @ingroup noodle_public
+ */
+float noodle_sigmoidf(float x);
+/** 
  *  In-place logit over a length-@p n vector. Returns @p n. 
  *  @ingroup noodle_public
  */
-uint16_t noodle_logit(float *input_output, uint16_t n);
+ uint16_t noodle_logit(float *input_output, uint16_t n);
 /** 
  *  In-place ReLU over a length-@p n vector. Returns @p n.
  *  @ingroup noodle_public

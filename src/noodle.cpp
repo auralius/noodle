@@ -244,8 +244,9 @@ float noodle_get_padded_x(byte *grid,
                           int16_t P0, int16_t P1) {
   const int16_t Wpad = W + P0 + P1;
 
-  // outside padded tensor
-  if (i < 0 || j < 0 || i >= Wpad || j >= Wpad) return 0.0f;
+  // outside padded tensor, fast reject using padded bounds
+  if ((uint16_t)i >= (uint16_t)Wpad || (uint16_t)j >= (uint16_t)Wpad)
+    return 0.0f;       
 
   // padded -> input
   const int16_t ii = i - P0;
@@ -262,8 +263,9 @@ float noodle_get_padded_x(float *grid,
                           int16_t P0, int16_t P1) {
   const int16_t Wpad = W + P0 + P1;
 
-  // outside padded tensor
-  if (i < 0 || j < 0 || i >= Wpad || j >= Wpad) return 0.0f;
+  // outside padded tensor, fast reject using padded bounds
+  if ((uint16_t)i >= (uint16_t)Wpad || (uint16_t)j >= (uint16_t)Wpad)
+    return 0.0f;                          
 
   // padded -> input
   const int16_t ii = i - P0;
@@ -481,18 +483,7 @@ uint16_t noodle_do_conv(byte *grid,
   uint16_t P0 = P;   // top/left
   uint16_t P1 = P;   // bottom/right
 
-  if (P == 65535) { // TF/Keras SAME padding (square case)
-    V = (W + S - 1) / S;   // ceil(W / S)
-
-    int32_t Ptot = (int32_t)(V - 1) * (int32_t)S + (int32_t)K - (int32_t)W;
-    if (Ptot < 0) Ptot = 0;
-
-    P0 = (uint16_t)Ptot / 2;
-    P1 = (uint16_t)Ptot - P0;
-  } else {
-    // explicit symmetric padding
-    V = (W - K + 2 * P) / S + 1;
-  }
+  V = noodle_compute_V(K, W, P, S);
 
   for (uint16_t i = 0; i < V; i++) {
     for (uint16_t j = 0; j < V; j++) {
@@ -1315,6 +1306,17 @@ uint16_t noodle_sigmoid(float *input_output,
     }
   }
   return n;
+}
+
+float noodle_sigmoidf(float x)
+{
+  if (x >= 0.0f) {
+    const float z = expf(-x);
+    return 1.0f / (1.0f + z);
+  } else {
+    const float z = expf(x);
+    return z / (1.0f + z);
+  }
 }
 
 uint16_t noodle_logit(float *input_output, 
