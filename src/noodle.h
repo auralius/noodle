@@ -1,48 +1,60 @@
 /**
- *  @file noodle.h
- *  @brief CNN/ML primitives for tiny MCUs with pluggable filesystem backends.
- *  @ingroup noodle_public
+ * @file noodle.h
+ * @brief Tiny CNN/ML primitives for microcontrollers with optional file streaming.
+ * @ingroup noodle_public
  *
- *  @details
- *  Noodle provides minimal convolution, pooling, flattening, fully-connected and activation
- *  routines that operate either entirely in variables on in files (streaming tensors/parameters to
- *  and from a filesystem (SD/FFat/SD_MMC)). Backends are selected in @ref noodle_fs.h via
- *  preprocessor flags. The library is designed for extremely small RAM budgets, so most
- *  file-based APIs reuse two caller-supplied temporary buffers
- *  (see @ref noodle_setup_temp_buffers).
+ * @details
+ * Noodle provides small convolution, depthwise convolution, transpose convolution,
+ * pooling, flattening, fully-connected, activation, batch-normalization, and tensor
+ * utility routines. Most APIs are available in memory-backed forms, file-backed
+ * forms, or mixed file/memory forms so models can run on boards with very limited
+ * RAM.
  *
- *  ### Backends
- *  Select exactly one backend flag before including this header: `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, `NOODLE_USE_FFAT`, or `NOODLE_USE_LITTLEFS`.
- *  See @ref noodle_fs.h for backend details and required platform libraries.
+ * @section noodle_backends Filesystem Backends
+ * Select exactly one backend macro before including this header:
+ * `NOODLE_USE_SDFAT`, `NOODLE_USE_SD_MMC`, `NOODLE_USE_FFAT`,
+ * `NOODLE_USE_LITTLEFS`, or `NOODLE_USE_NONE`. If no backend is selected,
+ * `noodle_config.h` currently defaults to `NOODLE_USE_SDFAT`. See
+ * `noodle_fs.h` for backend-specific types, path normalization, and open/remove
+ * helpers.
  *
- *  ### Temporary buffers
- *  Call ::noodle_setup_temp_buffers() once prior to convolution/FCN routines that read from files.
- *  Unless otherwise stated:
- *   - temp buffer #1: at least `W*W*sizeof(float)` bytes
- *   - temp buffer #2: at least `W*W*sizeof(float)` bytes (accumulator)
+ * @section noodle_temp_buffers Temporary Buffers
+ * File-streaming convolution and FCN paths reuse caller-owned temporary buffers.
+ * Call noodle_setup_temp_buffers() before using those APIs.
  *
- *  ### Tensor layout and file format
- *  File-based APIs use *packed CHW* by default: channel-major planes stored back-to-back.
- *  Each plane is stored in row-major order as whitespace-separated numeric tokens (ASCII).
+ * Typical buffer requirements:
+ * - Buffer 1: one input plane, usually `W * W * sizeof(float)` bytes for 2D or
+ *   `W * sizeof(float)` bytes for 1D.
+ * - Buffer 2: one accumulation/output plane, usually `W * W * sizeof(float)`
+ *   bytes for 2D or `W * sizeof(float)` bytes for 1D.
  *
- *  - Packed 2D feature map file: `[ch0 W×W][ch1 W×W]...[ch(C-1) W×W]`
- *  - Packed 1D feature map file: `[ch0 W][ch1 W]...[ch(C-1) W]`
- *  - Weights file (Conv): ordered by output-major then input: `(O0,I0) kernel, (O0,I1) kernel, ...`
- *  - Bias file: one scalar per output channel (n_outputs values).
+ * @section noodle_layout Tensor Layout And Text Files
+ * Unless a function says otherwise, tensors are channel-first and packed
+ * contiguously:
+ * - 2D feature maps: `[C][W][W]`, with each plane row-major.
+ * - 1D feature maps: `[C][W]`.
+ * - Convolution weights: `[O][I][K][K]` for 2D, `[O][I][K]` for 1D.
+ * - Fully-connected weights: `[O][I]`.
  *
- * # ## Convolution
- *  All convolutions in Noodle use symmetric padding.
+ * File-backed tensors and parameters are stored as ASCII numeric values, one
+ * scalar per line, in the same packed order. Bias files contain one scalar per
+ * output channel/neuron.
  *
- * ### Pooling mode
- * 2D pooling mode is compile-time selectable via @ref NOODLE_POOL_MODE in @ref noodle_config.h
- * (MAX or MEAN).
+ * @section noodle_pooling Pooling Mode
+ * 2D pooling behavior is selected at compile time with `NOODLE_POOL_MODE` in
+ * `noodle_config.h` (`NOODLE_POOL_NONE`, `NOODLE_POOL_MAX`, or
+ * `NOODLE_POOL_MEAN`). The 1D pooling helper always performs max pooling.
  */
 
-/** 
- *  @defgroup noodle_public Public Functions
- *  Public functions, types, and configuration intended for application use.
- *  @defgroup noodle_internal Internal helpers
- *  Internal helpers and implementation details. Not intended for direct application use.
+/**
+ * @defgroup noodle_public Public API
+ * Public functions, types, and configuration intended for application use.
+ */
+
+/**
+ * @defgroup noodle_internal Internal Helpers
+ * Helper routines used by Noodle implementations. These are documented for
+ * maintainers, but application code normally should not call them directly.
  */
  
 #pragma once
@@ -56,386 +68,502 @@
 #include "noodle_fs.h"       // NDL_File + NOODLE_FS wrappers
 
 #ifndef ARDUINO
-typedef unsigned char byte;    ///< Minimal Arduino-compatible alias when not building for Arduino.
+typedef unsigned char byte;    ///< Arduino-compatible byte alias for non-Arduino builds.
 #endif
 // ============================================================================
 
-/** 
- *  2D convolution activations.
- *  @ingroup noodle_public
- *  @enum Activation
- *  @brief Post-layer activation applied after bias (when supported).
+/**
+ * @brief Activation applied after bias where supported.
+ * @ingroup noodle_public
  *
- * Notes:
- * - ACT_SOFTMAX is typically used only for the final classification layer/head.
- * - Most convolution routines support ACT_RELU and ACT_NONE; check each function's docs.
+ * Convolution and fully-connected layers support @ref ACT_NONE and @ref ACT_RELU.
+ * Fully-connected memory outputs also support @ref ACT_SOFTMAX for final
+ * classification heads.
  */
-enum Activation : uint8_t { ACT_NONE = 0, ACT_RELU = 1 , ACT_SOFTMAX = 2};
+enum Activation : uint8_t {
+  ACT_NONE    = 0,  ///< Do not apply an activation.
+  ACT_RELU    = 1,  ///< Clamp negative values to zero.
+  ACT_SOFTMAX = 2   ///< Normalize a vector with softmax where supported.
+};
 
-/** 
- * File-backed parameters 
- *  @ingroup noodle_public
- *  @brief File-backed convolution parameters.
+/**
+ * @brief File-backed convolution parameters.
+ * @ingroup noodle_public
  *
- * The weight and bias files are read sequentially:
- * - @p weight_fn stores kernels ordered by output-major then input-major.
- * - @p bias_fn stores one scalar bias per output channel.
+ * Weight files are read sequentially in output-major order. For normal 2D
+ * convolution the layout is `[O][I][K][K]`; for 1D convolution it is `[O][I][K]`.
+ * Bias files contain one scalar per output channel. The same type is also used
+ * by depthwise convolution, where weights and biases are ordered by channel.
  */
 struct Conv {
-  uint16_t K;        ///< Kernel size
-  uint16_t P = 0;    ///< Padding
-  uint16_t S = 1;    ///< Stride
+  uint16_t K  = 3;    ///< Kernel size (`K x K` for 2D, `K` taps for 1D).
+  uint16_t P  = 0;    ///< Zero padding per side; `65535` requests SAME-style 2D padding.
+  uint16_t S  = 1;    ///< Convolution stride.
+  uint16_t OP = 0;    ///< Output padding for transpose convolution.
 
-  const char *weight_fn = nullptr;
-  const char *bias_fn   = nullptr;
+  const char *weight_fn = nullptr; ///< Weight filename.
+  const char *bias_fn   = nullptr; ///< Bias filename.
 
-  Activation act = ACT_RELU;
+  Activation act = ACT_RELU; ///< Activation applied after adding bias.
 };
 
-/** 
- * Variable-backed parameters 
- *  @ingroup noodle_public
- *  @brief Memory-backed convolution parameters.
+/**
+ * @brief Memory-backed convolution parameters.
+ * @ingroup noodle_public
  *
- * The @p weight array is laid out as `(O * n_inputs + I) * (K*K)` contiguous floats (output-major).
- * The @p bias array stores @c n_outputs floats.
+ * For normal 2D convolution, `weight` points to contiguous `[O][I][K][K]`
+ * floats. For 1D convolution it points to `[O][I][K]`. For depthwise
+ * convolution, weights are `[C][K][K]`. `bias` may be `nullptr` in overloads
+ * that explicitly allow missing biases; in that case zero bias is used.
  */
 struct ConvMem {
-  uint16_t K;        ///< Kernel size
-  uint16_t P = 0;    ///< Padding
-  uint16_t S = 1;    ///< Stride
+  uint16_t K  = 3;    ///< Kernel size (`K x K` for 2D, `K` taps for 1D).
+  uint16_t P  = 0;    ///< Zero padding per side.
+  uint16_t S  = 1;    ///< Convolution stride.
+  uint16_t OP = 0;    ///< Output padding for transpose convolution.
 
-  const float *weight = nullptr;
-  const float *bias   = nullptr;
+  const float *weight = nullptr; ///< Pointer to packed weight values.
+  const float *bias   = nullptr; ///< Pointer to packed bias values.
 
-  Activation act = ACT_RELU;
+  Activation act = ACT_RELU; ///< Activation applied after adding bias.
 };
 
-/** 
- *  @brief 2D pooling parameters. 
- *  Use M = 1 and T = 1 for identity (no pooling). 
- *  @ingroup noodle_public
- *  @brief Pooling parameters for 1D/2D pooling.
+/**
+ * @brief Valid-pooling parameters.
+ * @ingroup noodle_public
  *
- *  To disable pooling, use identity parameters (e.g., M=1 and T=1), or pass a Pool where your caller 
- *  logic skips pooling.
+ * Use `M = 1` and `T = 1` for identity pooling. 2D pooling uses the compile-time
+ * `NOODLE_POOL_MODE`; 1D pooling uses max pooling.
  */
 struct Pool {
-  uint16_t M = 1;    ///< Pool kernel
-  uint16_t T = 1;    ///< Pool stride
+  uint16_t M = 1;    ///< Pooling window size (`M x M` for 2D, `M` samples for 1D).
+  uint16_t T = 1;    ///< Pooling stride.
 };
 
-/** 
- *  @brief Progress callback type used by long-running routines.
- *  @ingroup noodle_public
- *  @param progress A normalized progress in [0,1], monotonically nondecreasing.
+/**
+ * @brief Progress callback used by long-running routines.
+ * @ingroup noodle_public
+ * @param progress Normalized progress in the range `[0, 1]`.
  */
 typedef void (*CBFPtr)(float progress);
 
-/** 
- *  @name Common parameter semantics
+/**
+ * @brief Configure both reusable temporary buffers for file-streaming operations.
+ * @ingroup noodle_public
  *
- *  Standard meanings shared by many functions.
- *  @param W   Input spatial width (2D) or length (1D).
- *  @param K   Kernel size (2D: KxK, 1D: K).
- *  @param S   Stride.
- *  @param P   Zero-padding (per side). 2D-symmetrical uses top/left/bot/right padding of size @p P.
- *  @param P0  Zero-padding (per side). 2D-same uses top/left padding of size @p P0.
- * *@param P1  Zero-padding (per side). 2D-same uses bot/right padding of size @p P1.
- *  @param M   Pool kernel size (2D: MxM).
- *  @param T   Pool stride.
- *  @param n_inputs  Number of input channels/features.
- *  @param n_outputs Number of output channels/features.
- *  @param in_fn  Base input filename template (see File naming convention).
- *  @param out_fn Base output filename template.
- *  @param weight_fn Weight filename template; receives both I and O indices.
- *  @param bias_fn   Bias filename (one bias per output channel, scalar per line).
- *  @param with_relu If true, apply ReLU after bias.
+ * Call this before APIs that read file-backed inputs or parameters and require
+ * scratch space. The buffers are stored as raw pointers and are not owned by
+ * Noodle.
+ *
+ * @param b1 Input scratch buffer.
+ * @param b2 Accumulation/output scratch buffer.
  */
+void noodle_setup_temp_buffers(void *b1, void *b2);
 
-/** 
- *  @brief Provide two reusable temporary buffers used internally by file-streaming operations.
- *  @ingroup noodle_public
- *  Must be called before conv/FCN variants that read from files.
- *  Two temp buffers are needed for operations that read from a file.
- *  For C*W*W tensor, the buffer should be W*W
- *  @param b1 Buffer #1 (input scratch). See size guidance above.
- *  @param b2 Buffer #2 (float accumulator). See size guidance above.
- */
-void   noodle_setup_temp_buffers(void *b1, void *b2);
-
-/** 
- *  @brief Provide a single reusable temporary buffer used internally by file-streaming ops.
- *  @ingroup noodle_public
- *  Must be called before conv/FCN variants that read from files.
- *  One temp buffer is needed for operations that reads from a variable.
- *  Hence, only output accumulator buffe is needed.
- *  For C*W*W tensor, the buffer should be W*W
- *  @param b2 Buffer #2 (float accumulator). See size guidance above.
+/**
+ * @brief Configure only the reusable accumulation/output temporary buffer.
+ * @ingroup noodle_public
+ *
+ * Use this overload for mixed memory-to-file operations that do not need an input
+ * scratch buffer but do need a plane-sized accumulator.
+ *
+ * @param b2 Accumulation/output scratch buffer.
  */
 void noodle_setup_temp_buffers(void *b2);
 
-/** 
- *  @name File and File-System Utilities 
+/**
+ * @name Filesystem Utilities
  */
 
-/** 
- *  @brief Initialize SD/FS backend (pins variant is meaningful only for SD_MMC). 
- *  @ingroup noodle_public
+/**
+ * @brief Initialize the selected filesystem backend with SD_MMC 1-bit pins.
+ * @ingroup noodle_public
+ *
+ * For `NOODLE_USE_SD_MMC`, this calls `SD_MMC.setPins(clk_pin, cmd_pin, d0_pin)`
+ * and starts the bus in 1-bit mode. Other real backends ignore the pins and use
+ * their default initializer.
+ *
+ * @param clk_pin SD_MMC clock pin.
+ * @param cmd_pin SD_MMC command pin.
+ * @param d0_pin SD_MMC D0 pin.
+ * @return `true` when the selected backend initializes successfully.
  */
 bool noodle_fs_init(uint8_t clk_pin, uint8_t cmd_pin, uint8_t d0_pin);
-/** 
- * @brief Initialize SD/FS backend with default pins/settings. 
- *  @ingroup noodle_public
+
+/**
+ * @brief Initialize the selected filesystem backend with SD_MMC 4-bit pins.
+ * @ingroup noodle_public
+ *
+ * For `NOODLE_USE_SD_MMC`, this configures CLK, CMD, and D0..D3 and starts the
+ * bus in 4-bit mode. Other real backends ignore the pins and use their default
+ * initializer.
+ *
+ * @param clk_pin SD_MMC clock pin.
+ * @param cmd_pin SD_MMC command pin.
+ * @param d0_pin SD_MMC D0 pin.
+ * @param d1_pin SD_MMC D1 pin.
+ * @param d2_pin SD_MMC D2 pin.
+ * @param d3_pin SD_MMC D3 pin.
+ * @return `true` when the selected backend initializes successfully.
  */
 bool noodle_fs_init(uint8_t clk_pin, uint8_t cmd_pin, uint8_t d0_pin, uint8_t d1_pin, uint8_t d2_pin, uint8_t d3_pin);
-/** 
- *  Initialize SD/FS backend with default pins/settings. 
- *  @ingroup noodle_public
+
+/**
+ * @brief Initialize the selected filesystem backend with default settings.
+ * @ingroup noodle_public
+ * @return `true` when the selected backend initializes successfully.
  */
 bool noodle_fs_init();
-/** 
- *  @brief Initialize SD/FS backend with a specific CS_PIN. 
- *  @ingroup noodle_public
+
+/**
+ * @brief Initialize the selected filesystem backend with a chip-select pin.
+ * @ingroup noodle_public
+ *
+ * The `cs_pin` value is used by `NOODLE_USE_SDFAT`. Other backends ignore it and
+ * use their default initializer.
+ *
+ * @param cs_pin SPI chip-select pin for SdFat.
+ * @return `true` when the selected backend initializes successfully.
  */
 bool noodle_fs_init(uint8_t cs_pin);
 
-/** @brief Read the first line of a given text file.
- *  @ingroup noodle_public
- *  @param fn          File name to read.
- *  @param line        Reading result.
- *  @param maxlen      Maximum character length to read.
+/**
+ * @brief Read the first line from a text file.
+ * @ingroup noodle_public
+ *
+ * The output is always NUL-terminated when @p maxlen is greater than zero. If the
+ * file cannot be opened, @p line is set to an empty string.
+ *
+ * @param fn File name to read.
+ * @param line Destination character buffer.
+ * @param maxlen Destination capacity, including the NUL terminator.
  */
 void noodle_read_top_line(const char* fn, char *line, size_t maxlen);
 
-/** @brief Delete a file if it exists. 
- *  @ingroup noodle_internal
+/**
+ * @brief Delete a file using the selected filesystem backend.
+ * @ingroup noodle_internal
+ * @param fn File name to remove.
  */
 void noodle_delete_file(const char *fn);
 
-/** 
- *  @brief Read bytes from a file until a terminator or length-1 (NULL terminated).
- *  @ingroup noodle_public
- *  @param file Open file handle.
- *  @param terminator Stop when this character is read (not stored).
- *  @param buffer Destination buffer (will always be NULL terminated).
- *  @param length Maximum bytes to write into @p buffer including the NULL.
- *  @return Number of characters written (excluding NULL).
+/**
+ * @brief Read bytes from a file until a terminator or the buffer is full.
+ * @ingroup noodle_public
+ *
+ * The terminator is consumed but not stored. @p buffer is always NUL-terminated
+ * if @p length is greater than zero.
+ *
+ * @param file Open file handle.
+ * @param terminator Character that ends the read.
+ * @param buffer Destination character buffer.
+ * @param length Destination capacity, including the NUL terminator.
+ * @return Number of characters written, excluding the NUL terminator.
  */
 size_t noodle_read_bytes_until(NDL_File &file, char terminator, char *buffer, size_t length);
 
-/** 
- *  @name Scalar I/O helpers 
+/**
+ * @name Scalar I/O Helpers
  */
  
-/** Write a float followed by a newline (human-readable). 
- *  @ingroup noodle_internal
+/**
+ * @brief Write a float as a text line.
+ * @ingroup noodle_internal
+ * @param f Open output file.
+ * @param d Value to write.
  */
 void noodle_write_float(NDL_File &f, float d);
 
-/** 
- *  @brief Read a float up to the next newline. 
- *  @ingroup noodle_internal
+/**
+ * @brief Read a float from the next text line.
+ * @ingroup noodle_internal
+ * @param f Open input file.
+ * @return Parsed float value.
  */
 float noodle_read_float(NDL_File &f);
 
-/** 
- *  @brief Read a byte value fron an opened file handler and store  as an integer text line. 
- *  @ingroup noodle_internal
+/**
+ * @brief Read a byte value from the next text line.
+ * @ingroup noodle_internal
+ * @param f Open input file.
+ * @return Parsed byte value.
  */
 byte noodle_read_byte(NDL_File &f);
 
-/** 
- *  @brief Write a byte value as an integer text line to an opend file. 
- *  @ingroup noodle_internal
+/**
+ * @brief Write a byte value as an integer text line.
+ * @ingroup noodle_internal
+ * @param f Open output file.
+ * @param d Value to write.
  */
 void noodle_write_byte(NDL_File &f, byte d);
 
-/** 
- *  @name Memory utilities 
+/**
+ * @name Memory Utilities
  */
 
-/** 
- *  @brief Allocate a raw float buffer of @p size bytes. 
- *  @ingroup noodle_public
+/**
+ * @brief Allocate a raw buffer and return it as a float pointer.
+ * @ingroup noodle_public
+ *
+ * This is a small compatibility wrapper around `malloc()`.
+ *
+ * @param size Number of bytes to allocate.
+ * @return Pointer to the allocated memory, or `nullptr` on allocation failure.
  */
 float *noodle_create_buffer(uint16_t size);
 
-/** 
- *  @brief Free a buffer allocated by noodle_create_buffer.
- *  @ingroup noodle_public
+/**
+ * @brief Free a buffer allocated by noodle_create_buffer().
+ * @ingroup noodle_public
+ * @param buffer Buffer pointer to free. Passing `nullptr` is allowed.
  */
 void noodle_delete_buffer(float *buffer);
 
-/** 
- *  @brief Fill @p buffer with zeros (n floats). 
- *  @ingroup noodle_internal
+/**
+ * @brief Fill a float buffer with zeros.
+ * @ingroup noodle_internal
+ * @param buffer Buffer to clear.
+ * @param n Number of float elements to write.
  */
 void noodle_reset_buffer(float *buffer, uint16_t n);
 
-/** 
- *  Slice a stacked [Z, W, W] tensor laid out as contiguous planes.
- *  @ingroup noodle_internal
- *  @param flat Pointer to base of the contiguous array.
- *  @param W    Width/height of each 2D plane.
- *  @param z    Plane index to slice.
- *  @return Pointer to the start of plane @p z (no bounds checks).
+/**
+ * @brief Return a channel plane from a packed `[Z][W][W]` tensor.
+ * @ingroup noodle_internal
+ * @param flat Base pointer to the contiguous tensor.
+ * @param W Width and height of each 2D plane.
+ * @param z Plane/channel index.
+ * @return Pointer to the first element of plane @p z. No bounds checks are done.
  */
 float* noodle_slice(float* flat, size_t W, size_t z);
 
-/** 
- *  @brief Write an array of @p n floats to @p fn, one value per line.
- *  File will be opened and closed.
- *  @ingroup noodle_public
+/**
+ * @brief Write a float array to a text file, one value per line.
+ * @ingroup noodle_public
+ * @param array Source array with @p n values.
+ * @param fn Output filename. The file is opened and closed by this function.
+ * @param n Number of values to write.
  */
 void noodle_array_to_file(float *array, const char *fn, uint16_t n);
 
-/** 
- *  @brief Write an array of @p n floats to @p fo (an opened file handler), one value per line.
- *  No file open and close operations.
- *  @ingroup noodle_internal
+/**
+ * @brief Write a float array to an already-open text file.
+ * @ingroup noodle_internal
+ * @param array Source array with @p n values.
+ * @param fo Open output file handle. The handle remains open.
+ * @param n Number of values to write.
  */
 void noodle_array_to_file(float *array, NDL_File &fo, uint16_t n);
 
-/** 
- *  @brief Write an @p n×@p n byte grid to @p fn as bytes, row-major.
- *  File will be opened and closed.
- *  @ingroup noodle_public
+/**
+ * @brief Write an `n x n` byte grid to a text file in row-major order.
+ * @ingroup noodle_public
+ * @param grid Source grid with `n * n` byte values.
+ * @param fn Output filename. The file is opened and closed by this function.
+ * @param n Grid width and height.
  */
 void noodle_grid_to_file(byte *grid, const char *fn, uint16_t n);
 
-/** 
- *  @brief Write an @p n×@p n byte grid to @p fo (opened file handler) as bytes, row-major.
- *  No file open and close operations.
- *  @ingroup noodle_internal
+/**
+ * @brief Write an `n x n` byte grid to an already-open text file.
+ * @ingroup noodle_internal
+ * @param grid Source grid with `n * n` byte values.
+ * @param fo Open output file handle. The handle remains open.
+ * @param n Grid width and height.
  */
 void noodle_grid_to_file(byte *grid, NDL_File &fo, uint16_t n);
 
-/** 
- *  @brief Write an @p n×@p n float grid to @p fn, row-major.
- *  @ingroup noodle_public
+/**
+ * @brief Write an `n x n` float grid to a text file in row-major order.
+ * @ingroup noodle_public
+ * @param grid Source grid with `n * n` float values.
+ * @param fn Output filename. The file is opened and closed by this function.
+ * @param n Grid width and height.
  */
 void noodle_grid_to_file(float *grid, const char *fn, uint16_t n);
 
-/** 
- *  @brief Write an @p n×@p n float grid to @p fo (an opened file handler), row-major.
- *  @ingroup noodle_internal
+/**
+ * @brief Write an `n x n` float grid to an already-open text file.
+ * @ingroup noodle_internal
+ * @param grid Source grid with `n * n` float values.
+ * @param fo Open output file handle. The handle remains open.
+ * @param n Grid width and height.
  */
 void noodle_grid_to_file(float *grid, NDL_File &fo, uint16_t n);
 
-/** 
- *  @brief Read a float array of length @p K from @p fn (one value per line). 
- *  @ingroup noodle_public
+/**
+ * @brief Read a float array from a text file.
+ * @ingroup noodle_public
+ * @param fn Input filename. The file is opened and closed by this function.
+ * @param buffer Destination array with room for @p K floats.
+ * @param K Number of values to read.
  */
 void noodle_array_from_file(const char *fn, float *buffer, uint16_t K);
 
-/** 
- *  @brief Read a float array of length @p K from an opened file handler @p fi (one value per line). 
- *  @ingroup noodle_public
+/**
+ * @brief Read a float array from an already-open text file.
+ * @ingroup noodle_public
+ * @param fi Open input file handle. The handle remains open.
+ * @param buffer Destination array with room for @p K floats.
+ * @param K Number of values to read.
  */
 void noodle_array_from_file(NDL_File &fi, float *buffer, uint16_t K);
 
-/** 
- * Read an @p K×@p K byte grid (stored as float) from @p fn into @p buffer.
- *  @ingroup noodle_public
+/**
+ * @brief Read a `K x K` grid into a byte buffer.
+ * @ingroup noodle_public
+ * @param fn Input filename. The file is opened and closed by this function.
+ * @param buffer Destination buffer with room for `K * K` byte values.
+ * @param K Grid width and height.
  */
 void noodle_grid_from_file(const char *fn, byte *buffer, uint16_t K);
 
-/** 
- *  @brief Read an @p K × @p K grid (stored as byte) from @p fi (opened file handler) into @p buffer.
- *  @ingroup noodle_public
+/**
+ * @brief Read a `K x K` grid into a byte buffer from an already-open file.
+ * @ingroup noodle_public
+ * @param fi Open input file handle. The handle remains open.
+ * @param buffer Destination buffer with room for `K * K` byte values.
+ * @param K Grid width and height.
  */
 void noodle_grid_from_file(NDL_File &fi, byte *buffer, uint16_t K);
 
-/** 
- *  @brief Read an @p K × @p K grid (stored as float) from @p fn into @p buffer.
- *  @ingroup noodle_public
+/**
+ * @brief Read a `K x K` grid into an int8 buffer.
+ * @ingroup noodle_public
+ * @param fn Input filename. The file is opened and closed by this function.
+ * @param buffer Destination buffer with room for `K * K` int8 values.
+ * @param K Grid width and height.
  */
 void noodle_grid_from_file(const char *fn, int8_t *buffer, uint16_t K);
 
-/** 
- *  @brief Read an @p K × @p K grid (stored as int8) from @p fi (opened file handler) into @p buffer.
- *  @ingroup noodle_public
+/**
+ * @brief Read a `K x K` grid into an int8 buffer from an already-open file.
+ * @ingroup noodle_public
+ * @param fi Open input file handle. The handle remains open.
+ * @param buffer Destination buffer with room for `K * K` int8 values.
+ * @param K Grid width and height.
  */
 void noodle_grid_from_file(NDL_File &fi, int8_t *buffer, uint16_t K);
 
-/** 
- *  @brief Read an @p K × @p K grid (stored as float) from @p fn into @p buffer.
- *  @ingroup noodle_public
+/**
+ * @brief Read a `K x K` grid into a float buffer.
+ * @ingroup noodle_public
+ * @param fn Input filename. The file is opened and closed by this function.
+ * @param buffer Destination buffer with room for `K * K` float values.
+ * @param K Grid width and height.
  */
 void noodle_grid_from_file(const char *fn, float *buffer, uint16_t K);
 
-/** 
- * Read an @p K × @p K grid (stored as float) from an opened file handler @p fi into @p buffer.
- *  @ingroup noodle_internal
+/**
+ * @brief Read a `K x K` grid into a float buffer from an already-open file.
+ * @ingroup noodle_internal
+ * @param fi Open input file handle. The handle remains open.
+ * @param buffer Destination buffer with room for `K * K` float values.
+ * @param K Grid width and height.
  */
 void noodle_grid_from_file(NDL_File &fi, float *buffer, uint16_t K);
 
-/** 
- *  @name Internal Helpers for Pooling 
+/**
+ * @name Internal Pooling Helpers
  */
 
-/** 
- *  @brief 2D pooling over a V×V map, writing results to a file (one float per line).
- *  @ingroup noodle_internal
- *  Pooling mode (MAX or MEAN) is selected via NOODLE_POOL_MODE at compile time.
- *  This layer uses valid pooling. NO PADDING IS APPLIED!
- *  @param input  Input V×V map (float).
- *  @param W      V (input width/height).
- *  @param K      Pool kernel size (M).
- *  @param S      Pool stride (T).
- *  @param fn     Output filename template (receives O where applicable).
- *  @return V_out = (V - K)/S + 1.
+/**
+ * @brief Apply valid 2D pooling and write the result to a file.
+ * @ingroup noodle_internal
+ *
+ * When `NOODLE_POOL_MODE` is `NOODLE_POOL_NONE`, this writes the input map
+ * unchanged and returns @p W. Otherwise it computes valid max or mean pooling.
+ *
+ * @param input Input map with `W * W` floats.
+ * @param W Input width and height.
+ * @param K Pooling window size.
+ * @param S Pooling stride.
+ * @param fn Output filename. The file is opened and closed by this function.
+ * @return Output width, or `0` for invalid pooling parameters.
  */
 uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
-/**  
- *  @overload using NDL_File output handle. 
- *  @ingroup noodle_internal
+
+/**
+ * @brief Apply valid 2D pooling and write the result to an open file.
+ * @ingroup noodle_internal
+ * @param input Input map with `W * W` floats.
+ * @param W Input width and height.
+ * @param K Pooling window size.
+ * @param S Pooling stride.
+ * @param fo Open output file handle. The handle remains open.
+ * @return Output width, or `0` for invalid pooling parameters.
  */
 uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
-/**  
- *  @overload using float output buffer.
- *  @ingroup noodle_internal
+
+/**
+ * @brief Apply valid 2D pooling and write the result to memory.
+ * @ingroup noodle_internal
+ * @param input Input map with `W * W` floats.
+ * @param W Input width and height.
+ * @param K Pooling window size.
+ * @param S Pooling stride.
+ * @param output Destination buffer with room for the pooled map.
+ * @return Output width, or @p W for identity/no pooling.
  */
 uint16_t noodle_do_pooling(const float *input, uint16_t W, uint16_t K, uint16_t S, float *output);
 
-/** 1D MAX pooling (file output). Writes V_out values (one per line) to @p fn.
- *  @ingroup noodle_internal
- *  @param input  Input length-V vector (float).
- *  @param W      V (input length).
- *  @param K      Pool kernel size.
- *  @param S      Pool stride.
- *  @param fn     Output filename (per-O when called in loops).
- *  @return V_out = (V - K)/S + 1.
+/**
+ * @brief Apply valid 1D max pooling and write the result to a file.
+ * @ingroup noodle_internal
+ * @param input Input vector with @p W floats.
+ * @param W Input length.
+ * @param K Pooling window size.
+ * @param S Pooling stride.
+ * @param fn Output filename. The file is opened and closed by this function.
+ * @return Output length, `(@p W - @p K) / @p S + 1`.
  */
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn);
-/**  
- *  @overload using NDL_File output handle. 
- *  @ingroup noodle_internal
+
+/**
+ * @brief Apply valid 1D max pooling and write the result to an open file.
+ * @ingroup noodle_internal
+ * @param input Input vector with @p W floats.
+ * @param W Input length.
+ * @param K Pooling window size.
+ * @param S Pooling stride.
+ * @param fo Open output file handle. The handle remains open.
+ * @return Output length, `(@p W - @p K) / @p S + 1`.
  */
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
 
-/**  
- *  @name 2D Convolution
+/**
+ * @name 2D Convolution
  *
- *  Packed-file conventions:
- *  - Input file: packed CHW planes (each plane W×W).
- *  - Output file: packed CHW planes (each plane V_out×V_out) in output-channel order.
+ * Packed-file conventions:
+ * - Input file: packed `[I][W][W]` planes.
+ * - Output file: packed `[O][Vout][Vout]` planes.
  *
- *  Padding:
- *  - Noodle uses symmetric, stride-independent padding.
- *  - If P >= 0, that value is used as the symmetric padding on all sides.
- *  - If P == 65535, padding is computed automatically as:
- *      P = floor((K - 1) / 2)
- *    which preserves spatial size when S = 1 and K is odd.
+ * Padding is symmetric when `Conv::P` or `ConvMem::P` is an explicit value.
+ * For 2D convolution, `P == 65535` requests SAME-style output sizing via
+ * noodle_compute_V().
  *
- *  Requires temporary buffers set via ::noodle_setup_temp_buffers.
- *  Buffer sizes are typically W×W floats, used as per-channel scratch space.
+ * File-backed overloads require temporary buffers configured with
+ * noodle_setup_temp_buffers().
  */
 
-/** 
- *  @brief File→File 2D conv with BYTE input feature maps.
- *  @ingroup noodle_public
+/**
+ * @brief Run file-to-file 2D convolution on byte input feature maps.
+ * @ingroup noodle_public
+ *
+ * Reads packed byte-valued input planes from @p in_fn, streams file-backed
+ * weights/biases from @p conv, applies activation and pooling, and writes packed
+ * float output planes to @p out_fn.
+ *
+ * @param in_fn Input file containing packed `[I][W][W]` planes.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param out_fn Output file for packed `[O][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv File-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_conv_byte(const char *in_fn,
                           uint16_t n_inputs,
@@ -446,9 +574,23 @@ uint16_t noodle_conv_byte(const char *in_fn,
                           const Pool &pool,
                           CBFPtr progress_cb = NULL);
 
-/** 
- *  @brief File→File 2D conv with FLOAT input feature maps. 
- *  @ingroup noodle_public
+/**
+ * @brief Run file-to-file 2D convolution on float input feature maps.
+ * @ingroup noodle_public
+ *
+ * Reads packed float input planes from @p in_fn, streams file-backed
+ * weights/biases from @p conv, applies activation and pooling, and writes packed
+ * output planes to @p out_fn.
+ *
+ * @param in_fn Input file containing packed `[I][W][W]` planes.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param out_fn Output file for packed `[O][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv File-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_conv_float(const char *in_fn,
                            uint16_t n_inputs,
@@ -459,9 +601,21 @@ uint16_t noodle_conv_float(const char *in_fn,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
 
-/** 
- *  @brief File→Memory 2D conv with FLOAT inputs; writes [O, Wo, Wo] tensor to output. 
- *  @ingroup noodle_public
+/**
+ * @brief Run file-to-memory 2D convolution on float input feature maps.
+ * @ingroup noodle_public
+ *
+ * The output tensor is channel-first and packed as `[O][Vout][Vout]`.
+ *
+ * @param in_fn Input file containing packed `[I][W][W]` planes.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param output Destination buffer for packed output planes.
+ * @param W Input width and height.
+ * @param conv File-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_conv_float(const char *in_fn,
                            uint16_t n_inputs,
@@ -472,9 +626,19 @@ uint16_t noodle_conv_float(const char *in_fn,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
 
-/** 
- *  @brief Memory→File 2D conv with FLOAT inputs and in-file conv parameters. 
- *  @ingroup noodle_public
+/**
+ * @brief Run memory-to-file 2D convolution with file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * @param input Input tensor in packed `[I][W][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param out_fn Output file for packed `[O][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv File-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_conv_float(float *input,
                            uint16_t n_inputs,
@@ -485,9 +649,19 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
 
-/** 
- *  @brief Memory→File 2D conv with FLOAT inputs and in-varibale conv parameters 
- *  @ingroup noodle_public
+/**
+ * @brief Run memory-to-file 2D convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * @param input Input tensor in packed `[I][W][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param out_fn Output file for packed `[O][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv Memory-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_conv_float(float *input,
                            uint16_t n_inputs,
@@ -498,9 +672,19 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
 
-/** 
- *  @brief Memory→Memory 2D conv with FLOAT inputs and in-file conv parameters. 
- *  @ingroup noodle_public
+/**
+ * @brief Run memory-to-memory 2D convolution with file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * @param input Input tensor in packed `[I][W][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param output Destination tensor in packed `[O][Vout][Vout]` layout.
+ * @param W Input width and height.
+ * @param conv File-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_conv_float(float *input,
                            uint16_t n_inputs,
@@ -511,9 +695,19 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
 
-/** 
- * Memory→Memory 2D conv with FLOAT inputs and in-variable conv parameters. 
- *  @ingroup noodle_public
+/**
+ * @brief Run memory-to-memory 2D convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * @param input Input tensor in packed `[I][W][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param output Destination tensor in packed `[O][Vout][Vout]` layout.
+ * @param W Input width and height.
+ * @param conv Memory-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_conv_float(float *input,
                            uint16_t n_inputs,
@@ -524,35 +718,30 @@ uint16_t noodle_conv_float(float *input,
                            const Pool &pool,
                            CBFPtr progress_cb = NULL);
                
-/** 
- *  @name 1D Convolution 
+/**
+ * @name 1D Convolution
  *
- *  - Conv.K used as kernel length
- *  - W used as input length
+ * 1D convolution uses packed `[C][W]` tensors. `Conv::K`/`ConvMem::K` is the
+ * kernel length and @p W is the input sequence length.
  */
  
 /**
- *  File CHW→File CW 1D convolution with optional bias+activation and a pooling stage.
- *  @ingroup noodle_public
+ * @brief Run file-to-file 1D convolution with file-backed parameters and pooling.
+ * @ingroup noodle_public
  *
- *  This follows the same I/O convention as noodle_conv_float():
- *  - @p in_fn is a *single* packed input file containing all input channels in CHW order
- *    (for 1D: C then W samples, one channel after another).
- *  - @p out_fn is a *single* packed output file; for each output channel O we append either the
- *    pooled sequence or the raw sequence (depending on overload).
- *  - Weights are read sequentially from @p conv.weight_fn in the order: for O in [0..n_outputs)
- *    and I in [0..n_inputs), read K floats (kernel taps).
- *  - Biases are read sequentially from @p conv.bias_fn (one float per output channel).
+ * Reads packed `[I][W]` input samples from @p in_fn, accumulates one output
+ * sequence per output channel, applies bias/activation, applies valid 1D max
+ * pooling, and appends packed `[O][Vout]` output samples to @p out_fn.
  *
- *  @param in_fn       Packed input filename (CW).
- *  @param n_inputs    Number of input channels I.
- *  @param out_fn      Packed output filename (CHW).
- *  @param n_outputs   Number of output channels O.
- *  @param W           Input length.
- *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
- *  @param pool        Pool parameters (kernel M, stride T).
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return V_out after pooling.
+ * @param in_fn Input file containing packed `[I][W]` sequences.
+ * @param n_inputs Number of input channels.
+ * @param out_fn Output file for packed `[O][Vout]` sequences.
+ * @param n_outputs Number of output channels.
+ * @param W Input sequence length.
+ * @param conv File-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output length after pooling.
  */
 uint16_t noodle_conv1d(const char *in_fn,
                        uint16_t n_inputs,
@@ -563,20 +752,21 @@ uint16_t noodle_conv1d(const char *in_fn,
                        const Pool &pool,
                        CBFPtr progress_cb=NULL);
 
-/** 
- *  File CHW→File CW 1D convolution with bias+activation and NO pooling stage.
- *  Convolution parameters are in files.
- *  @ingroup noodle_public
- *  Semantics as above but appends raw conv+bias(+ReLU) sequences for each output channel to
- *  @p out_fn.
- *  @param in_fn       Packed input filename (CW).
- *  @param n_inputs    Number of input channels I.
- *  @param out_fn      Packed output filename (CHW).
- *  @param n_outputs   Number of output channels O.
- *  @param W           Input length.
- *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return V (pre-pooling output length).
+/**
+ * @brief Run file-to-file 1D convolution with file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * This overload does not pool. It writes packed raw convolution outputs after
+ * bias/activation.
+ *
+ * @param in_fn Input file containing packed `[I][W]` sequences.
+ * @param n_inputs Number of input channels.
+ * @param out_fn Output file for packed `[O][V]` sequences.
+ * @param n_outputs Number of output channels.
+ * @param W Input sequence length.
+ * @param conv File-backed convolution parameters.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output length before pooling, `(@p W - K + 2P) / S + 1`.
  */
 uint16_t noodle_conv1d(const char *in_fn,
                        uint16_t n_inputs,
@@ -587,19 +777,20 @@ uint16_t noodle_conv1d(const char *in_fn,
                        CBFPtr progress_cb=NULL);
 
 /**
- *  File CW →File CW 1D convolution with bias+activation and NO pooling stage. 
- *  Convolution parameters are in variables.
- *  @ingroup noodle_public
- *  Semantics as above but appends raw conv+bias(+ReLU) sequences for each output channel to
- *  @p out_fn.
- *  @param in_fn       Packed input filename (CW).
- *  @param n_inputs    Number of input channels I.
- *  @param out_fn      Packed output filename (CHW).
- *  @param n_outputs   Number of output channels O.
- *  @param W           Input length.
- *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return V (pre-pooling output length).
+ * @brief Run file-to-file 1D convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * This overload does not pool. It requires both temporary buffers because input
+ * samples are streamed from a file into memory and accumulated before writing.
+ *
+ * @param in_fn Input file containing packed `[I][W]` sequences.
+ * @param n_inputs Number of input channels.
+ * @param out_fn Output file for packed `[O][V]` sequences.
+ * @param n_outputs Number of output channels.
+ * @param W Input sequence length.
+ * @param conv Memory-backed convolution parameters.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output length before pooling, or `0` if temporary buffers are missing.
  */
 uint16_t noodle_conv1d(const char *in_fn,
                        uint16_t n_inputs,
@@ -609,18 +800,20 @@ uint16_t noodle_conv1d(const char *in_fn,
                        const ConvMem &conv,
                        CBFPtr progress_cb);
                        
-/** 
- *  Memory→Memory 1D convolution with optional bias+activation and NO pooling stage.
- *  This operation does NOT need temp buffers!
- *  @ingroup noodle_public
- *  @param in          Input array (CW).
- *  @param n_inputs    Number of input channels I.
- *  @param out         Output array (CW).
- *  @param n_outputs   Number of output channels O.
- *  @param W           Input length.
- *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return V (pre-pooling output length).
+/**
+ * @brief Run memory-to-memory 1D convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * This overload does not use temporary buffers and does not pool.
+ *
+ * @param in Input tensor in packed `[I][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param out Destination tensor in packed `[O][V]` layout.
+ * @param n_outputs Number of output channels.
+ * @param W Input sequence length.
+ * @param conv Memory-backed convolution parameters.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output length before pooling.
  */
 uint16_t noodle_conv1d(float *in,
                        uint16_t n_inputs,
@@ -630,6 +823,22 @@ uint16_t noodle_conv1d(float *in,
                        const ConvMem &conv,
                        CBFPtr progress_cb=NULL);
 
+/**
+ * @brief Run memory-to-file 1D convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * This overload does not pool. It requires the second temporary buffer as an
+ * output accumulator.
+ *
+ * @param in Input tensor in packed `[I][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param out_fn Output file for packed `[O][V]` sequences.
+ * @param n_outputs Number of output channels.
+ * @param W Input sequence length.
+ * @param conv Memory-backed convolution parameters.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output length before pooling, or `0` if the accumulator buffer is missing.
+ */
 uint16_t noodle_conv1d(float *in,
                        uint16_t n_inputs,
                        const char *out_fn,
@@ -638,6 +847,22 @@ uint16_t noodle_conv1d(float *in,
                        const ConvMem &conv,
                        CBFPtr progress_cb);
 
+/**
+ * @brief Run file-to-memory 1D convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * This overload does not pool. The output buffer is packed by output channel,
+ * with each channel occupying `Vmax = (W - K + 2P) / S + 1` values.
+ *
+ * @param in_fn Input file containing packed `[I][W]` sequences.
+ * @param n_inputs Number of input channels.
+ * @param out Destination tensor in packed `[O][Vmax]` layout.
+ * @param n_outputs Number of output channels.
+ * @param W Input sequence length.
+ * @param conv Memory-backed convolution parameters.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output length before pooling.
+ */
 uint16_t noodle_conv1d(const char *in_fn,
                        uint16_t n_inputs,
                        float *out,              // packed output: [O][Vmax]
@@ -646,324 +871,411 @@ uint16_t noodle_conv1d(const char *in_fn,
                        const ConvMem &conv,
                        CBFPtr progress_cb);
 
-/** 
- * @name Internal Helpers for Convolution 
+/**
+ * @name Internal Convolution Helpers
  */
                        
-/** 
- *  1D convolution with zero padding/stride, accumulating into @p output.
- *  Output length is `V = (W - K + 2P)/S + 1`.
- *  @ingroup noodle_internal
+/**
+ * @brief Accumulate one padded/strided 1D convolution into an output buffer.
+ * @ingroup noodle_internal
+ *
+ * The output buffer is not cleared; results are added to existing values.
+ *
+ * @param input Input sequence with @p W floats.
+ * @param kernel Kernel with @p K floats.
+ * @param W Input sequence length.
+ * @param K Kernel length.
+ * @param output Accumulator buffer with room for the computed output sequence.
+ * @param P Zero padding per side.
+ * @param S Stride.
+ * @return Output length, `(@p W - @p K + 2 * @p P) / @p S + 1`.
  */
 uint16_t noodle_do_conv1d(float *input, float *kernel, uint16_t W, uint16_t K,
                           float *output, uint16_t P, uint16_t S);
 
-/** 
- *  @brief 2D valid/same convolution with zero padding and stride, accumulating into @p output.
- *  @ingroup noodle_internal
- *  Output spatial size is `V = (W - K + 2P)/S + 1`.
- *  @param grid           Input grid (bytes interpreted as values 0..255).
- *  @param kernel         K×K float kernel.
- *  @param K,W,P,S        See common semantics.
- *  @param output  Accumulator buffer of size at least V×V (float).
- *  @return V, the output width/height.
+/**
+ * @brief Accumulate one padded/strided 2D convolution from a byte grid.
+ * @ingroup noodle_internal
+ *
+ * The output buffer is not cleared; results are added to existing values.
+ *
+ * @param grid Input grid with `W * W` byte values.
+ * @param kernel Kernel with `K * K` floats.
+ * @param K Kernel width and height.
+ * @param W Input width and height.
+ * @param output Accumulator buffer with room for the computed output plane.
+ * @param P Zero padding per side.
+ * @param S Stride.
+ * @return Output width and height.
  */
 uint16_t noodle_do_conv(byte *grid, const float *kernel, uint16_t K, uint16_t W,
                         float *output, uint16_t P, uint16_t S);
-/**  
- *  @overload using float input grid. 
- *  @ingroup noodle_internal
+
+/**
+ * @brief Accumulate one padded/strided 2D convolution from a float grid.
+ * @ingroup noodle_internal
+ * @param grid Input grid with `W * W` float values.
+ * @param kernel Kernel with `K * K` floats.
+ * @param K Kernel width and height.
+ * @param W Input width and height.
+ * @param output Accumulator buffer with room for the computed output plane.
+ * @param P Zero padding per side.
+ * @param S Stride.
+ * @return Output width and height.
  */
 uint16_t noodle_do_conv(float *grid, const float *kernel, uint16_t K, uint16_t W,
                         float *output, uint16_t P, uint16_t S);
 
 /**
- *  Add a scalar bias to each element of a V×V map in-place and apply ReLU.
- *  @ingroup noodle_internal
- *  Convenience legacy helper used by file-streamed conv paths.
- *  @param output Accumulator buffer of size V×V (float).
- *  @param bias   Scalar to add to each element.
- *  @param n      V (output width/height).
- *  @return V.
+ * @brief Add bias to a square map in place and apply ReLU.
+ * @ingroup noodle_internal
+ *
+ * This legacy helper always applies ReLU after adding @p bias.
+ *
+ * @param output Accumulator buffer with `n * n` floats.
+ * @param bias Scalar bias to add to every element.
+ * @param n Map width and height.
+ * @return @p n.
  */
 uint16_t noodle_do_bias(float *output, float bias, uint16_t n);
 
-/** 
- *  @brief Add bias to each element of a V×V map (in-place) and optionally apply activation.
- *  @ingroup noodle_internal
- *  @param output Accumulator buffer of size V×V (float).
- *  @param bias   Scalar to add to each element.
- *  @param n      V (output width/height).
- *  @param act    Activation to apply (ACT_NONE or ACT_RELU).
- *  @return V.
+/**
+ * @brief Add bias to a square map in place and apply an activation.
+ * @ingroup noodle_internal
+ * @param output Accumulator buffer with `n * n` floats.
+ * @param bias Scalar bias to add to every element.
+ * @param n Map width and height.
+ * @param act Activation to apply; currently @ref ACT_NONE and @ref ACT_RELU are handled.
+ * @return @p n.
  */
 uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation act);
 
-/** 
- *  @brief Get padded input sample from a byte grid with zero padding.
- *  @ingroup noodle_internal
- *  @param grid      Input @p W×@p W bytes.
- *  @param i,j       Padded coordinates in [0, W+2P).
- *  @param W,P0,P1   See common semantics.
- *  @return Grid value as float, or 0 outside bounds.
+/**
+ * @brief Read a byte grid sample with zero padding.
+ * @ingroup noodle_internal
+ * @param grid Input grid with `W * W` byte values.
+ * @param i Row coordinate in padded space.
+ * @param j Column coordinate in padded space.
+ * @param W Input width and height.
+ * @param P0 Top/left padding.
+ * @param P1 Bottom/right padding.
+ * @return Grid value converted to float, or `0.0f` outside the unpadded grid.
  */
-static inline __attribute__((always_inline))
-float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
+static inline float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1) __attribute__((always_inline));
 
-/** 
- *  @overload 
- *  @brief Get padded input sample from a float grid with zero padding.
- *  @ingroup noodle_internal
+/**
+ * @brief Read a float grid sample with zero padding.
+ * @ingroup noodle_internal
+ * @param grid Input grid with `W * W` float values.
+ * @param i Row coordinate in padded space.
+ * @param j Column coordinate in padded space.
+ * @param W Input width and height.
+ * @param P0 Top/left padding.
+ * @param P1 Bottom/right padding.
+ * @return Grid value, or `0.0f` outside the unpadded grid.
  */
-static inline __attribute__((always_inline))
-float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
+static inline float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1) __attribute__((always_inline));
 
 
-/** 
- * @name Activations 
+/**
+ * @name Activations
  */
  
-/** 
- *  In-place softmax over a length-@p n vector. Returns @p n. 
- *  @ingroup noodle_public
+/**
+ * @brief Apply numerically stabilized softmax in place.
+ * @ingroup noodle_public
+ * @param input_output Vector of @p n logits; replaced with probabilities.
+ * @param n Number of elements.
+ * @return @p n.
  */
 uint16_t noodle_soft_max(float *input_output, uint16_t n);
-/** 
- *  In-place sigmoid over a length-@p n vector. Returns @p n.
- *  @ingroup noodle_public
+
+/**
+ * @brief Apply logistic sigmoid to each element in place.
+ * @ingroup noodle_public
+ * @param input_output Vector of @p n values to transform.
+ * @param n Number of elements.
+ * @return @p n.
  */
 uint16_t noodle_sigmoid(float *input_output, uint16_t n);
-/** 
- *  Sigmoid function for a single float value. 
- *  @ingroup noodle_public
+
+/**
+ * @brief Compute the logistic sigmoid of one float.
+ * @ingroup noodle_public
+ * @param x Input value.
+ * @return `1 / (1 + exp(-x))`, computed with a stable branch.
  */
 float noodle_sigmoidf(float x);
-/** 
- *  In-place logit over a length-@p n vector. Returns @p n. 
- *  @ingroup noodle_public
+
+/**
+ * @brief Apply logistic sigmoid in place using the legacy logit helper name.
+ * @ingroup noodle_public
+ * @param input_output Vector of @p n values to transform.
+ * @param n Number of elements.
+ * @return @p n.
  */
- uint16_t noodle_logit(float *input_output, uint16_t n);
-/** 
- *  In-place ReLU over a length-@p n vector. Returns @p n.
- *  @ingroup noodle_public
+uint16_t noodle_logit(float *input_output, uint16_t n);
+
+/**
+ * @brief Apply ReLU to each element in place.
+ * @ingroup noodle_public
+ * @param input_output Vector of @p n values to transform.
+ * @param n Number of elements.
+ * @return @p n.
  */
 uint16_t noodle_relu(float *input_output, uint16_t n);
 
-/** 
- *  FCN parameters (plain filenames; no tokenization). 
- *  @ingroup noodle_public
+/**
+ * @brief Legacy file-backed fully-connected parameter bundle.
+ * @ingroup noodle_public
+ *
+ * New code should generally use @ref FCNFile, which has the same fields.
  */
 struct FCN {
-  const char *weight_fn = nullptr;
-  const char *bias_fn   = nullptr;
-  Activation act = ACT_RELU;
+  const char *weight_fn = nullptr; ///< Weight filename with row-major `[O][I]` values.
+  const char *bias_fn   = nullptr; ///< Bias filename with one scalar per output.
+  Activation act = ACT_RELU;       ///< Activation applied after each output is computed.
 };
 
-/** 
- *  FCN parameters (filenames; no tokenization). 
- *  @ingroup noodle_public
+/**
+ * @brief File-backed fully-connected parameter bundle.
+ * @ingroup noodle_public
+ *
+ * The weight file is read in row-major `[O][I]` order and the bias file contains
+ * one scalar per output neuron.
  */
 struct FCNFile {
-  const char *weight_fn = nullptr;
-  const char *bias_fn   = nullptr;
-  Activation act = ACT_RELU;
+  const char *weight_fn = nullptr; ///< Weight filename with row-major `[O][I]` values.
+  const char *bias_fn   = nullptr; ///< Bias filename with one scalar per output.
+  Activation act = ACT_RELU;       ///< Activation applied after each output is computed.
 };
 
-/** 
- *  FCN parameters for in-variable weights/bias (row-major weights [n_outputs, n_inputs]). 
- *  @ingroup noodle_public
+/**
+ * @brief Memory-backed fully-connected parameter bundle.
+ * @ingroup noodle_public
+ *
+ * `weight` points to row-major `[O][I]` floats. `bias` points to
+ * @p n_outputs floats and may be `nullptr` for zero bias.
  */
 struct FCNMem {
-  const float *weight = nullptr;
-  const float *bias   = nullptr;
-  Activation act = ACT_RELU;
+  const float *weight = nullptr; ///< Pointer to row-major `[O][I]` weights.
+  const float *bias   = nullptr; ///< Pointer to output biases, or `nullptr` for zero bias.
+  Activation act = ACT_RELU;     ///< Activation applied after each output is computed.
 };
 
-/** 
- * @name Fully Connected Network 
+/**
+ * @name Fully Connected Layers
  */
 
-/** 
- *  Memory→File fully-connected layer (int8 inputs; weights/bias from files).
- *  @ingroup noodle_public
- *  Computes y = W·x + b, optionally applies ReLU, and writes @p n_outputs lines to @p out_fn.
- *  @param input       Pointer to @p n_inputs int8 values.
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param out_fn      Output filename (one float per line).
- *  @param fcn         Filenames for weights and bias; weights read row-major [O, I].
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return n_outputs.
+/**
+ * @brief Run a memory-to-file fully-connected layer with int8 inputs.
+ * @ingroup noodle_public
+ *
+ * Computes `y = W*x + b`, applies ReLU when requested, and writes one output
+ * float per line to @p out_fn.
+ *
+ * @param input Input vector with @p n_inputs int8 values.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param out_fn Output filename.
+ * @param fcn File-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const int8_t *input, uint16_t n_inputs, uint16_t n_outputs,
                     const char *out_fn, const FCNFile &fcn,
                     CBFPtr progress_cb = NULL);
 
 
-/** 
- *  File→File fully-connected layer (float text inputs; params from files).
- *  @ingroup noodle_public
- *  For each output neuron O, rewinds @p in_fn, accumulates dot(W[O], x) + b[O],
- *  applies activation, and appends to @p out_fn.
- *  @param in_fn       Input filename containing @p n_inputs floats (one per line).
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param out_fn      Output filename (appends/overwrites as created).
- *  @param fcn         Filenames for weights/bias.
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return n_outputs.
+/**
+ * @brief Run a file-to-file fully-connected layer with file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * For each output neuron, the input file is rewound, one dot product is
+ * accumulated, ReLU is applied when requested, and one float is written.
+ *
+ * @param in_fn Input filename containing @p n_inputs floats.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param out_fn Output filename.
+ * @param fcn File-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
                     const char *out_fn, const FCNFile &fcn,
                     CBFPtr progress_cb = NULL);
 
 
-/** 
- *  Memory→Memory fully-connected layer (float inputs; explicit in-variable weights/bias).
- *  @ingroup noodle_public
- *  Weights are row-major `[n_outputs, n_inputs]` and biases length @p n_outputs.
- *  @param input       Float array of length @p n_inputs.
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param output      Float array of length @p n_outputs (written).
- *  @param fcn         in-variable weights/bias and activation.
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return n_outputs.
+/**
+ * @brief Run a memory-to-memory fully-connected layer with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Applies ReLU or softmax when requested by @p fcn.
+ *
+ * @param input Input vector with @p n_inputs floats.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param output Destination vector with room for @p n_outputs floats.
+ * @param fcn Memory-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNMem &fcn,
                     CBFPtr progress_cb = NULL);
 
 
-/** 
- *  Memory→Memory fully-connected layer (byte inputs; params from files).
- *  @ingroup noodle_public
- *  @param input       Byte array of length @p n_inputs (0..255 interpreted as float).
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param output      Float array of length @p n_outputs (written).
- *  @param fcn         Filenames for weights/bias and activation mode.
- *  @param progress_cb Optional progress callback.
- *  @return n_outputs.
+/**
+ * @brief Run a memory-to-memory fully-connected layer with byte inputs.
+ * @ingroup noodle_public
+ *
+ * Weights and biases are read from files. Applies ReLU or softmax when requested.
+ *
+ * @param input Input vector with @p n_inputs byte values.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param output Destination vector with room for @p n_outputs floats.
+ * @param fcn File-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const byte *input, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNFile &fcn,
                     CBFPtr progress_cb = NULL);
 
 
-/** 
- *  Memory→Memory fully-connected layer (int8 inputs; params from files).
- *  @ingroup noodle_public
- *  @param input       Int8 array of length @p n_inputs.
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param output      Float array of length @p n_outputs (written).
- *  @param fcn         Filenames for weights/bias and activation mode.
- *  @param progress_cb Optional progress callback.
- *  @return n_outputs.
+/**
+ * @brief Run a memory-to-memory fully-connected layer with int8 inputs.
+ * @ingroup noodle_public
+ *
+ * Weights and biases are read from files. Applies ReLU or softmax when requested.
+ *
+ * @param input Input vector with @p n_inputs int8 values.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param output Destination vector with room for @p n_outputs floats.
+ * @param fcn File-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const int8_t *input, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNFile &fcn,
                     CBFPtr progress_cb = NULL);
 
 
-/** 
- *  File→Memory fully-connected layer (float output; params from files).
- *  @ingroup noodle_public
- *  Reads inputs from @p in_fn for each output neuron O, computing y[O] = dot(W[O], x) + b[O],
- *  then applies activation.
- *  @param in_fn       Input filename with @p n_inputs floats per forward pass.
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param output      Float array of length @p n_outputs (written).
- *  @param fcn         Filenames for weights/bias.
- *  @param progress_cb Optional progress callback.
- *  @return n_outputs.
+/**
+ * @brief Run a file-to-memory fully-connected layer with file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Applies ReLU or softmax when requested by @p fcn.
+ *
+ * @param in_fn Input filename containing @p n_inputs floats.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param output Destination vector with room for @p n_outputs floats.
+ * @param fcn File-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNFile &fcn,
                     CBFPtr progress_cb = NULL);
 
-/** 
- *  Memory→Memory fully-connected layer (float output; params from files).
- *  @ingroup noodle_public
- *  Reads inputs from @p input for each output neuron O, computing y[O] = dot(W[O], x) + b[O],
- *  then applies activation.
- *  @param input       Float array of length @p n_inputs.
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param output      Float array of length @p n_outputs (written).
- *  @param fcn         Filenames for weights/bias.
- *  @param progress_cb Optional progress callback.
- *  @return n_outputs.
+/**
+ * @brief Run a memory-to-memory fully-connected layer with float inputs.
+ * @ingroup noodle_public
+ *
+ * Weights and biases are read from files. Applies ReLU or softmax when requested.
+ *
+ * @param input Input vector with @p n_inputs floats.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param output Destination vector with room for @p n_outputs floats.
+ * @param fcn File-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNFile &fcn,
                     CBFPtr progress_cb);
 
-/** 
- *  Memory→File fully-connected layer (float inputs; params from files).
- *  @ingroup noodle_public
- *  Computes y = W·x + b, optionally applies activation, and writes @p n_outputs lines to @p out_fn.
- *  @param input       Pointer to @p n_inputs float values.
- *  @param n_inputs    Number of inputs.
- *  @param n_outputs   Number of outputs.
- *  @param out_fn      Output filename (one float per line).
- *  @param fcn         Filenames for weights and bias; weights read row-major [O, I].
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return n_outputs.
+/**
+ * @brief Run a memory-to-file fully-connected layer with float inputs.
+ * @ingroup noodle_public
+ *
+ * Computes `y = W*x + b`, applies ReLU when requested, and writes one output
+ * float per line to @p out_fn.
+ *
+ * @param input Input vector with @p n_inputs floats.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param out_fn Output filename.
+ * @param fcn File-backed weights, biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs.
  */
 uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
                     const char *out_fn, const FCNFile &fcn,
                     CBFPtr progress_cb);
 
-/** 
- *  @name Tensor Reshaping 
+/**
+ * @name Tensor Reshaping And Reductions
  */
 
-/** 
- *  File→Memory flatten: reads @p n_filters feature maps from files named by @p in_fn
- *  @ingroup noodle_public
- *  (tokenized by O via ::noodle_n2ll at positions 4/6 as appropriate) and writes a vector
- *  of length V×V×n_filters in row-major [i* n_filters + k].
- *  @param in_fn      Base filename of pooled feature maps (receives O).
- *  @param output     Output buffer of length V×V×n_filters.
- *  @param V          Spatial size (width=height).
- *  @param n_filters  Number of channels (O).
- *  @return V×V×n_filters.
+/**
+ * @brief Flatten a packed file tensor into HWC-like memory order.
+ * @ingroup noodle_public
+ *
+ * Reads an input file in packed `[C][V][V]` order and writes @p output in
+ * interleaved spatial-major order: `output[pixel * n_filters + channel]`.
+ *
+ * @param in_fn Input filename containing packed `[C][V][V]` values.
+ * @param output Destination vector with room for `V * V * n_filters` floats.
+ * @param V Input width and height.
+ * @param n_filters Number of channels.
+ * @return Number of output values written.
  */
 uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_filters);
 
-/** 
- *  Memory→Memory flatten: flattens [O, V, V] into a vector of length V×V×n_filters.
- *  @ingroup noodle_public
- *  @param input      Base pointer to stacked feature maps [O, V, V].
- *  @param output     Output buffer of length V×V×n_filters.
- *  @param V          Spatial size.
- *  @param n_filters  Number of channels O.
- *  @return V×V×n_filters.
+/**
+ * @brief Flatten a packed memory tensor into HWC-like memory order.
+ * @ingroup noodle_public
+ *
+ * Reads @p input in packed `[C][V][V]` order and writes @p output as
+ * `output[pixel * n_filters + channel]`.
+ *
+ * @param input Input tensor in packed `[C][V][V]` layout.
+ * @param output Destination vector with room for `V * V * n_filters` floats.
+ * @param V Input width and height.
+ * @param n_filters Number of channels.
+ * @return Number of output values written.
  */
 uint16_t noodle_flat(float *input, float *output, uint16_t V, uint16_t n_filters);
 
 /**
- *  @ingroup noodle_public
- *  Global Average Pooling for a channel-first tensor in memory.
- *  @param x_chw Pointer to the input tensor in [C][W][W] layout.
- *  @param C Number of channels.
- *  @param W Width/height of each channel plane.
- *  @return Number of channels C
+ * @brief Apply global average pooling in place.
+ * @ingroup noodle_public
+ *
+ * Reads a channel-first `[C][W][W]` tensor from @p inout and writes the per-channel
+ * means into the first @p C positions of the same buffer.
+ *
+ * @param inout Input/output buffer containing a packed `[C][W][W]` tensor.
+ * @param C Number of channels.
+ * @param W Width and height of each channel plane.
+ * @return @p C.
  */
 uint16_t noodle_gap(float *inout,
                     uint16_t C,
                     uint16_t W);
 
 /**
- *  @ingroup noodle_public
- *  Find the maximum value and its index in a float array.
- *  @param input Pointer to the input float array.
- *  @param n Length of the input array.
- *  @param max_val Reference to store the maximum value found.
- *  @param max_idx Reference to store the index of the maximum value.
+ * @brief Find the maximum value and index in a float vector.
+ * @ingroup noodle_public
+ * @param input Input vector with @p n floats.
+ * @param n Number of values to scan.
+ * @param max_val Reference that receives the maximum value.
+ * @param max_idx Reference that receives the index of the maximum value.
  */
 void noodle_find_max(float *input,
                      uint16_t n,
@@ -974,22 +1286,22 @@ void noodle_find_max(float *input,
  *  @name 2D Depth-wise Convolution 
  */
 
-/** 
- *  Depthwise convolution (float input/output; params from files).
- *  @ingroup noodle_public
- *  For each input channel I, reads the I-th input feature map from @p in_fn (tokenized by I),
- *  convolves it with the depthwise kernel read from @p conv.weight_fn (also tokenized by I),
- *  adds bias from @p conv.bias_fn (one bias per input channel), applies activation,
- *  and writes the output feature map to @p out_fn (tokenized by I).
- *  Requires temp buffers set via ::noodle_setup_temp_buffers.
- *  @param in_fn       Base input filename template (receives I).
- *  @param n_channels  Number of input/output channels.
- *  @param out_fn      Base output filename template (receives I).
- *  @param W           Input width/height.
- *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
- *  @param pool        Pool parameters (kernel M, stride T).
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return Output width after pooling.
+/**
+ * @brief Run file-to-file 2D depthwise convolution with file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * The input and output are packed channel-first files. Each channel is convolved
+ * with its own `K x K` kernel, then bias, activation, and pooling are applied.
+ * Requires temporary buffers configured with noodle_setup_temp_buffers().
+ *
+ * @param in_fn Input file containing packed `[C][W][W]` planes.
+ * @param n_channels Number of input/output channels.
+ * @param out_fn Output file for packed `[C][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv File-backed depthwise convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_dwconv_float(const char *in_fn,
                              uint16_t n_channels,
@@ -1000,20 +1312,18 @@ uint16_t noodle_dwconv_float(const char *in_fn,
                              CBFPtr progress_cb);
 
 
-/** 
- *  Memory → memory depthwise conv (float input).
- *  @ingroup noodle_public
- *  Assumes:
- *  - input layout:  [C][W][W] flattened
- *  - output layout: [C][Wo][Wo] flattened (Wo depends on pooling)
- *  @param input       Pointer to the input tensor in [C][W][W] layout.
- *  @param n_channels  Number of input/output channels.
- *  @param output      Pointer to the output tensor in [C][Wo][Wo] layout.
- *  @param W           Input width/height.
- *  @param conv        Convolution parameters (K, P, S, weight_fn, bias_fn, act).
- *  @param pool        Pool parameters (kernel M, stride T).
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return Output width after pooling.  
+/**
+ * @brief Run memory-to-memory 2D depthwise convolution with file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * @param input Input tensor in packed `[C][W][W]` layout.
+ * @param n_channels Number of input/output channels.
+ * @param output Destination tensor in packed `[C][Vout][Vout]` layout.
+ * @param W Input width and height.
+ * @param conv File-backed depthwise convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */
 uint16_t noodle_dwconv_float(float *input,
                              uint16_t n_channels,
@@ -1023,19 +1333,17 @@ uint16_t noodle_dwconv_float(float *input,
                              const Pool &pool,
                              CBFPtr progress_cb);
 /**
- *  @ingroup noodle_public
- *  Memory → memory depthwise conv (float input) with in-variable weights/bias. 
- *  Assumes:
- *   - input layout:  [C][W][W] flattened
- *   - output layout: [C][Wo][Wo] flattened (Wo depends on pooling )
- *  @param input       Pointer to the input tensor in [C][W][W] layout.
- *  @param n_channels  Number of input/output channels.
- *  @param output      Pointer to the output tensor in [C][Wo][Wo] layout.
- *  @param W           Input width/height.
- *  @param conv        Convolution parameters with in-variable weights/bias.
- *  @param pool        Pool parameters (kernel M, stride T).
- *  @param progress_cb Optional progress callback in [0,1].
- *  @return Output width after pooling.  
+ * @brief Run memory-to-memory 2D depthwise convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * @param input Input tensor in packed `[C][W][W]` layout.
+ * @param n_channels Number of input/output channels.
+ * @param output Destination tensor in packed `[C][Vout][Vout]` layout.
+ * @param W Input width and height.
+ * @param conv Memory-backed depthwise convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
  */                             
 uint16_t noodle_dwconv_float(float *input,
                              uint16_t n_channels,
@@ -1046,14 +1354,17 @@ uint16_t noodle_dwconv_float(float *input,
                              CBFPtr progress_cb);                            
 
 /**
- *  @ingroup noodle_internal
- *  Unpack batch normalization parameters from a flat array.
- *  @param bn_params Pointer to the packed batch normalization parameters.
- *  @param C Number of channels.
- *  @param gamma Output pointer to the per-channel scale parameters.
- *  @param beta Output pointer to the per-channel shift parameters.
- *  @param mean Output pointer to the per-channel mean parameters.
- *  @param var Output pointer to the per-channel variance parameters.
+ * @brief Split packed batch-normalization parameters into per-field pointers.
+ * @ingroup noodle_internal
+ *
+ * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param bn_params Packed batch-normalization parameter array.
+ * @param C Number of channels.
+ * @param gamma Receives pointer to the gamma/scale values.
+ * @param beta Receives pointer to the beta/offset values.
+ * @param mean Receives pointer to the mean values.
+ * @param var Receives pointer to the variance values.
  */
 void noodle_unpack_bn_params(const float *bn_params,
                              uint16_t C,
@@ -1062,21 +1373,26 @@ void noodle_unpack_bn_params(const float *bn_params,
                              const float **mean,
                              const float **var);
 
-/** 
- * @name Batch Normalization 
+/**
+ * @name Batch Normalization
  */
 
 /**
- *  @ingroup noodle_public
- *  Batch Normalization for a channel-first tensor in memory.
- *  @param x Pointer to the input tensor in [C][W][W] layout.
- *  @param C Number of channels.
- *  @param W Width/height of each channel plane.
- *  @param gamma Pointer to the per-channel scale parameters.
- *  @param beta Pointer to the per-channel shift parameters.
- *  @param mean Pointer to the per-channel mean parameters.
- *  @param var Pointer to the per-channel variance parameters.
- *  @param eps Small constant to avoid division by zero. 
+ * @brief Apply batch normalization to a packed channel-first tensor in place.
+ * @ingroup noodle_public
+ *
+ * Computes `gamma[c] * (x - mean[c]) / sqrt(var[c] + eps) + beta[c]` for each
+ * element of channel @p c.
+ *
+ * @param x Tensor in packed `[C][W][W]` layout; modified in place.
+ * @param C Number of channels.
+ * @param W Width and height of each channel plane.
+ * @param gamma Per-channel scale values.
+ * @param beta Per-channel offset values.
+ * @param mean Per-channel means.
+ * @param var Per-channel variances.
+ * @param eps Small constant added to variance.
+ * @return @p W.
  */
 uint16_t noodle_bn(float *x,
                    uint16_t C,
@@ -1088,15 +1404,17 @@ uint16_t noodle_bn(float *x,
                    float eps=1e-3);
 
 /**
- *  Batch Normalization followed by ReLU for a channel-first tensor in memory.
- *  @param x Pointer to the input tensor in [C][W][W] layout.
- *  @param C Number of channels.
- *  @param W Width/height of each channel plane.
- *  @param gamma Pointer to the per-channel scale parameters.
- *  @param beta Pointer to the per-channel shift parameters.
- *  @param mean Pointer to the per-channel mean parameters.
- *  @param var Pointer to the per-channel variance parameters.
- *  @param eps Small constant to avoid division by zero. 
+ * @brief Apply batch normalization followed by ReLU in place.
+ * @ingroup noodle_public
+ * @param x Tensor in packed `[C][W][W]` layout; modified in place.
+ * @param C Number of channels.
+ * @param W Width and height of each channel plane.
+ * @param gamma Per-channel scale values.
+ * @param beta Per-channel offset values.
+ * @param mean Per-channel means.
+ * @param var Per-channel variances.
+ * @param eps Small constant added to variance.
+ * @return @p W.
  */
 uint16_t noodle_bn_relu(float *x,
                         uint16_t C,
@@ -1108,13 +1426,17 @@ uint16_t noodle_bn_relu(float *x,
                         float eps=1e-3);
 
 /**
- *  @ingroup noodle_public
- *  Batch Normalization for a channel-first tensor in memory.
- *  @param x Pointer to the input tensor in [C][W][W] layout.
- *  @param C Number of channels.
- *  @param W Width/height of each channel plane.
- *  @param bn_params Pointer to the packed batch normalization parameters.
- *  @param eps Small constant to avoid division by zero.
+ * @brief Apply batch normalization using packed parameter storage.
+ * @ingroup noodle_public
+ *
+ * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor in packed `[C][W][W]` layout; modified in place.
+ * @param C Number of channels.
+ * @param W Width and height of each channel plane.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small constant added to variance.
+ * @return @p W.
  */ 
 uint16_t noodle_bn(float *x,
                    uint16_t C,
@@ -1122,13 +1444,18 @@ uint16_t noodle_bn(float *x,
                    const float *bn_params,
                    float eps=1e-3);
 
-/*
- *  Batch Normalization followed by ReLU for a channel-first tensor in memory.
- *  @param x Pointer to the input tensor in [C][W][W] layout.
- *  @param C Number of channels.
- *  @param W Width/height of each channel plane.
- *  @param bn_params Pointer to the packed batch normalization parameters.
- *  @param eps Small constant to avoid division by zero.
+/**
+ * @brief Apply batch normalization and ReLU using packed parameter storage.
+ * @ingroup noodle_public
+ *
+ * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor in packed `[C][W][W]` layout; modified in place.
+ * @param C Number of channels.
+ * @param W Width and height of each channel plane.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small constant added to variance.
+ * @return @p W.
  */
 uint16_t noodle_bn_relu(float *x,
                         uint16_t C,
@@ -1136,13 +1463,115 @@ uint16_t noodle_bn_relu(float *x,
                         const float *bn_params,
                         float eps=1e-3);
 
+/**
+ * @brief Compute the output width for 2D convolution.
+ * @ingroup noodle_public
+ *
+ * For explicit padding, returns `(W - K + 2 * P) / S + 1`. When @p P is
+ * `65535`, returns SAME-style `ceil(W / S)`.
+ *
+ * @param K Kernel width and height.
+ * @param W Input width and height.
+ * @param P Padding per side, or `65535` for SAME-style output sizing.
+ * @param S Stride.
+ * @return Computed output width.
+ */
 uint16_t noodle_compute_V(uint16_t K, 
                           uint16_t W , 
                           uint16_t P, 
                           uint16_t S);
 
 
+/**
+ * @brief Apply valid max pooling to a packed tensor in place.
+ * @ingroup noodle_public
+ *
+ * The input and output layout is packed `[C][W][W]`; after pooling, channels are
+ * compacted in place as `[C][Wo][Wo]`.
+ *
+ * @param inplace Tensor buffer to pool in place.
+ * @param W Input width and height.
+ * @param C Number of channels.
+ * @param pool Pooling parameters.
+ * @return Output width, or `0` for invalid input parameters.
+ */
 uint16_t noodle_valid_max_pool(float *inplace,
                                uint16_t W,
                                uint16_t C,
                                const Pool &pool);
+
+
+/**
+ * @name 2D Transpose Convolution
+ *
+ * Memory-backed transpose convolution uses packed `[I][W][W]` input,
+ * packed `[O][Vt][Vt]` output, and weights in `[O][I][K][K]` order.
+ *
+ * The output width formula is `(W - 1) * S + K - 2 * P + OP`.
+ */
+
+/**
+ * @brief Compute the output width for 2D transpose convolution.
+ * @ingroup noodle_public
+ *
+ * @param K Kernel width and height.
+ * @param W Input width and height.
+ * @param P Padding per side.
+ * @param S Stride.
+ * @param OP Output padding.
+ * @return Output width, or `0` if the computed size is invalid.
+ */
+uint16_t noodle_compute_Vt(uint16_t K,
+                           uint16_t W,
+                           uint16_t P,
+                           uint16_t S,
+                           uint16_t OP = 0);
+
+/**
+ * @brief Accumulate one 2D transpose-convolution input plane into an output plane.
+ * @ingroup noodle_internal
+ *
+ * The output buffer is not cleared; results are added to existing values.
+ *
+ * @param input Input plane with `W * W` floats.
+ * @param kernel Kernel with `K * K` floats.
+ * @param K Kernel width and height.
+ * @param W Input width and height.
+ * @param output Accumulator plane with room for `Vt * Vt` floats.
+ * @param P Padding per side.
+ * @param S Stride.
+ * @param OP Output padding.
+ * @return Output width, or `0` if the computed size is invalid.
+ */
+uint16_t noodle_do_conv_transpose(float *input,
+                                  const float *kernel,
+                                  uint16_t K,
+                                  uint16_t W,
+                                  float *output,
+                                  uint16_t P,
+                                  uint16_t S,
+                                  uint16_t OP = 0);
+
+/**
+ * @brief Run memory-to-memory 2D transpose convolution with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Bias and activation are applied after all input channels have been accumulated
+ * for each output channel.
+ *
+ * @param input Input tensor in packed `[I][W][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param output Destination tensor in packed `[O][Vt][Vt]` layout.
+ * @param W Input width and height.
+ * @param conv Memory-backed transpose-convolution parameters.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width, or `0` if the input or parameters are invalid.
+ */
+uint16_t noodle_conv_transpose_float(float *input,
+                                     uint16_t n_inputs,
+                                     uint16_t n_outputs,
+                                     float *output,
+                                     uint16_t W,
+                                     const ConvMem &conv,
+                                     CBFPtr progress_cb = NULL);

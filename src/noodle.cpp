@@ -2109,3 +2109,125 @@ uint16_t noodle_valid_max_pool(float *inplace,
 
   return Wo;
 }
+
+// ============================================================================
+// Conv2DTranspose / deconvolution, memory-backed parameters
+// Layouts:
+//   input  : CHW = [I][W][W]
+//   output : CHW = [O][Vt][Vt]
+//   weight : Noodle transpose layout [O][I][K][K]
+//            i.e. kernel = weight + (O*n_inputs + I)*K*K
+// Formula:
+//   Vt = (W - 1)*S + K - 2*P + OP
+// Notes for Keras-like choices:
+//   Conv2DTranspose(kernel_size=3, strides=2, padding="same") often needs P=1, OP=1
+//   Conv2DTranspose(kernel_size=2, strides=2, padding="same") usually uses P=0, OP=0
+//   Conv2DTranspose(kernel_size=3, strides=1, padding="same") uses P=1, OP=0
+// ============================================================================
+
+uint16_t noodle_compute_Vt(uint16_t K,
+                           uint16_t W,
+                           uint16_t P,
+                           uint16_t S,
+                           uint16_t OP) {
+  if (W == 0 || K == 0 || S == 0) return 0;
+
+  const int32_t vt = ((int32_t)W - 1) * (int32_t)S
+                   + (int32_t)K
+                   - 2 * (int32_t)P
+                   + (int32_t)OP;
+
+  if (vt <= 0) return 0;
+  if (vt > 65535) return 0;
+  return (uint16_t)vt;
+}
+
+uint16_t noodle_do_conv_transpose(float *input,
+                                  const float *kernel,
+                                  uint16_t K,
+                                  uint16_t W,
+                                  float *output,
+                                  uint16_t P,
+                                  uint16_t S,
+                                  uint16_t OP) {
+  const uint16_t Vt = noodle_compute_Vt(K, W, P, S, OP);
+  if (Vt == 0) return 0;
+
+  // Scatter each input pixel through the KxK kernel into the expanded output.
+  for (uint16_t iy = 0; iy < W; iy++) {
+    for (uint16_t ix = 0; ix < W; ix++) {
+      const float x = input[(uint32_t)iy * W + ix];
+      if (x == 0.0f) continue;
+
+      const int32_t base_y = (int32_t)iy * (int32_t)S - (int32_t)P;
+      const int32_t base_x = (int32_t)ix * (int32_t)S - (int32_t)P;
+
+      for (uint16_t ky = 0; ky < K; ky++) {
+        const int32_t oy = base_y + ky;
+        if ((uint32_t)oy >= (uint32_t)Vt) continue;
+
+        for (uint16_t kx = 0; kx < K; kx++) {
+          const int32_t ox = base_x + kx;
+          if ((uint32_t)ox >= (uint32_t)Vt) continue;
+
+          output[(uint32_t)oy * Vt + ox] += x * kernel[(uint32_t)ky * K + kx];
+        }
+      }
+    }
+  }
+
+  return Vt;
+}
+
+uint16_t noodle_conv_transpose_float(float *input,
+                                     uint16_t n_inputs,
+                                     uint16_t n_outputs,
+                                     float *output,
+                                     uint16_t W,
+                                     const ConvMem &conv,
+                                     CBFPtr progress_cb) {
+  if (!input || !output || !conv.weight) return 0;
+
+  const uint16_t Vt = noodle_compute_Vt(conv.K, W, conv.P, conv.S, conv.OP);
+  if (Vt == 0) return 0;
+
+  float progress = 0.0f;
+  const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
+  const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
+
+  // One output plane at a time, so this can ping-pong with existing CHW buffers.
+  for (uint16_t O = 0; O < n_outputs; O++) {
+    float *out_plane = noodle_slice(output, Vt, O);
+    const uint32_t plane = (uint32_t)Vt * (uint32_t)Vt;
+    for (uint32_t i = 0; i < plane; i++) out_plane[i] = 0.0f;
+
+    for (uint16_t I = 0; I < n_inputs; I++) {
+      float *in_plane = noodle_slice(input, W, I);
+      const float *kernel = conv.weight + ((uint32_t)O * n_inputs + I) * conv.K * conv.K;
+
+      noodle_do_conv_transpose(in_plane,
+                               kernel,
+                               conv.K,
+                               W,
+                               out_plane,
+                               conv.P,
+                               conv.S,
+                               conv.OP);
+
+      if (progress_cb) {
+        progress_cb(progress);
+        progress += progress_step;
+      }
+    }
+
+    const float bias = conv.bias ? conv.bias[O] : 0.0f;
+    for (uint32_t i = 0; i < plane; i++) {
+      float v = out_plane[i] + bias;
+      if ((conv.act == ACT_RELU) && (v < 0.0f)) v = 0.0f;
+      out_plane[i] = v;
+    }
+  }
+
+  if (progress_cb) progress_cb(1.0f);
+  return Vt;
+}
