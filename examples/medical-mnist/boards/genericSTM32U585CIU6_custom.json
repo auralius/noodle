@@ -1,0 +1,41 @@
+{
+  "build": {
+    "arduino": {
+      "variant_h": "variant_generic.h"
+    },
+    "core": "stm32",
+    "cpu": "cortex-m33",
+    "extra_flags": "-DSTM32U585xx",
+    "f_cpu": "160000000L",
+    "mcu": "stm32u585ciu6",
+    "product_line": "STM32U585xx",
+    "variant": "STM32U5xx/U575C(G-I)(T-U)_U585CI(T-U)"
+  },
+  "connectivity": [
+    "usb"
+  ],
+  "debug": {
+    "jlink_device": "STM32U585CI",
+    "openocd_target": "stm32u5x",
+    "svd_path": "STM32U585.svd"
+  },
+  "frameworks": [
+    "arduino",
+    "cmsis",
+    "stm32cube"
+  ],
+  "name": "Generic STM32U585CIU6",
+  "upload": {
+    "maximum_ram_size": 786432,
+    "maximum_size": 2097152,
+    "protocol": "dfu",
+    "protocols": [
+      "dfu",
+      "jlink",
+      "stlink"
+    ],
+    "require_upload_port": true
+  },
+  "url": "https://www.st.com/",
+  "vendor": "ST"
+}
