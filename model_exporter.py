@@ -425,3 +425,250 @@ def debug_tflite_ops(tflite_path):
         b = itp.get_tensor(ins[2]) if len(ins) >= 3 and ins[2] >= 0 else None
         print(i, op_name, "W:", (None if w is None else (w.shape, w.dtype)),
             "B:", (None if b is None else (b.shape, b.dtype)))
+
+
+# =============================================================================
+# Keras Model front-end with Conv2DTranspose support
+# =============================================================================
+#
+# Why this front-end exists:
+# model.get_weights() alone cannot reliably distinguish Conv2D from
+# Conv2DTranspose because both are 4D tensors. Conv2D uses Keras layout
+#   (Kh, Kw, Cin, Cout)
+# while Conv2DTranspose uses
+#   (Kh, Kw, Cout, Cin)
+#
+# Therefore, for autoencoders with Conv2DTranspose, use exporter_model(model,...)
+# instead of exporter(model.get_weights(),...).
+#
+# Noodle layout for both Conv2D and Conv2DTranspose is:
+#   [O][I][Kh][Kw]  flattened in C order.
+#
+# For Conv2D:
+#   Keras (Kh, Kw, Cin, Cout) -> Noodle (Cout, Cin, Kh, Kw)
+#
+# For Conv2DTranspose:
+#   Keras (Kh, Kw, Cout, Cin) -> Noodle (Cout, Cin, Kh, Kw)
+#
+# We already validated the Conv2DTranspose export with NO spatial kernel flip.
+# =============================================================================
+
+def _write_bias_if_present(out_dir: str, b_idx: int, weights: list) -> int:
+    """Write bias if the second item in layer.get_weights() is a 1D vector."""
+    if len(weights) >= 2 and _is_1d(weights[1]):
+        b_idx += 1
+        _write_array_txt_and_h(out_dir, "b", b_idx, np.float32(weights[1].reshape(-1)))
+    return b_idx
+
+def _write_bn_from_layer(out_dir: str, bn_idx: int, weights: list) -> int:
+    """Write BatchNormalization weights as packed gamma,beta,mean,var."""
+    if len(weights) != 4 or not _same_len_1d(weights):
+        raise ValueError("BatchNormalization layer must have gamma,beta,mean,var as four same-length 1D arrays.")
+
+    gamma = np.float32(weights[0].reshape(-1))
+    beta  = np.float32(weights[1].reshape(-1))
+    mean  = np.float32(weights[2].reshape(-1))
+    var   = np.float32(weights[3].reshape(-1))
+    packed = np.concatenate([gamma, beta, mean, var], axis=0)
+
+    bn_idx += 1
+    _write_array_txt_and_h(
+        out_dir, "bn", bn_idx, packed,
+        header_lines=[
+            "// kind=batchnorm packed",
+            "// order: gamma(C), beta(C), mean(C), var(C)",
+            f"// C={int(gamma.shape[0])}",
+        ],
+    )
+    return bn_idx
+
+def exporter_model(model, out_dir: str):
+    """
+    Export a Keras model layer-by-layer into Noodle-friendly files.
+
+    Use this function for models containing Conv2DTranspose, because
+    exporter(model.get_weights(), ...) cannot infer the layer type from a
+    raw 4D weight tensor.
+
+    Supported Keras layers:
+    - Conv2D:
+        Keras  (Kh, Kw, Cin, Cout)
+        Noodle (Cout, Cin, Kh, Kw), file wXX
+
+    - Conv2DTranspose:
+        Keras  (Kh, Kw, Cout, Cin)
+        Noodle (Cout, Cin, Kh, Kw), file wXX
+        No spatial flip.
+
+    - DepthwiseConv2D with depth_multiplier=1:
+        Keras  (Kh, Kw, Cin, 1)
+        Noodle (Cin, Kh, Kw), file wXX
+
+    - Conv1D:
+        Keras  (K, Cin, Cout)
+        Noodle (Cout, Cin, K), file wXX
+
+    - Dense:
+        Keras  (Din, Dout)
+        Noodle (Dout, Din), file wXX
+
+    - BatchNormalization:
+        packed as gamma,beta,mean,var, file bnXX
+
+    Bias vectors are written as bXX immediately after the corresponding
+    weighted layer in layer traversal order.
+    """
+    if not out_dir.endswith("/"):
+        out_dir += "/"
+    os.makedirs(out_dir, exist_ok=True)
+
+    w_idx = 0
+    b_idx = 0
+    bn_idx = 0
+
+    for layer in model.layers:
+        cls = layer.__class__.__name__
+        ws = layer.get_weights()
+
+        if len(ws) == 0:
+            continue
+
+        # ---------- Conv2D ----------
+        if cls == "Conv2D":
+            W = ws[0]
+            if not _is_nd(W, 4):
+                raise ValueError(f"{layer.name}: Conv2D kernel must be 4D, got {W.shape}")
+            Kh, Kw, Cin, Cout = W.shape
+
+            w_idx += 1
+            Wn = np.transpose(W, (3, 2, 0, 1)).astype(np.float32)  # Cout,Cin,Kh,Kw
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=conv2d, layout=OIHW",
+                    f"// layer={layer.name}",
+                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, Cout={Cout}",
+                    "// Keras: (Kh,Kw,Cin,Cout) -> Noodle: (Cout,Cin,Kh,Kw)",
+                ],
+            )
+            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
+            continue
+
+        # ---------- Conv2DTranspose ----------
+        if cls == "Conv2DTranspose":
+            W = ws[0]
+            if not _is_nd(W, 4):
+                raise ValueError(f"{layer.name}: Conv2DTranspose kernel must be 4D, got {W.shape}")
+            Kh, Kw, Cout, Cin = W.shape
+
+            w_idx += 1
+            Wn = np.transpose(W, (2, 3, 0, 1)).astype(np.float32)  # Cout,Cin,Kh,Kw
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=conv2d_transpose, layout=OIHW",
+                    f"// layer={layer.name}",
+                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, Cout={Cout}",
+                    "// Keras: (Kh,Kw,Cout,Cin) -> Noodle: (Cout,Cin,Kh,Kw)",
+                    "// spatial_flip=false",
+                ],
+            )
+            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
+            continue
+
+        # ---------- DepthwiseConv2D ----------
+        if cls == "DepthwiseConv2D":
+            W = ws[0]
+            if not _is_nd(W, 4):
+                raise ValueError(f"{layer.name}: DepthwiseConv2D kernel must be 4D, got {W.shape}")
+            Kh, Kw, Cin, M = W.shape
+            if int(M) != 1:
+                raise ValueError(f"{layer.name}: depth_multiplier={int(M)} not supported by current Noodle DW path.")
+
+            w_idx += 1
+            Wn = np.transpose(W[:, :, :, 0], (2, 0, 1)).astype(np.float32)  # Cin,Kh,Kw
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=depthwise2d, layout=CKK",
+                    f"// layer={layer.name}",
+                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, M=1, Cout={Cin}",
+                ],
+            )
+            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
+            continue
+
+        # ---------- Conv1D ----------
+        if cls == "Conv1D":
+            W = ws[0]
+            if not _is_nd(W, 3):
+                raise ValueError(f"{layer.name}: Conv1D kernel must be 3D, got {W.shape}")
+            K1, Cin, Cout = W.shape
+
+            w_idx += 1
+            Wn = np.transpose(W, (2, 1, 0)).astype(np.float32)  # Cout,Cin,K
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=conv1d, layout=OIC",
+                    f"// layer={layer.name}",
+                    f"// dims: K={K1}, Cin={Cin}, Cout={Cout}",
+                ],
+            )
+            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
+            continue
+
+        # ---------- Dense ----------
+        if cls == "Dense":
+            W = ws[0]
+            if not _is_nd(W, 2):
+                raise ValueError(f"{layer.name}: Dense kernel must be 2D, got {W.shape}")
+            Din, Dout = W.shape
+
+            w_idx += 1
+            Wn = W.transpose().astype(np.float32)  # Dout,Din
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=dense, layout=OI",
+                    f"// layer={layer.name}",
+                    f"// dims: Din={Din}, Dout={Dout}",
+                ],
+            )
+            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
+            continue
+
+        # ---------- BatchNormalization ----------
+        if cls == "BatchNormalization":
+            bn_idx = _write_bn_from_layer(out_dir, bn_idx, ws)
+            continue
+
+        print(f"Skipping unsupported weighted layer {layer.name} ({cls}) with shapes {[w.shape for w in ws]}")
+
+    print(f"Export complete: w={w_idx}, b={b_idx}, bn={bn_idx}, out_dir={out_dir}")
+
+# =============================================================================
+# Optional TFLite helper for TRANSPOSE_CONV
+# =============================================================================
+#
+# TFLite TRANSPOSE_CONV layout may vary by converter/version. The common float
+# layout is (Cout, Kh, Kw, Cin). This helper converts that to Keras
+# Conv2DTranspose layout (Kh, Kw, Cout, Cin).
+#
+# For highest confidence with autoencoders, prefer exporter_model(keras_model,...)
+# directly from the original Keras model. Use TFLite export only after checking
+# debug_tflite_ops().
+# =============================================================================
+
+def _tflite_transpose_conv2d_to_keras_hwoi(w_raw: np.ndarray) -> np.ndarray:
+    """Convert common TFLite TRANSPOSE_CONV kernel to Keras Conv2DTranspose layout.
+
+    Common TFLite: (Cout, Kh, Kw, Cin)
+    Keras:         (Kh, Kw, Cout, Cin)
+    """
+    if w_raw is None or w_raw.ndim != 4:
+        raise ValueError("TRANSPOSE_CONV kernel must be 4D")
+
+    # Common TFLite layout: (Cout, Kh, Kw, Cin)
+    return np.transpose(w_raw, (1, 2, 0, 3)).astype(np.float32)
+
