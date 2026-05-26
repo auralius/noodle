@@ -479,11 +479,8 @@ uint16_t noodle_do_conv(byte *grid,
                         float *output,
                         uint16_t P,
                         uint16_t S) {
-  uint16_t V;
-  uint16_t P0 = P;   // top/left
-  uint16_t P1 = P;   // bottom/right
-
-  V = noodle_compute_V(K, W, P, S);
+  uint16_t P0, P1;
+  uint16_t V = noodle_compute_V_and_P(K, W, P, S, P0, P1);
 
   for (uint16_t i = 0; i < V; i++) {
     for (uint16_t j = 0; j < V; j++) {
@@ -497,6 +494,7 @@ uint16_t noodle_do_conv(byte *grid,
       output[i * V + j] += v;
     }
   }
+
   return V;
 }
 
@@ -507,12 +505,9 @@ uint16_t noodle_do_conv(float *grid,
                         float *output,
                         uint16_t P,
                         uint16_t S) {
-  uint16_t V;
-  uint16_t P0 = P;   // top/left
-  uint16_t P1 = P;   // bottom/right
+  uint16_t P0, P1;
+  uint16_t V = noodle_compute_V_and_P(K, W, P, S, P0, P1);
 
-  V = noodle_compute_V(K, W, P, S);
-  
   for (uint16_t i = 0; i < V; i++) {
     for (uint16_t j = 0; j < V; j++) {
       float v = 0.0f;
@@ -525,6 +520,7 @@ uint16_t noodle_do_conv(float *grid,
       output[i * V + j] += v;
     }
   }
+
   return V;
 }
 
@@ -2040,19 +2036,32 @@ uint16_t noodle_compute_V(uint16_t K,
                           uint16_t P, 
                           uint16_t S){
   uint16_t V;
-  uint16_t P0 = P;   // top/left
-  uint16_t P1 = P;   // bottom/right
+  uint16_t P0, P1;
+  noodle_compute_V_and_P(K, W, P, S, P0, P1);
+  return V;
+}
 
-  if (P == 65535) { // TF/Keras SAME padding (square case)
+uint16_t noodle_compute_V_and_P(uint16_t K,
+                                uint16_t W,
+                                uint16_t P,
+                                uint16_t S,
+                                uint16_t &P0,
+                                uint16_t &P1) {
+  uint16_t V;
+
+  if (P == 65535) {
+    // TF/Keras SAME
     V = (W + S - 1) / S;   // ceil(W / S)
 
     int32_t Ptot = (int32_t)(V - 1) * (int32_t)S + (int32_t)K - (int32_t)W;
     if (Ptot < 0) Ptot = 0;
 
-    P0 = (uint16_t)Ptot / 2;
-    P1 = (uint16_t)Ptot - P0;
+    P0 = (uint16_t)(Ptot / 2);
+    P1 = (uint16_t)(Ptot - P0);
   } else {
     // explicit symmetric padding
+    P0 = P; // top/left
+    P1 = P; // bottom/right
     V = (W - K + 2 * P) / S + 1;
   }
 
@@ -2110,35 +2119,70 @@ uint16_t noodle_valid_max_pool(float *inplace,
   return Wo;
 }
 
-// ============================================================================
-// Conv2DTranspose / deconvolution, memory-backed parameters
-// Layouts:
-//   input  : CHW = [I][W][W]
-//   output : CHW = [O][Vt][Vt]
-//   weight : Noodle transpose layout [O][I][K][K]
-//            i.e. kernel = weight + (O*n_inputs + I)*K*K
-// Formula:
-//   Vt = (W - 1)*S + K - 2*P + OP
-// Notes for Keras-like choices:
-//   Conv2DTranspose(kernel_size=3, strides=2, padding="same") often needs P=1, OP=1
-//   Conv2DTranspose(kernel_size=2, strides=2, padding="same") usually uses P=0, OP=0
-//   Conv2DTranspose(kernel_size=3, strides=1, padding="same") uses P=1, OP=0
-// ============================================================================
-
 uint16_t noodle_compute_Vt(uint16_t K,
                            uint16_t W,
                            uint16_t P,
                            uint16_t S,
                            uint16_t OP) {
+  uint16_t P0, P1;
+  return noodle_compute_Vt_and_P(K, W, P, S, OP, P0, P1);
+}
+
+uint16_t noodle_compute_Vt_and_P(uint16_t K,
+                                 uint16_t W,
+                                 uint16_t P,
+                                 uint16_t S,
+                                 uint16_t OP,
+                                 uint16_t &P0,
+                                 uint16_t &P1) {
   if (W == 0 || K == 0 || S == 0) return 0;
+
+  if (P == 65535) {
+    // Keras/TF Conv2DTranspose padding="same"
+    //
+    // Output size:
+    //   Vt = W * S
+    //
+    // Full scatter size:
+    //   Vfull = (W - 1)*S + K
+    //
+    // Crop:
+    //   crop_total = Vfull - Vt = K - S
+    //
+    // For K=3, S=2:
+    //   crop_total = 1
+    //   P0 = 0
+    //   P1 = 1
+    //
+    // This means crop only bottom/right, matching Keras-style SAME.
+    const int32_t Vt = (int32_t)W * (int32_t)S;
+
+    int32_t crop_total = ((int32_t)W - 1) * (int32_t)S
+                       + (int32_t)K
+                       - Vt;
+
+    if (crop_total < 0) crop_total = 0;
+
+    P0 = (uint16_t)(crop_total / 2);
+    P1 = (uint16_t)(crop_total - P0);
+
+    if (Vt <= 0 || Vt > 65535) return 0;
+    return (uint16_t)Vt;
+  }
+
+  // Explicit symmetric transpose padding, old Noodle behavior.
+  P0 = P;
+  P1 = P;
 
   const int32_t vt = ((int32_t)W - 1) * (int32_t)S
                    + (int32_t)K
-                   - 2 * (int32_t)P
+                   - (int32_t)P0
+                   - (int32_t)P1
                    + (int32_t)OP;
 
   if (vt <= 0) return 0;
   if (vt > 65535) return 0;
+
   return (uint16_t)vt;
 }
 
@@ -2150,7 +2194,9 @@ uint16_t noodle_do_conv_transpose(float *input,
                                   uint16_t P,
                                   uint16_t S,
                                   uint16_t OP) {
-  const uint16_t Vt = noodle_compute_Vt(K, W, P, S, OP);
+  uint16_t P0, P1;
+  const uint16_t Vt = noodle_compute_Vt_and_P(K, W, P, S, OP, P0, P1);
+
   if (Vt == 0) return 0;
 
   // Scatter each input pixel through the KxK kernel into the expanded output.
@@ -2159,8 +2205,8 @@ uint16_t noodle_do_conv_transpose(float *input,
       const float x = input[(uint32_t)iy * W + ix];
       if (x == 0.0f) continue;
 
-      const int32_t base_y = (int32_t)iy * (int32_t)S - (int32_t)P;
-      const int32_t base_x = (int32_t)ix * (int32_t)S - (int32_t)P;
+      const int32_t base_y = (int32_t)iy * (int32_t)S - (int32_t)P0;
+      const int32_t base_x = (int32_t)ix * (int32_t)S - (int32_t)P0;
 
       for (uint16_t ky = 0; ky < K; ky++) {
         const int32_t oy = base_y + ky;
@@ -2170,7 +2216,8 @@ uint16_t noodle_do_conv_transpose(float *input,
           const int32_t ox = base_x + kx;
           if ((uint32_t)ox >= (uint32_t)Vt) continue;
 
-          output[(uint32_t)oy * Vt + ox] += x * kernel[(uint32_t)ky * K + kx];
+          output[(uint32_t)oy * Vt + ox] +=
+              x * kernel[(uint32_t)ky * K + kx];
         }
       }
     }
@@ -2188,22 +2235,37 @@ uint16_t noodle_conv_transpose_float(float *input,
                                      CBFPtr progress_cb) {
   if (!input || !output || !conv.weight) return 0;
 
-  const uint16_t Vt = noodle_compute_Vt(conv.K, W, conv.P, conv.S, conv.OP);
+  uint16_t P0, P1;
+  const uint16_t Vt = noodle_compute_Vt_and_P(
+      conv.K,
+      W,
+      conv.P,
+      conv.S,
+      conv.OP,
+      P0,
+      P1
+  );
+
   if (Vt == 0) return 0;
 
   float progress = 0.0f;
   const uint32_t total = (uint32_t)n_inputs * (uint32_t)n_outputs;
   const float progress_step = (total > 1) ? (1.0f / (float)(total - 1)) : 1.0f;
 
-  // One output plane at a time, so this can ping-pong with existing CHW buffers.
+  const uint32_t plane = (uint32_t)Vt * (uint32_t)Vt;
+
   for (uint16_t O = 0; O < n_outputs; O++) {
     float *out_plane = noodle_slice(output, Vt, O);
-    const uint32_t plane = (uint32_t)Vt * (uint32_t)Vt;
-    for (uint32_t i = 0; i < plane; i++) out_plane[i] = 0.0f;
+
+    for (uint32_t i = 0; i < plane; i++) {
+      out_plane[i] = 0.0f;
+    }
 
     for (uint16_t I = 0; I < n_inputs; I++) {
       float *in_plane = noodle_slice(input, W, I);
-      const float *kernel = conv.weight + ((uint32_t)O * n_inputs + I) * conv.K * conv.K;
+
+      const float *kernel =
+          conv.weight + ((uint32_t)O * n_inputs + I) * conv.K * conv.K;
 
       noodle_do_conv_transpose(in_plane,
                                kernel,
@@ -2221,9 +2283,14 @@ uint16_t noodle_conv_transpose_float(float *input,
     }
 
     const float bias = conv.bias ? conv.bias[O] : 0.0f;
+
     for (uint32_t i = 0; i < plane; i++) {
       float v = out_plane[i] + bias;
-      if ((conv.act == ACT_RELU) && (v < 0.0f)) v = 0.0f;
+
+      if ((conv.act == ACT_RELU) && (v < 0.0f)) {
+        v = 0.0f;
+      }
+
       out_plane[i] = v;
     }
   }

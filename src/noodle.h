@@ -1464,11 +1464,12 @@ uint16_t noodle_bn_relu(float *x,
                         float eps=1e-3);
 
 /**
- * @brief Compute the output width for 2D convolution.
+ * @brief Compute the square output width for 2D convolution.
  * @ingroup noodle_public
  *
- * For explicit padding, returns `(W - K + 2 * P) / S + 1`. When @p P is
- * `65535`, returns SAME-style `ceil(W / S)`.
+ * For explicit symmetric padding, returns `(W - K + 2 * P) / S + 1`. When
+ * @p P is `65535`, treats the convolution as SAME-style padding and returns
+ * `ceil(W / S)`.
  *
  * @param K Kernel width and height.
  * @param W Input width and height.
@@ -1480,6 +1481,30 @@ uint16_t noodle_compute_V(uint16_t K,
                           uint16_t W , 
                           uint16_t P, 
                           uint16_t S);
+
+/**
+ * @brief Compute the square output width and resolved 2D convolution padding.
+ * @ingroup noodle_public
+ *
+ * For explicit symmetric padding, sets @p P0 and @p P1 to @p P and returns
+ * `(W - K + 2 * P) / S + 1`. When @p P is `65535`, treats the convolution as
+ * SAME-style padding, returns `ceil(W / S)`, and splits the required total
+ * padding between top/left (@p P0) and bottom/right (@p P1).
+ *
+ * @param K Kernel width and height.
+ * @param W Input width and height.
+ * @param P Padding per side, or `65535` for SAME-style output sizing.
+ * @param S Stride.
+ * @param P0 Reference that receives the top/left padding.
+ * @param P1 Reference that receives the bottom/right padding.
+ * @return Computed output width.
+ */
+uint16_t noodle_compute_V_and_P(uint16_t K, 
+                                uint16_t W , 
+                                uint16_t P, 
+                                uint16_t S, 
+                                uint16_t &P0, 
+                                uint16_t &P1);
 
 
 /**
@@ -1526,6 +1551,13 @@ uint16_t noodle_compute_Vt(uint16_t K,
                            uint16_t P,
                            uint16_t S,
                            uint16_t OP = 0);
+uint16_t noodle_compute_Vt_and_P(uint16_t K,
+                                 uint16_t W,
+                                 uint16_t P,
+                                 uint16_t S,
+                                 uint16_t OP,
+                                 uint16_t &P0,
+                                 uint16_t &P1);
 
 /**
  * @brief Accumulate one 2D transpose-convolution input plane into an output plane.
