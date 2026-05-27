@@ -6,3 +6,4 @@ __pychace__/
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+examples/auto-encoder/test/mnist_train.csv
