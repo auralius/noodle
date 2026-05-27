@@ -672,3 +672,401 @@ def _tflite_transpose_conv2d_to_keras_hwoi(w_raw: np.ndarray) -> np.ndarray:
     # Common TFLite layout: (Cout, Kh, Kw, Cin)
     return np.transpose(w_raw, (1, 2, 0, 3)).astype(np.float32)
 
+
+
+# =============================================================================
+# TFLite direct exporter with TRANSPOSE_CONV support
+# =============================================================================
+#
+# This overrides the earlier exporter_tflite() definition. The older TFLite path
+# reconstructed a Keras-like weights list and then reused exporter(). That is not
+# safe for Conv2DTranspose because a raw 4D tensor cannot be distinguished from
+# Conv2D by shape alone:
+#
+#   Conv2D Keras:            (Kh, Kw, Cin,  Cout)
+#   Conv2DTranspose Keras:   (Kh, Kw, Cout, Cin)
+#
+# Therefore this direct path writes Noodle layout immediately while walking TFLite
+# ops in execution order.
+#
+# Noodle layouts written:
+#   CONV_2D:          [O][I][Kh][Kw]
+#   TRANSPOSE_CONV:   [O][I][Kh][Kw]
+#   DEPTHWISE_CONV_2D [C][Kh][Kw]  (only depth_multiplier=1)
+#   FULLY_CONNECTED:  [O][I]
+# =============================================================================
+
+def _shape_tuple(x):
+    return tuple(int(v) for v in getattr(x, "shape", []))
+
+def _tensor_shape_from_details(tensor_details, idx):
+    d = tensor_details.get(int(idx), None)
+    if d is None:
+        return None
+    sh = d.get("shape", None)
+    if sh is None:
+        return None
+    return tuple(int(v) for v in sh)
+
+def _find_first_float_tensor_input(interpreter, inputs, ndim=None, exclude_positions=None):
+    """Return (position, tensor_index, tensor) for the first readable float32 input tensor."""
+    if exclude_positions is None:
+        exclude_positions = set()
+    for pos, idx in enumerate(inputs):
+        if pos in exclude_positions:
+            continue
+        if int(idx) < 0:
+            continue
+        t = _tflite_get_tensor(interpreter, int(idx))
+        if t is None:
+            continue
+        if t.dtype != np.float32:
+            continue
+        if ndim is not None and t.ndim != ndim:
+            continue
+        return pos, int(idx), t
+    return None, None, None
+
+def _find_bias_input(interpreter, inputs, expected_len=None, exclude_positions=None):
+    """Find a readable 1D float32 bias vector among op inputs."""
+    if exclude_positions is None:
+        exclude_positions = set()
+    for pos, idx in enumerate(inputs):
+        if pos in exclude_positions:
+            continue
+        if int(idx) < 0:
+            continue
+        t = _tflite_get_tensor(interpreter, int(idx))
+        if t is None or t.dtype != np.float32 or t.ndim != 1:
+            continue
+        if expected_len is not None and int(t.shape[0]) != int(expected_len):
+            continue
+        return np.float32(t).reshape(-1)
+    return None
+
+def _tflite_conv2d_to_noodle_oihw(w_raw: np.ndarray, cin_hint=None, cout_hint=None) -> np.ndarray:
+    """Convert TFLite CONV_2D kernel to Noodle [O][I][Kh][Kw].
+
+    Common TFLite layout is OHWI: (Cout, Kh, Kw, Cin).
+    Some tooling may expose HWIO: (Kh, Kw, Cin, Cout), so hints are used.
+    """
+    if w_raw is None or w_raw.ndim != 4:
+        raise ValueError("CONV_2D kernel must be 4D")
+
+    sh = _shape_tuple(w_raw)
+
+    # Common TFLite OHWI -> OIHW
+    if cout_hint is not None and cin_hint is not None:
+        if sh[0] == int(cout_hint) and sh[3] == int(cin_hint):
+            return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
+        # Already Keras HWIO -> OIHW
+        if sh[2] == int(cin_hint) and sh[3] == int(cout_hint):
+            return np.transpose(w_raw, (3, 2, 0, 1)).astype(np.float32)
+
+    # Default TFLite OHWI
+    return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
+
+def _tflite_transpose_conv_to_noodle_oihw(w_raw: np.ndarray, cin_hint=None, cout_hint=None) -> np.ndarray:
+    """Convert TFLite TRANSPOSE_CONV kernel to Noodle [O][I][Kh][Kw].
+
+    Common TFLite TRANSPOSE_CONV weight layout:
+      (Cout, Kh, Kw, Cin)
+
+    Keras Conv2DTranspose layout:
+      (Kh, Kw, Cout, Cin)
+
+    Noodle expects:
+      (Cout, Cin, Kh, Kw)
+
+    No spatial kernel flip is applied.
+    """
+    if w_raw is None or w_raw.ndim != 4:
+        raise ValueError("TRANSPOSE_CONV kernel must be 4D")
+
+    sh = _shape_tuple(w_raw)
+
+    if cout_hint is not None and cin_hint is not None:
+        cout_hint = int(cout_hint)
+        cin_hint = int(cin_hint)
+
+        # Common TFLite: (Cout, Kh, Kw, Cin)
+        if sh[0] == cout_hint and sh[3] == cin_hint:
+            return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
+
+        # Keras-style: (Kh, Kw, Cout, Cin)
+        if sh[2] == cout_hint and sh[3] == cin_hint:
+            return np.transpose(w_raw, (2, 3, 0, 1)).astype(np.float32)
+
+        # Some flatbuffer dumps/tools may expose (Kh, Kw, Cin, Cout)
+        if sh[2] == cin_hint and sh[3] == cout_hint:
+            return np.transpose(w_raw, (3, 2, 0, 1)).astype(np.float32)
+
+    # Default to common TFLite layout: (Cout, Kh, Kw, Cin)
+    return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
+
+def _tflite_dwconv2d_to_noodle_ckk(w_raw: np.ndarray, cin_hint=None) -> np.ndarray:
+    """Convert TFLite DEPTHWISE_CONV_2D kernel to Noodle [C][Kh][Kw].
+
+    Current Noodle depthwise path supports depth_multiplier=1 only.
+    """
+    if w_raw is None or w_raw.ndim != 4:
+        raise ValueError("DEPTHWISE_CONV_2D kernel must be 4D")
+
+    sh = _shape_tuple(w_raw)
+
+    # TFLite common: (1, Kh, Kw, Cout), Cout = Cin * M
+    if sh[0] == 1:
+        kh, kw, cout = sh[1], sh[2], sh[3]
+        if cin_hint is None:
+            raise ValueError("DEPTHWISE_CONV_2D: cannot infer Cin from input shape.")
+        cin_hint = int(cin_hint)
+        if cout % cin_hint != 0:
+            raise ValueError(f"DEPTHWISE_CONV_2D: cannot infer depth_multiplier from Cin={cin_hint}, Cout={cout}.")
+        m = cout // cin_hint
+        if m != 1:
+            raise ValueError(f"DEPTHWISE_CONV_2D depth_multiplier={m}; current Noodle DW path expects M=1.")
+        # (1, Kh, Kw, Cin) -> (Cin, Kh, Kw)
+        return np.transpose(w_raw[0, :, :, :], (2, 0, 1)).astype(np.float32)
+
+    # Keras-like HWIM: (Kh, Kw, Cin, M)
+    if cin_hint is not None and sh[2] == int(cin_hint):
+        m = sh[3]
+        if m != 1:
+            raise ValueError(f"DEPTHWISE_CONV_2D depth_multiplier={m}; current Noodle DW path expects M=1.")
+        return np.transpose(w_raw[:, :, :, 0], (2, 0, 1)).astype(np.float32)
+
+    # Last-resort guess: HWIM with M=1
+    if sh[3] == 1:
+        return np.transpose(w_raw[:, :, :, 0], (2, 0, 1)).astype(np.float32)
+
+    raise ValueError(f"Unsupported DEPTHWISE_CONV_2D kernel layout/shape: {sh}")
+
+def _tflite_dense_to_noodle_oi(w_raw: np.ndarray, dout_hint=None) -> np.ndarray:
+    """Convert TFLite FULLY_CONNECTED weights to Noodle [O][I].
+
+    Common TFLite layout is already (Dout, Din).
+    """
+    if w_raw is None or w_raw.ndim != 2:
+        raise ValueError("FULLY_CONNECTED kernel must be 2D")
+
+    if dout_hint is not None:
+        dout_hint = int(dout_hint)
+        if int(w_raw.shape[0]) == dout_hint:
+            return w_raw.astype(np.float32)
+        if int(w_raw.shape[1]) == dout_hint:
+            return w_raw.transpose().astype(np.float32)
+
+    return w_raw.astype(np.float32)
+
+def exporter_tflite(tflite_path: str, out_dir: str):
+    """Export a float .tflite model into Noodle-friendly files.
+
+    Supports CONV_2D, DEPTHWISE_CONV_2D, FULLY_CONNECTED, and TRANSPOSE_CONV.
+    The function walks TFLite ops in execution order and writes wXX/bXX files
+    directly, so Conv2DTranspose tensors are not confused with Conv2D tensors.
+    """
+    if not out_dir.endswith("/"):
+        out_dir += "/"
+    os.makedirs(out_dir, exist_ok=True)
+
+    interpreter = tf.lite.Interpreter(model_path=tflite_path)
+    interpreter.allocate_tensors()
+
+    tensor_details = {int(d["index"]): d for d in interpreter.get_tensor_details()}
+    ops = interpreter._get_ops_details()
+
+    w_idx = 0
+    b_idx = 0
+
+    for op_i, op in enumerate(ops):
+        op_name = op.get("op_name", "")
+        ins = list(op.get("inputs", []))
+        outs = list(op.get("outputs", []))
+
+        if op_name == "CONV_2D":
+            if len(ins) < 2:
+                continue
+
+            in_shape = _tensor_shape_from_details(tensor_details, ins[0])
+            out_shape = _tensor_shape_from_details(tensor_details, outs[0]) if outs else None
+            cin_hint = in_shape[3] if in_shape is not None and len(in_shape) == 4 else None
+            cout_hint = out_shape[3] if out_shape is not None and len(out_shape) == 4 else None
+
+            w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
+            if w_raw is None or w_raw.dtype != np.float32:
+                continue
+
+            Wn = _tflite_conv2d_to_noodle_oihw(w_raw, cin_hint=cin_hint, cout_hint=cout_hint)
+            w_idx += 1
+            O, I, Kh, Kw = Wn.shape
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=conv2d, layout=OIHW",
+                    f"// tflite_op_index={op_i}",
+                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={I}, Cout={O}",
+                    "// TFLite common: (Cout,Kh,Kw,Cin) -> Noodle: (Cout,Cin,Kh,Kw)",
+                ],
+            )
+
+            b = _find_bias_input(interpreter, ins, expected_len=O, exclude_positions={0, 1})
+            if b is not None:
+                b_idx += 1
+                _write_array_txt_and_h(out_dir, "b", b_idx, b)
+            continue
+
+        if op_name == "DEPTHWISE_CONV_2D":
+            if len(ins) < 2:
+                continue
+
+            in_shape = _tensor_shape_from_details(tensor_details, ins[0])
+            cin_hint = in_shape[3] if in_shape is not None and len(in_shape) == 4 else None
+
+            w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
+            if w_raw is None or w_raw.dtype != np.float32:
+                continue
+
+            Wn = _tflite_dwconv2d_to_noodle_ckk(w_raw, cin_hint=cin_hint)
+            w_idx += 1
+            C, Kh, Kw = Wn.shape
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=depthwise2d, layout=CKK",
+                    f"// tflite_op_index={op_i}",
+                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={C}, M=1, Cout={C}",
+                ],
+            )
+
+            b = _find_bias_input(interpreter, ins, expected_len=C, exclude_positions={0, 1})
+            if b is not None:
+                b_idx += 1
+                _write_array_txt_and_h(out_dir, "b", b_idx, b)
+            continue
+
+        if op_name == "FULLY_CONNECTED":
+            if len(ins) < 2:
+                continue
+
+            w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
+            if w_raw is None or w_raw.dtype != np.float32:
+                continue
+
+            # Bias is usually input 2. Use it as output-size hint if present.
+            b = _find_bias_input(interpreter, ins, exclude_positions={0, 1})
+            dout_hint = int(b.shape[0]) if b is not None else None
+
+            Wn = _tflite_dense_to_noodle_oi(w_raw, dout_hint=dout_hint)
+            w_idx += 1
+            O, I = Wn.shape
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=dense, layout=OI",
+                    f"// tflite_op_index={op_i}",
+                    f"// dims: Din={I}, Dout={O}",
+                ],
+            )
+
+            if b is not None:
+                b_idx += 1
+                _write_array_txt_and_h(out_dir, "b", b_idx, b)
+            continue
+
+        if op_name == "TRANSPOSE_CONV":
+            # TFLite TRANSPOSE_CONV commonly has inputs:
+            #   [output_shape, weights, input_activation, bias?]
+            # where output_shape is int32 and weights are float32 4D.
+            if len(ins) < 3:
+                continue
+
+            # Find the 4D float weight tensor among inputs.
+            w_pos, w_idx_tensor, w_raw = _find_first_float_tensor_input(interpreter, ins, ndim=4)
+            if w_raw is None:
+                continue
+
+            # Input activation is the other 4D tensor, usually position 2.
+            act_pos = None
+            act_shape = None
+            for pos, tidx in enumerate(ins):
+                if pos == w_pos or int(tidx) < 0:
+                    continue
+                sh = _tensor_shape_from_details(tensor_details, tidx)
+                if sh is not None and len(sh) == 4:
+                    # Prefer tensor-details shape over get_tensor(), because activation
+                    # tensors may not be readable constants.
+                    act_pos = pos
+                    act_shape = sh
+                    break
+
+            out_shape = _tensor_shape_from_details(tensor_details, outs[0]) if outs else None
+            cin_hint = act_shape[3] if act_shape is not None and len(act_shape) == 4 else None
+            cout_hint = out_shape[3] if out_shape is not None and len(out_shape) == 4 else None
+
+            Wn = _tflite_transpose_conv_to_noodle_oihw(w_raw, cin_hint=cin_hint, cout_hint=cout_hint)
+            w_idx += 1
+            O, I, Kh, Kw = Wn.shape
+            _write_array_txt_and_h(
+                out_dir, "w", w_idx, Wn.flatten(order="C"),
+                header_lines=[
+                    "// kind=conv2d_transpose, layout=OIHW",
+                    f"// tflite_op_index={op_i}",
+                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={I}, Cout={O}",
+                    "// TFLite common: (Cout,Kh,Kw,Cin) -> Noodle: (Cout,Cin,Kh,Kw)",
+                    "// spatial_flip=false",
+                ],
+            )
+
+            b = _find_bias_input(interpreter, ins, expected_len=O, exclude_positions={w_pos})
+            if b is not None:
+                b_idx += 1
+                _write_array_txt_and_h(out_dir, "b", b_idx, b)
+            continue
+
+    print(f"Export complete: w={w_idx}, b={b_idx}, out_dir={out_dir}")
+
+def debug_tflite_ops(tflite_path):
+    """Print readable parameter tensors for supported TFLite ops, including TRANSPOSE_CONV."""
+    itp = tf.lite.Interpreter(model_path=tflite_path)
+    itp.allocate_tensors()
+    td = {int(d["index"]): d for d in itp.get_tensor_details()}
+    ops = itp._get_ops_details()
+
+    allowed = {"CONV_2D", "DEPTHWISE_CONV_2D", "FULLY_CONNECTED", "TRANSPOSE_CONV"}
+
+    for i, op in enumerate(ops):
+        op_name = op.get("op_name", "")
+        if op_name not in allowed:
+            continue
+
+        ins = list(op.get("inputs", []))
+        outs = list(op.get("outputs", []))
+        print(i, op_name, "inputs:", ins, "outputs:", outs)
+
+        for pos, idx in enumerate(ins):
+            if int(idx) < 0:
+                print("  in", pos, "idx", idx, "<none>")
+                continue
+
+            d = td.get(int(idx), {})
+            try:
+                t = itp.get_tensor(int(idx))
+                t_info = (t.shape, t.dtype)
+            except Exception:
+                t_info = "<not readable activation/intermediate>"
+
+            print("  in", pos,
+                  "idx", int(idx),
+                  "name", d.get("name", ""),
+                  "shape", d.get("shape", None),
+                  "dtype", d.get("dtype", None),
+                  "tensor", t_info)
+
+        for pos, idx in enumerate(outs):
+            d = td.get(int(idx), {})
+            print("  out", pos,
+                  "idx", int(idx),
+                  "name", d.get("name", ""),
+                  "shape", d.get("shape", None),
+                  "dtype", d.get("dtype", None))
+        print()
