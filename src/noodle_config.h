@@ -7,6 +7,30 @@
 #endif
 
 
+
+// File scalar format selection
+// TEXT: ASCII numeric values, one scalar per line.
+// BIN : raw little-endian scalar values. float = IEEE-754 float32, byte = uint8_t.
+#ifndef NOODLE_FILE_FORMAT_TEXT
+  #define NOODLE_FILE_FORMAT_TEXT 0
+#endif
+#ifndef NOODLE_FILE_FORMAT_BIN
+  #define NOODLE_FILE_FORMAT_BIN  1
+#endif
+
+#ifndef NOODLE_FILE_FORMAT
+  #define NOODLE_FILE_FORMAT NOODLE_FILE_FORMAT_BIN
+#endif
+
+#if NOODLE_FILE_FORMAT == NOODLE_FILE_FORMAT_BIN
+  #pragma message "file format = BIN"
+#elif NOODLE_FILE_FORMAT == NOODLE_FILE_FORMAT_TEXT
+  #pragma message "file format = TEXT"
+#else
+  #error "invalid NOODLE_FILE_FORMAT"
+#endif
+
+
 // Pooling enums
 #ifndef NOODLE_POOL_NONE
   #define NOODLE_POOL_NONE  0
