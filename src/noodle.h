@@ -1110,7 +1110,8 @@ struct FCN {
  * @ingroup noodle_public
  *
  * The weight file is read in row-major `[O][I]` order and the bias file contains
- * one scalar per output neuron.
+ * one scalar per output neuron. Float-input FCN overloads may buffer weight
+ * reads in chunks of `NOODLE_FCN_BLOCK` floats to reduce file I/O overhead.
  */
 struct FCNFile {
   const char *weight_fn = nullptr; ///< Weight filename with row-major `[O][I]` values.
@@ -1133,6 +1134,14 @@ struct FCNMem {
 
 /**
  * @name Fully Connected Layers
+ *
+ * File-backed fully-connected weights are consumed sequentially in row-major
+ * `[O][I]` order. For overloads that receive the input vector as `float *` and
+ * use @ref FCNFile parameters, weights are read through a stack buffer of
+ * `NOODLE_FCN_BLOCK` floats. In binary file mode each chunk is read as raw
+ * little-endian float32 data; in text file mode the same chunk is filled by
+ * parsing one scalar at a time. Tune `NOODLE_FCN_BLOCK` in `noodle_config.h`
+ * to trade stack usage for fewer file read calls.
  */
 
 /**
@@ -1254,7 +1263,13 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  * @brief Run a memory-to-memory fully-connected layer with float inputs.
  * @ingroup noodle_public
  *
- * Weights and biases are read from files. Applies ReLU or softmax when requested.
+ * Weights and biases are read from files. The weight stream is buffered in
+ * blocks of up to `NOODLE_FCN_BLOCK` floats before each dot-product chunk is
+ * accumulated. Applies ReLU or softmax when requested.
+ *
+ * @note Uses a stack buffer of `NOODLE_FCN_BLOCK * sizeof(float)` bytes and
+ * returns `0` if an input/output pointer is null, a parameter file cannot be
+ * opened, or a weight block cannot be read completely.
  *
  * @param input Input vector with @p n_inputs floats.
  * @param n_inputs Number of input values.
@@ -1272,8 +1287,14 @@ uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
  * @brief Run a memory-to-file fully-connected layer with float inputs.
  * @ingroup noodle_public
  *
- * Computes `y = W*x + b`, applies ReLU when requested, and writes one output
- * float per line to @p out_fn.
+ * Computes `y = W*x + b`, applies ReLU when requested, and writes each output
+ * using the configured file scalar format. The weight stream is buffered in
+ * blocks of up to `NOODLE_FCN_BLOCK` floats before each dot-product chunk is
+ * accumulated.
+ *
+ * @note Uses a stack buffer of `NOODLE_FCN_BLOCK * sizeof(float)` bytes and
+ * returns `0` if @p input is null, a file cannot be opened, or a weight block
+ * cannot be read completely.
  *
  * @param input Input vector with @p n_inputs floats.
  * @param n_inputs Number of input values.
@@ -1320,6 +1341,34 @@ uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_fi
  * @return Number of output values written.
  */
 uint16_t noodle_flat(float *input, float *output, uint16_t V, uint16_t n_filters);
+
+/**
+ * @brief Convert HWC-like memory order into packed channel-first tensor order.
+ * @ingroup noodle_public
+ *
+ * Reads @p src_hwc as an interleaved spatial-major tensor,
+ * `src_hwc[(y * W + x) * C + c]`, and writes @p dst_chw as packed
+ * channel-first planes, `dst_chw[c * W * W + y * W + x]`.
+ *
+ * This is the inverse layout conversion for the memory form of
+ * noodle_flat() when the tensor is square.
+ *
+ * @note Source and destination buffers must not overlap. This helper does not
+ * allocate memory and performs no bounds checks.
+ *
+ * @param src_hwc Input tensor in HWC-like `[W][W][C]` memory order.
+ * @param dst_chw Destination tensor with room for `W * W * C` floats in
+ * packed `[C][W][W]` order.
+ * @param W Width and height of the square spatial plane.
+ * @param C Number of channels.
+ * @return Number of values written. The return type is `uint16_t` for API
+ * compatibility, so callers should ensure `W * W * C <= 65535` if the returned
+ * count is significant.
+ */
+uint16_t noodle_reshape(const float *src_hwc,
+                        float *dst_chw,
+                        uint16_t W,
+                        uint16_t C);
 
 /**
  * @brief Apply global average pooling in place.

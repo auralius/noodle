@@ -57,6 +57,20 @@
   #error "invalid NOODLE_POOL_MODE"
 #endif
 
+
+#ifndef NOODLE_FCN_BLOCK
+  /**
+   * @brief Number of float weights buffered per file-backed FCN read block.
+   *
+   * Used by float-input fully connected layers with @ref FCNFile parameters.
+   * Binary file mode reads each block as raw float32 data; text file mode fills
+   * the same block by parsing scalar values one at a time. Higher values can
+   * reduce file read calls, but increase stack usage by
+   * `NOODLE_FCN_BLOCK * sizeof(float)` bytes.
+   */
+  #define NOODLE_FCN_BLOCK 128
+#endif
+
 // Define maksimum kernel size to avoid variable allocation!
 #ifndef NOODLE_MAX_K
   #define NOODLE_MAX_K 5 
