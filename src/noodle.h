@@ -51,7 +51,9 @@
  * @section noodle_pooling Pooling Mode
  * 2D pooling behavior is selected at compile time with `NOODLE_POOL_MODE` in
  * `noodle_config.h` (`NOODLE_POOL_NONE`, `NOODLE_POOL_MAX`, or
- * `NOODLE_POOL_MEAN`). The 1D pooling helper always performs max pooling.
+ * `NOODLE_POOL_MEAN`). Memory-backed 1D pooling computes mean pooling only
+ * when `NOODLE_POOL_MODE == NOODLE_POOL_MEAN`; otherwise it computes max
+ * pooling. The file-backed 1D pooling helpers always perform max pooling.
  */
 
 /**
@@ -140,8 +142,10 @@ struct ConvMem {
  * @brief Valid-pooling parameters.
  * @ingroup noodle_public
  *
- * Use `M = 1` and `T = 1` for identity pooling. 2D pooling uses the compile-time
- * `NOODLE_POOL_MODE`; 1D pooling uses max pooling.
+ * Use `M = 1` and `T = 1` for identity pooling. 2D pooling uses the
+ * compile-time `NOODLE_POOL_MODE`. Memory-backed 1D pooling computes mean
+ * pooling only when `NOODLE_POOL_MODE == NOODLE_POOL_MEAN`; otherwise it
+ * computes max pooling. File-backed 1D pooling uses max pooling.
  */
 struct Pool {
   uint16_t M = 1;    ///< Pooling window size (`M x M` for 2D, `M` samples for 1D).
@@ -561,6 +565,24 @@ uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, c
 uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &fo);
 
 /**
+ * @brief Apply valid 1D pooling and write the result to memory.
+ * @ingroup noodle_internal
+ *
+ * `K <= 1` is treated as identity pooling and copies @p input unchanged. If
+ * @p S is `0`, the pooling stride defaults to @p K. This helper computes mean
+ * pooling when `NOODLE_POOL_MODE == NOODLE_POOL_MEAN`; otherwise it computes
+ * max pooling.
+ *
+ * @param input Input vector with @p W floats.
+ * @param W Input length.
+ * @param K Pooling window size.
+ * @param S Pooling stride, or `0` to use @p K.
+ * @param output Destination buffer with room for the pooled vector.
+ * @return Output length, or @p W for identity/no pooling.
+ */
+uint16_t noodle_do_pooling1d(const float *input, uint16_t W, uint16_t K, uint16_t S, float *output);
+
+/**
  * @name 2D Convolution
  *
  * Packed-file conventions:
@@ -902,6 +924,37 @@ uint16_t noodle_conv1d(float *in,
                        uint16_t n_outputs,
                        uint16_t W,
                        const ConvMem &conv,
+                       CBFPtr progress_cb=NULL);
+
+/**
+ * @brief Run memory-to-memory 1D convolution with memory-backed parameters and pooling.
+ * @ingroup noodle_public
+ *
+ * Accumulates each output sequence, applies bias/activation, then applies valid
+ * 1D pooling. The output tensor is channel-first and packed as `[O][Vout]`.
+ *
+ * @warning Requires the second temporary buffer as a pre-pooling accumulator.
+ * Call `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)`
+ * before calling. `b2` must hold at least `Vconv` floats, where
+ * `Vconv = (@p W - conv.K + 2 * conv.P) / conv.S + 1`.
+ *
+ * @param in Input tensor in packed `[I][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param out Destination tensor in packed `[O][Vout]` layout.
+ * @param n_outputs Number of output channels.
+ * @param W Input sequence length.
+ * @param conv Memory-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output length after pooling, or `0` if input, output, weights, or scratch are missing.
+ */
+uint16_t noodle_conv1d(float *in,
+                       uint16_t n_inputs,
+                       float *out,
+                       uint16_t n_outputs,
+                       uint16_t W,
+                       const ConvMem &conv,
+                       const Pool &pool,
                        CBFPtr progress_cb=NULL);
 
 /**
@@ -1403,6 +1456,22 @@ uint16_t noodle_reshape(const float *src_hwc,
  * @return @p C.
  */
 uint16_t noodle_gap(float *inout,
+                    uint16_t C,
+                    uint16_t W);
+
+/**
+ * @brief Apply global max pooling in place.
+ * @ingroup noodle_public
+ *
+ * Reads a channel-first `[C][W]` tensor from @p inout and writes the per-channel
+ * maximum values into the first @p C positions of the same buffer.
+ *
+ * @param inout Input/output buffer containing a packed `[C][W]` tensor.
+ * @param C Number of channels.
+ * @param W Length of each channel sequence.
+ * @return @p C.
+ */
+uint16_t noodle_gmp(float *inout,
                     uint16_t C,
                     uint16_t W);
 
