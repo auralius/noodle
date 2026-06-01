@@ -1,0 +1,41 @@
+/* 1. Justify Text (Updated for Material) */
+.md-typeset p {
+    text-align: justify !important;
+    text-justify: inter-word;
+}
+
+/* 2. Table Styling & Math Visibility - COMPACT VERSION */
+.md-typeset table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+}
+
+.md-typeset td, .md-typeset th {
+    border: 1px solid #ddd !important;
+    /* REDUCED PADDING: 4px top/bottom, 8px left/right */
+    padding: 4px 8px !important; 
+    overflow: visible !important;
+    /* TIGHTER LINE HEIGHT: ensures text doesn't push the cell open */
+    line-height: 1.3 !important;
+    font-size: 0.9em; /* Optional: slightly smaller font for technical data */
+}
+
+.md-typeset th {
+    background-color: #f8f8f8; /* Optional: distinct header background */
+}
+
+/* 3. Center Images */
+.center {
+    display: block;
+    margin: 0 auto !important;
+    width: 50%;
+}
+
+/* 4. MathJax Version 3 specific fix */
+mjx-container {
+    display: inline-block !important;
+    margin: 0 !important;
+    vertical-align: middle;
+}

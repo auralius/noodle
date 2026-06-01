@@ -1,0 +1,773 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/ecg-peak-detect/">
+      
+      
+        <link rel="prev" href="../ad-esp32/">
+      
+      
+        <link rel="next" href="../blood/">
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Peak Detection on ESP32 - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#peak-detection-with-a-1d-convolutional-network-peaknet1d" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Peak Detection on ESP32
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://auralius.github.io/noodle/doxygen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Anomali Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Peak Detection on ESP32
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Peak Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#peak-detection-with-a-1d-convolutional-network-peaknet1d" class="md-nav__link">
+    <span class="md-ellipsis">
+      Peak Detection with a 1D Convolutional Network (PeakNet1D)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Peak Detection with a 1D Convolutional Network (PeakNet1D)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#esp32" class="md-nav__link">
+    <span class="md-ellipsis">
+      ESP32
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-input-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Input representation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-output-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Output representation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-layer-by-layer-intuition" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Layer-by-layer intuition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-from-scores-to-peaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. From scores to peaks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#arduino-uno-r4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Arduino Uno R4
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blood/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Blood-MNIST Classification on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vww-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Visual Wake Word on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-pico/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on Pico
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-esp32-sdio.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SD-Card–Backed LeNet-5
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usps-fcn-uno.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Two-Layer FCN on UNO R3
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mobile-lenet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mobile-LeNet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Peak Detection on ESP32</h1>
+
+<h2 id="peak-detection-with-a-1d-convolutional-network-peaknet1d">Peak Detection with a 1D Convolutional Network (PeakNet1D)</h2>
+<h3 id="esp32">ESP32</h3>
+<p><img alt="" src="../attachments/peak.png" /></p>
+<p>In this experiment, we implement a simple but powerful peak detection system using a one-dimensional convolutional neural network (PeakNet1D). The goal is to detect peaks (such as R-peaks in ECG signals) directly from raw time-domain data, without hand-crafted feature extraction.</p>
+<p><em>Google Colab Notebook can be found <a href="https://colab.research.google.com/drive/1PFdsJ4rrTK7F8FewhGauMTJWMXRP7i3E?usp=sharing">here</a>.</em></p>
+<h3 id="1-input-representation">1. Input representation</h3>
+<p>Each input window contains <strong>256 samples</strong>, corresponding to a short segment of the signal (one second at 256 Hz). We can think of this as a vector:</p>
+<div class="arithmatex">\[x=[x_0,x_1,x_2,…,x_{255}] \]</div>
+<div class="arithmatex">\[\bar{x}=\frac{x-\text{mean}(x)}{\text{std}(x)}\]</div>
+<p>where <span class="arithmatex">\(x\)</span>  and <span class="arithmatex">\(\bar{x}\)</span> are the ECG signal and the normalized ECG signal, respectively.
+At this stage:</p>
+<ul>
+<li>there is <strong>only one channel</strong></li>
+<li>each sample represents signal amplitude at a specific time index</li>
+</ul>
+<p>The network processes this window and produces <strong>256 output values</strong>, one for each time step. Each output value represents how likely that time index corresponds to a peak.</p>
+<hr />
+<h3 id="2-output-representation">2. Output representation</h3>
+<p>Instead of producing a single classification result (“peak” or “not peak”), PeakNet1D produces a <strong>score at every time index</strong>. This is achieved by using only convolutional layers with stride = 1 and “same” padding.</p>
+<div class="arithmatex">\[y=[y_0,y_1,y_2,…,y_{255}] \]</div>
+<p>For example, <span class="arithmatex">\(y_0\)</span> is the probability that <span class="arithmatex">\(x_0\)</span> is a signal peak.</p>
+<h3 id="3-layer-by-layer-intuition">3. Layer-by-layer intuition</h3>
+<p>The network is composed of six convolutional layers:</p>
+<pre><code>// PeakNet1D layers
+ConvMem c1; c1.K=9; c1.P=4; c1.S=1; c1.weight=w01; c1.bias=b01; c1.act=ACT_RELU; // 1-&gt;8
+ConvMem c2; c2.K=7; c2.P=3; c2.S=1; c2.weight=w02; c2.bias=b02; c2.act=ACT_RELU; // 8-&gt;16
+ConvMem c3; c3.K=7; c3.P=3; c3.S=1; c3.weight=w03; c3.bias=b03; c3.act=ACT_RELU; // 16-&gt;16
+ConvMem c4; c4.K=7; c4.P=3; c4.S=1; c4.weight=w04; c4.bias=b04; c4.act=ACT_RELU; // 16-&gt;16
+ConvMem c5; c5.K=1; c5.P=0; c5.S=1; c5.weight=w05; c5.bias=b05; c5.act=ACT_RELU; // 16-&gt;16
+ConvMem c6; c6.K=1; c6.P=0; c6.S=1; c6.weight=w06; c6.bias=b06; c6.act=ACT_NONE; // 16-&gt;1
+
+uint16_t V = L;
+
+// noodle_conv1d(in, n_inputs, out, n_outputs, W, conv)
+V = noodle_conv1d(BUFFER3, 1,  BUFFER4, 8,  V, c1, NULL);
+V = noodle_conv1d(BUFFER4, 8,  BUFFER3, 16, V, c2, NULL);
+V = noodle_conv1d(BUFFER3, 16, BUFFER4, 16, V, c3, NULL);
+V = noodle_conv1d(BUFFER4, 16, BUFFER3, 16, V, c4, NULL);
+V = noodle_conv1d(BUFFER3, 16, BUFFER4, 16, V, c5, NULL);
+V = noodle_conv1d(BUFFER4, 16, BUFFER3, 1,  V, c6, NULL);
+
+// Final sigmoid on 1 channel output
+noodle_sigmoid(BUFFER3, V);
+</code></pre>
+<p>The layers use larger kernels (7–9 samples wide). The number of channels increases (1 → 8 → 16), allowing the network to represent multiple feature types simultaneously. The last layer reduces the channel dimension from 16 to 1. After the final convolution, a sigmoid function maps each value into <span class="arithmatex">\([0,1]\)</span>, producing a <strong>peak likelihood signal</strong>.</p>
+<p>In the implementation, two large buffers are used (<code>BUFFER3</code> and <code>BUFFER4</code>) with alternating roles (input and output). This is known as <strong>ping-pong buffering</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Active buffer</th>
+<th>Channels × length</th>
+<th>Floats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>BUFFER3</code></td>
+<td>1 × 256</td>
+<td>256</td>
+</tr>
+<tr>
+<td>After c1</td>
+<td><code>BUFFER4</code></td>
+<td>8 × 256</td>
+<td>2048</td>
+</tr>
+<tr>
+<td>After c2</td>
+<td><code>BUFFER3</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c3</td>
+<td><code>BUFFER4</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c4</td>
+<td><code>BUFFER3</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c5</td>
+<td><code>BUFFER4</code></td>
+<td>16 × 256</td>
+<td>4096</td>
+</tr>
+<tr>
+<td>After c6</td>
+<td><code>BUFFER3</code></td>
+<td>1 × 256</td>
+<td>256</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-from-scores-to-peaks">4. From scores to peaks</h3>
+<p>The output of the network is <strong>not yet a list of peaks</strong>. Instead, it is a smooth score curve, ranging from 0 to 1:</p>
+<div class="arithmatex">\[y[t]∈[0,1],\,t=0,1,…255 \]</div>
+<p>Peak detection is completed using simple thresholding (post-processing step):</p>
+<div class="arithmatex">\[\text{peak}(t)=1 \, \text{if} \, y[t]&gt;0.5 \]</div>
+<p>There is also additional logic to perform refractory period enforcement (to avoid double counting).</p>
+<hr />
+<h3 id="arduino-uno-r4">Arduino Uno R4</h3>
+<p>The implementation above fits flawlessly in general ESP32 (320KB of RAM). However, in Uno R4 with 32KB of RAM, that implementation will not work. The main challenges are dealing with in the input, output and intermediate activation variables that actually contribute to the memory peaks.</p>
+<p><img alt="" src="../attachments/peak-r4.png" /></p>
+<p>As expected, the inference time takes longer, which is ~27 seconds. </p>
+<p>For flexible manipulation, Noodle offers the following configuration for some layer operations:</p>
+<ul>
+<li>File → Variable layer operation requires input scratch and output scratch</li>
+<li>Variable → File layer operation requires output scratch </li>
+<li>File → File layer operation requires input and output scratch </li>
+</ul>
+<p>CNN #1: Variable → File
+  input variable: user buffer, e.g. image buffer
+  <code>temp1</code>: not needed
+  <code>temp2</code>: needed for Conv accumulator
+  output: file</p>
+<p>CNN #2: File → File
+  <code>temp1</code>: needed to load one input plane from file
+  <code>temp2</code>: needed for Conv accumulator
+  output: file</p>
+<p>CNN #3: File → Variable
+  <code>temp1</code>: needed to load one input plane from file
+  <code>temp2</code>: needed for Conv accumulator
+  output variable: user buffer</p>
+<p>For <span class="arithmatex">\(C \times W \times W\)</span> tensor,  the size of the scratch/temporary buffer is <span class="arithmatex">\(W \times W\)</span>. Therefore, we can safely use input and output variables as scratch buffer. </p>
+<table>
+<thead>
+<tr>
+<th><img alt="|900" src="noodle-temp-buffers.png" /></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

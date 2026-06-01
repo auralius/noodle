@@ -1,0 +1,882 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-bluepill/">
+      
+      
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Lenet 5 bluepill - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sd-card-backed-lenet-5-inference-on-stm32-blue-pill" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lenet 5 bluepill
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://auralius.github.io/noodle/doxygen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Anomali Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ecg-peak-detect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Peak Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blood/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Blood-MNIST Classification on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vww-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Visual Wake Word on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-pico/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on Pico
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-esp32-sdio.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SD-Card–Backed LeNet-5
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usps-fcn-uno.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Two-Layer FCN on UNO R3
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mobile-lenet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mobile-LeNet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Lenet 5 bluepill</h1>
+
+<h2 id="sd-card-backed-lenet-5-inference-on-stm32-blue-pill">SD-Card-Backed LeNet-5 Inference on STM32 Blue Pill</h2>
+<p>This example evaluates a <strong>LeNet-5-style inference pipeline</strong> on an <strong>STM32F103 Blue Pill</strong>. The main goal is to show how Noodle can execute a model whose full parameter set cannot fit into the microcontroller’s internal memory. The STM32F103 Blue Pill is a useful target because it is highly constrained:</p>
+<pre><code class="language-text">Flash : 64 KB nominal on common STM32F103C8 boards
+SRAM  : 20 KB
+</code></pre>
+<p>A float32 LeNet-style model quickly exceeds these limits. Therefore, this implementation stores the model weights and biases on an external SD card, while still using RAM for small activation buffers whenever possible.</p>
+<p>In this implementation:</p>
+<ul>
+<li>weights and biases are stored as raw <code>.bin</code> files on the SD card,</li>
+<li>large intermediate convolution outputs are stored as files,</li>
+<li>small fully connected activation vectors are kept in RAM,</li>
+<li>and the network is executed layer by layer using Noodle.</li>
+</ul>
+<p>The use of <code>.bin</code> files is important. Text files are easy to inspect, but they require ASCII parsing on the microcontroller. Binary files store raw <code>float32</code> values directly, making them more suitable for repeated embedded inference.</p>
+<hr />
+<h2 id="why-use-an-sd-card">Why Use an SD Card?</h2>
+<p>The SD card is not used merely as a convenience. It is required because the full float32 parameter set is too large to store as <code>const</code> arrays in the flash memory of a typical Blue Pill. For the LeNet-style network used here, the parameter sizes are approximately:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th style="text-align: right;">Parameter shape</th>
+<th style="text-align: right;">Number of floats</th>
+<th style="text-align: right;">Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conv1 weights</td>
+<td style="text-align: right;"><code>6 × 1 × 5 × 5</code></td>
+<td style="text-align: right;">150</td>
+<td style="text-align: right;">600 B</td>
+</tr>
+<tr>
+<td>Conv1 bias</td>
+<td style="text-align: right;"><code>6</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">24 B</td>
+</tr>
+<tr>
+<td>Conv2 weights</td>
+<td style="text-align: right;"><code>16 × 6 × 5 × 5</code></td>
+<td style="text-align: right;">2,400</td>
+<td style="text-align: right;">9.6 KB</td>
+</tr>
+<tr>
+<td>Conv2 bias</td>
+<td style="text-align: right;"><code>16</code></td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">64 B</td>
+</tr>
+<tr>
+<td>FC1 weights</td>
+<td style="text-align: right;"><code>400 × 120</code></td>
+<td style="text-align: right;">48,000</td>
+<td style="text-align: right;">192 KB</td>
+</tr>
+<tr>
+<td>FC1 bias</td>
+<td style="text-align: right;"><code>120</code></td>
+<td style="text-align: right;">120</td>
+<td style="text-align: right;">480 B</td>
+</tr>
+<tr>
+<td>FC2 weights</td>
+<td style="text-align: right;"><code>120 × 84</code></td>
+<td style="text-align: right;">10,080</td>
+<td style="text-align: right;">40.3 KB</td>
+</tr>
+<tr>
+<td>FC2 bias</td>
+<td style="text-align: right;"><code>84</code></td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">336 B</td>
+</tr>
+<tr>
+<td>FC3 weights</td>
+<td style="text-align: right;"><code>84 × 10</code></td>
+<td style="text-align: right;">840</td>
+<td style="text-align: right;">3.36 KB</td>
+</tr>
+<tr>
+<td>FC3 bias</td>
+<td style="text-align: right;"><code>10</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">40 B</td>
+</tr>
+</tbody>
+</table>
+<p>The total parameter count is:</p>
+<pre><code class="language-text">61,706 float32 values
+</code></pre>
+<p>At 4 bytes per float:</p>
+<pre><code class="language-text">61,706 × 4 = 246,824 bytes ≈ 241 KB
+</code></pre>
+<p>This is only the model parameter size. It does not include:</p>
+<ul>
+<li>program code,</li>
+<li>the Noodle library,</li>
+<li>the SdFat library,</li>
+<li>serial communication code,</li>
+<li>stack,</li>
+<li>heap,</li>
+<li>or runtime buffers.</li>
+</ul>
+<p>Therefore, storing all weights as <code>const</code> flash arrays is not feasible on a typical STM32F103C8 Blue Pill. Even a 128 KB variant would not comfortably hold the full float32 model together with the firmware. The SD card solves this by acting as external parameter storage.</p>
+<hr />
+<h2 id="storage-strategy">Storage Strategy</h2>
+<p>The main idea is to use <strong>hybrid memory placement</strong>. Large tensors that cannot fit in flash or SRAM are stored on the SD card. Small tensors that fit comfortably in SRAM are kept in RAM to avoid unnecessary file traffic. Noodle supports several execution patterns:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAM → RAM</td>
+<td>Fastest path, used when both input and output fit in SRAM</td>
+</tr>
+<tr>
+<td>RAM → file</td>
+<td>Input is in memory, output is written to SD card</td>
+</tr>
+<tr>
+<td>file → RAM</td>
+<td>Input is loaded from SD card, output is kept in memory</td>
+</tr>
+<tr>
+<td>file → file</td>
+<td>Both input and output are stored externally</td>
+</tr>
+</tbody>
+</table>
+<p>The important result from the Blue Pill experiment is that <strong>not every tensor should be stored as a file</strong>. The weights must stay on the SD card because they are too large, but small activation vectors should remain in RAM. The fully connected activation sizes are small:</p>
+<pre><code class="language-text">FC1 input  : 400 floats = 1600 B
+FC1 output : 120 floats = 480 B
+FC2 output : 84 floats  = 336 B
+FC3 output : 10 floats  = 40 B
+</code></pre>
+<p>These are small enough for the 20 KB SRAM. Therefore, the optimized version keeps the fully connected activations in RAM, while still reading the fully connected weights from SD card files.</p>
+<hr />
+<h2 id="layer-by-layer-data-flow">Layer-by-Layer Data Flow</h2>
+<p>The optimized Blue Pill implementation uses the following data placement.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Step</th>
+<th>Operation</th>
+<th>Input</th>
+<th>Output</th>
+<th>Parameters</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Conv1 + Pool</td>
+<td><code>GRID</code> in RAM</td>
+<td><code>out1.bin</code> on SD card</td>
+<td><code>w01.bin</code>, <code>b01.bin</code> on SD card</td>
+<td>First convolution starts from the received 28×28 image</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Conv2 + Pool</td>
+<td><code>out1.bin</code> on SD card</td>
+<td><code>out2.bin</code> on SD card</td>
+<td><code>w02.bin</code>, <code>b02.bin</code> on SD card</td>
+<td>File-backed convolution stage</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Flatten</td>
+<td><code>out2.bin</code> on SD card</td>
+<td><code>BUFFER1</code> in RAM</td>
+<td>—</td>
+<td>Produces a 400-float vector</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>FC1</td>
+<td><code>BUFFER1</code> in RAM</td>
+<td><code>BUFFER2</code> in RAM</td>
+<td><code>w03.bin</code>, <code>b03.bin</code> on SD card</td>
+<td>Weights remain on SD, activation output stays in RAM</td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>FC2</td>
+<td><code>BUFFER2</code> in RAM</td>
+<td><code>BUFFER1</code> in RAM</td>
+<td><code>w04.bin</code>, <code>b04.bin</code> on SD card</td>
+<td>Avoids file-backed activation input/output</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>FC3 + Softmax</td>
+<td><code>BUFFER1</code> in RAM</td>
+<td><code>BUFFER2</code> in RAM</td>
+<td><code>w05.bin</code>, <code>b05.bin</code> on SD card</td>
+<td>Final 10-class output remains in RAM</td>
+</tr>
+</tbody>
+</table>
+<p>This placement is much faster than storing every fully connected activation as a file.</p>
+<hr />
+<h2 id="noodle-implementation-sketch">Noodle Implementation Sketch</h2>
+<p>The optimized Noodle call sequence is:</p>
+<pre><code class="language-cpp">V = noodle_conv_float(GRID, 1, 6,
+                      &quot;out1.bin&quot;, 28,
+                      cnn1, pool, NULL);
+
+V = noodle_conv_float(&quot;out1.bin&quot;, 6, 16,
+                      &quot;out2.bin&quot;, V,
+                      cnn2, pool, NULL);
+
+V = noodle_flat(&quot;out2.bin&quot;, BUFFER1, V, 16);
+
+// FC activations stay in RAM.
+// FC weights are still read from SD card.
+
+V = noodle_fcn(BUFFER1, V, 120,
+               BUFFER2, fcn1, NULL);
+
+V = noodle_fcn(BUFFER2, V, 84,
+               BUFFER1, fcn2, NULL);
+
+V = noodle_fcn(BUFFER1, V, 10,
+               BUFFER2, fcn3, NULL);
+</code></pre>
+<p>The complete flow is:</p>
+<pre><code class="language-text">GRID
+  ↓ Conv1 + Pool
+out1.bin
+  ↓ Conv2 + Pool
+out2.bin
+  ↓ Flatten
+BUFFER1
+  ↓ FC1
+BUFFER2
+  ↓ FC2
+BUFFER1
+  ↓ FC3 + Softmax
+BUFFER2
+</code></pre>
+<p>The important change is that <code>out3.bin</code> and <code>out4.bin</code> are no longer used for the fully connected activations. Those vectors are small enough to stay in SRAM.</p>
+<hr />
+<h2 id="sd-card-interface">SD Card Interface</h2>
+<p>The Blue Pill inference node uses an SD card connected through SPI2:</p>
+<pre><code class="language-text">SD CLK   → PB13
+SD MISO  → PB14
+SD MOSI  → PB15
+SD CS    → PB12
+SD 3V3   → 3.3V
+SD GND   → GND
+</code></pre>
+<p>In the tested PlatformIO STM32duino setup, the SD card is initialized with an explicit SPI2 object:</p>
+<pre><code class="language-cpp">static const uint8_t SD_CS = PB12;
+
+SPIClass SPI_SD(PB15, PB14, PB13, PB12);  // MOSI, MISO, SCK, SS
+
+if (!noodle_fs_init(SD_CS, SPI_SD, 12)) {
+  Serial.println(F(&quot;noodle_fs_init FAILED&quot;));
+  while (true) delay(1000);
+}
+</code></pre>
+<p>The tested setup was stable at <strong>12 MHz SPI</strong>. Increasing the SPI clock from 8 MHz to 12 MHz reduced inference time significantly, indicating that the SD-backed path is strongly affected by SPI transfer speed. However, 18 MHz was not stable with the tested wiring/module, so 12 MHz was used for the reported result.</p>
+<hr />
+<h2 id="benchmark-result">Benchmark Result</h2>
+<p>Two memory-placement strategies were tested.</p>
+<h3 id="fully-file-backed-fc-activations">Fully file-backed FC activations</h3>
+<p>In the first version, the fully connected activations were also written to and read from SD card files:</p>
+<pre><code class="language-cpp">V = noodle_fcn(BUFFER1, V, 120, &quot;out3.bin&quot;, fcn1, NULL);
+V = noodle_fcn(&quot;out3.bin&quot;, V, 84, &quot;out4.bin&quot;, fcn2, NULL);
+V = noodle_fcn(&quot;out4.bin&quot;, V, 10, BUFFER2, fcn3, NULL);
+</code></pre>
+<p>This worked, but it was slow:</p>
+<pre><code class="language-text">Mean inference time ≈ 39.7 s
+</code></pre>
+<p>The dominant layer was <code>FC2</code>, which took about 33 s. This showed that file-backed activation handling inside the fully connected layers created excessive SD traffic.</p>
+<h3 id="ram-backed-fc-activations">RAM-backed FC activations</h3>
+<p>In the optimized version, only the large weights remain on SD card. The small FC activation vectors stay in RAM:</p>
+<pre><code class="language-cpp">V = noodle_fcn(BUFFER1, V, 120, BUFFER2, fcn1, NULL);
+V = noodle_fcn(BUFFER2, V, 84, BUFFER1, fcn2, NULL);
+V = noodle_fcn(BUFFER1, V, 10, BUFFER2, fcn3, NULL);
+</code></pre>
+<p>This reduced inference time to approximately:</p>
+<pre><code class="language-text">Mean inference time ≈ 3.47 s
+</code></pre>
+<p>Representative layer timings were:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th style="text-align: right;">Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conv1 + Pool</td>
+<td style="text-align: right;">≈ 0.424 s</td>
+</tr>
+<tr>
+<td>Conv2 + Pool</td>
+<td style="text-align: right;">≈ 1.47 s</td>
+</tr>
+<tr>
+<td>Flatten</td>
+<td style="text-align: right;">≈ 0.015 s</td>
+</tr>
+<tr>
+<td>FC1</td>
+<td style="text-align: right;">≈ 1.08 s</td>
+</tr>
+<tr>
+<td>FC2</td>
+<td style="text-align: right;">≈ 0.43 s</td>
+</tr>
+<tr>
+<td>FC3 + Softmax</td>
+<td style="text-align: right;">≈ 0.056 s</td>
+</tr>
+<tr>
+<td>Total</td>
+<td style="text-align: right;">≈ 3.47 s</td>
+</tr>
+</tbody>
+</table>
+<p>This is about an <strong>11× speedup</strong> compared with the fully file-backed FC activation version.</p>
+<hr />
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>This example demonstrates the central idea behind Noodle:</p>
+<pre><code class="language-text">Large tensors that do not fit on-chip should be stored externally.
+Small tensors that fit in SRAM should stay in SRAM.
+</code></pre>
+<p>For this Blue Pill example:</p>
+<pre><code class="language-text">Weights and biases → SD card
+Convolution outputs → SD card
+Flattened vector and FC activations → RAM
+Final softmax output → RAM
+</code></pre>
+<p>The SD card makes it possible to run a full float32 LeNet-style model whose parameters alone require about 241 KB. The Blue Pill cannot store those parameters as <code>const</code> arrays in flash, and it cannot load them fully into SRAM. However, by streaming weights from SD and carefully keeping only selected activations in RAM, Noodle can still execute the model.</p>
+<p>This is different from a conventional in-memory inference engine. In TensorFlow Lite Micro, the model is normally stored as a memory-addressable flatbuffer, often compiled into flash as a C array, and the tensor arena must fit in SRAM. That works well when the quantized model and arena fit on-chip. In contrast, this Noodle example targets the case where the model parameters exceed the internal flash capacity of the microcontroller.</p>
+<h2 id="why-not-just-quantize">Why Not Just Quantize?</h2>
+<p>Quantization is an important and often necessary optimization for TinyML deployment. If the model can be quantized to <code>int8</code> and the resulting model plus tensor arena fits into on-chip flash and SRAM, then a conventional in-memory inference engine such as TFLite Micro is usually the better choice for speed. Quantization would reduce the parameter set from about 241 KB to about 61 KB. So on a nominal <strong>64 KB flash STM32F103C8</strong>, even <code>int8</code> LeNet may still be tight or impractical as a fully compiled-in model. On a 128 KB board, <code>int8</code> becomes more realistic.</p>
+<p>However, this example explores a different constraint: running a <code>float32</code> LeNet-style model whose parameter set alone is larger than the internal flash of the target MCU. In this situation, the SD card is not used to compete with quantization, but to provide external parameter storage. Noodle makes the memory placement explicit: large weights are streamed from SD, while small activation vectors are kept in RAM. Thus, quantization and SD-backed execution are complementary. Quantization reduces tensor size; Noodle controls tensor placement.</p>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>This example demonstrates SD-card-backed LeNet-style inference on an STM32F103 Blue Pill.</p>
+<p>The main findings are:</p>
+<ul>
+<li>the complete float32 parameter set is about 241 KB,</li>
+<li>this is too large for the internal flash of a typical Blue Pill,</li>
+<li>SD card storage allows the full model weights to be used,</li>
+<li>fully file-backed activation placement is correct but slow,</li>
+<li>keeping small FC activations in RAM reduces inference time from about 39.7 s to about 3.47 s,</li>
+<li>and the final design uses SD for large weights while preserving SRAM for small, high-reuse activations.</li>
+</ul>
+<p>In short, this example shows that Noodle can run a model that exceeds the on-chip memory capacity of the microcontroller by explicitly controlling where each tensor lives.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

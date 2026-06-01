@@ -1,0 +1,1487 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-esp32/">
+      
+      
+        <link rel="prev" href="../vww-esp32/">
+      
+      
+        <link rel="next" href="../lenet-5-pico/">
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>LeNet-5 on ESP32 - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lenet-5-on-esp32-with-bin-file-based-cnn-parameters" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              LeNet-5 on ESP32
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://auralius.github.io/noodle/doxygen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ad-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Anomali Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ecg-peak-detect/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Peak Detection on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blood/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Blood-MNIST Classification on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vww-esp32/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Visual Wake Word on ESP32
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    LeNet-5 on ESP32
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on ESP32
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#preface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Plan
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-cheap-yellow-display" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware: Cheap Yellow Display
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#original-lenet-5-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Original LeNet-5 Architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modified-lenet-5-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Modified LeNet-5 Architecture
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-and-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training and Export
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weight-bias-and-bin-file-naming-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Weight, Bias, and BIN File Naming Convention
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Weight, Bias, and BIN File Naming Convention">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#convolution-kernels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Convolution Kernels
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dense-weights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dense Weights
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bias-vectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bias Vectors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#converting-txt-files-to-bin-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Converting TXT Files to BIN Files
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-exported-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Exported Files
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameter-placement-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameter Placement Strategy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#noodle-parameter-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Noodle Parameter Structures
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layer-by-layer-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layer-by-Layer Implementation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#buffer-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Buffer Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visual-studio-code-and-platformio" class="md-nav__link">
+    <span class="md-ellipsis">
+      Visual Studio Code and PlatformIO
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benchmarking
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-variant-1-cnn-as-variables-fcn-as-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benchmark Variant 1: CNN as Variables, FCN as Variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-variant-2-cnn-as-files-fcn-as-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benchmark Variant 2: CNN as Files, FCN as Variables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Benchmark Variant 2: CNN as Files, FCN as Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ffat-versus-sd-card-for-noodle" class="md-nav__link">
+    <span class="md-ellipsis">
+      FFat versus SD card for Noodle
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discussion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Discussion
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-pico/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    LeNet-5 on Pico
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lenet-5-esp32-sdio.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SD-Card–Backed LeNet-5
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usps-fcn-uno.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Two-Layer FCN on UNO R3
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mobile-lenet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mobile-LeNet
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="lenet-5-on-esp32-with-bin-file-based-cnn-parameters">LeNet-5 on ESP32 with BIN File-Based CNN Parameters</h1>
+<h2 id="preface">Preface</h2>
+<ul>
+<li>
+<p><strong>Author:</strong><br />
+  Auralius Manurung (auralius.manurung@ieee.org)</p>
+</li>
+<li>
+<p><strong>Repositories and resources:</strong></p>
+</li>
+<li><a href="https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32">GitHub repository: Visual Studio Code and PlatformIO project</a></li>
+<li><a href="https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing">Google Colab notebook</a></li>
+<li>
+<p><a href="https://drive.google.com/file/d/1rvQixKpxU0dBhDQ8B9gZxADqttoxJPK5/view?usp=drive_link">Dataset</a></p>
+</li>
+<li>
+<p><strong>Video demonstration:</strong></p>
+</li>
+</ul>
+<p><img alt="" src="../attachments/demo-lenet-5.gif" /></p>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>This example demonstrates how to run a slightly modified <strong>LeNet-5</strong> network directly on an ESP32 using the <strong>Noodle</strong> inference library.</p>
+<p>The complete application is designed around a realistic embedded inference scenario. A user draws a digit on a touchscreen, the input is converted into a normalized <code>28 × 28</code> image, and the ESP32 performs the neural-network inference on-device.</p>
+<p>The system consists of:</p>
+<ul>
+<li>touchscreen-based digit acquisition,</li>
+<li>preprocessing and normalization,</li>
+<li>on-device CNN inference,</li>
+<li>parameter loading from either memory or file storage,</li>
+<li>and serial-based benchmarking.</li>
+</ul>
+<p>This document focuses on the neural-network implementation using <strong>Noodle</strong>. The touchscreen preprocessing pipeline is intentionally kept outside the main discussion.</p>
+<hr />
+<h2 id="implementation-plan">Implementation Plan</h2>
+<p>The complete deployment workflow is:</p>
+<ol>
+<li>Design and train the model on a computer, for example using Google Colab.</li>
+<li>Export the trained weights and biases as text files and C/C++ header files.</li>
+<li>Convert the exported <code>.txt</code> parameter files into raw <code>.bin</code> files.</li>
+<li>Decide where each parameter should be stored:</li>
+<li><strong>File storage</strong>, such as SD card, FFat, or LittleFS.</li>
+<li><strong>In-memory storage</strong>, such as <code>const</code> arrays in flash or arrays in SRAM/PSRAM.</li>
+<li>Configure Noodle to read binary parameter files.</li>
+<li>Implement the network layer by layer using Noodle.</li>
+<li>Benchmark the implementation on the ESP32.</li>
+</ol>
+<p>This example uses a hybrid strategy:</p>
+<ul>
+<li>Convolutional-layer parameters are loaded from <code>.bin</code> files,</li>
+<li>Fully connected layer parameters are stored as <code>const</code> arrays,</li>
+<li>Intermediate activations are stored in RAM buffers.</li>
+</ul>
+<hr />
+<h2 id="hardware-cheap-yellow-display">Hardware: Cheap Yellow Display</h2>
+<p>The example is intended for an ESP32-based touchscreen board, commonly known as the <strong>Cheap Yellow Display (CYD)</strong>.</p>
+<p>The CYD usually includes:</p>
+<ul>
+<li>an ESP32 microcontroller,</li>
+<li>a 2.8-inch TFT display,</li>
+<li>a <code>320 × 240</code> pixel resolution,</li>
+<li>a resistive touchscreen,</li>
+<li>and an SD-card interface on many variants.</li>
+</ul>
+<p><img alt="" src="../attachments/cyd.png" /></p>
+<p>The TFT display and touch controller typically use SPI, often with separate chip-select lines. Some variants may use separate SPI buses. This is useful for applications such as handwriting input, where the program needs to update the display and track touch positions continuously.</p>
+<p>As an alternative, Noodle can also be used with other touchscreen displays, such as MCUFRIEND-style UNO shields, where the TFT may use a parallel bus and the touch interface may use analog pins.</p>
+<hr />
+<h2 id="original-lenet-5-architecture">Original LeNet-5 Architecture</h2>
+<p>The original LeNet-5 architecture was designed for handwritten digit recognition. Its input is a <code>32 × 32</code> grayscale image, and the network uses convolution, subsampling, and fully connected layers.</p>
+<p><img alt="" src="../attachments/lenet-5.png" /></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Layer</th>
+<th>Type</th>
+<th>Kernel / Stride</th>
+<th>Input Shape</th>
+<th>Output Shape</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">C1</td>
+<td>Convolution</td>
+<td>6 × 5 × 5</td>
+<td>1 × 32 × 32</td>
+<td>6 × 28 × 28</td>
+<td><code>tanh</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">S2</td>
+<td>Subsampling</td>
+<td>2 × 2 / 2</td>
+<td>6 × 28 × 28</td>
+<td>6 × 14 × 14</td>
+<td>Average pooling with learnable scale/bias</td>
+</tr>
+<tr>
+<td style="text-align: right;">C3</td>
+<td>Convolution</td>
+<td>16 × 5 × 5</td>
+<td>6 × 14 × 14</td>
+<td>16 × 10 × 10</td>
+<td><code>tanh</code>, sparse connection map</td>
+</tr>
+<tr>
+<td style="text-align: right;">S4</td>
+<td>Subsampling</td>
+<td>2 × 2 / 2</td>
+<td>16 × 10 × 10</td>
+<td>16 × 5 × 5</td>
+<td>Average pooling</td>
+</tr>
+<tr>
+<td style="text-align: right;">C5</td>
+<td>Convolution</td>
+<td>120 × 5 × 5</td>
+<td>16 × 5 × 5</td>
+<td>120 × 1 × 1</td>
+<td>Effectively a fully connected layer</td>
+</tr>
+<tr>
+<td style="text-align: right;">F6</td>
+<td>Fully connected</td>
+<td>—</td>
+<td>120</td>
+<td>84</td>
+<td><code>tanh</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">Output</td>
+<td>Fully connected</td>
+<td>—</td>
+<td>84</td>
+<td>10</td>
+<td>Euclidean RBF in the original formulation</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="modified-lenet-5-architecture">Modified LeNet-5 Architecture</h2>
+<p>For this example, we use a slightly modified version of LeNet-5.</p>
+<p>The main changes are:</p>
+<ul>
+<li><code>ReLU</code> is used instead of <code>tanh</code>,</li>
+<li>the original C5 convolution is implemented as flattening followed by a fully connected layer,</li>
+<li>the final output uses <code>softmax</code>.</li>
+</ul>
+<p>The original C5 layer uses <code>120</code> kernels of size <code>5 × 5</code> applied to <code>16</code> input feature maps. Since the input to C5 is already <code>16 × 5 × 5</code>, this is equivalent to a dense layer from <code>400 → 120</code>.</p>
+<p>Therefore, in this implementation, C5 is replaced by:</p>
+<pre><code class="language-text">Flatten: 16 × 5 × 5 → 400
+FC:      400 → 120
+</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Layer</th>
+<th>Type</th>
+<th>Kernel / Stride</th>
+<th>Input Shape</th>
+<th>Output Shape</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">C1</td>
+<td>Convolution</td>
+<td>6 × 5 × 5</td>
+<td>1 × 32 × 32</td>
+<td>6 × 28 × 28</td>
+<td><code>ReLU</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">S2</td>
+<td>Subsampling</td>
+<td>2 × 2 / 2</td>
+<td>6 × 28 × 28</td>
+<td>6 × 14 × 14</td>
+<td>Average pooling</td>
+</tr>
+<tr>
+<td style="text-align: right;">C3</td>
+<td>Convolution</td>
+<td>16 × 5 × 5</td>
+<td>6 × 14 × 14</td>
+<td>16 × 10 × 10</td>
+<td><code>ReLU</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">S4</td>
+<td>Subsampling</td>
+<td>2 × 2 / 2</td>
+<td>16 × 10 × 10</td>
+<td>16 × 5 × 5</td>
+<td>Average pooling</td>
+</tr>
+<tr>
+<td style="text-align: right;">F5</td>
+<td>Flatten</td>
+<td>—</td>
+<td>16 × 5 × 5</td>
+<td>400</td>
+<td><code>16 × 5 × 5 = 400</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">F6</td>
+<td>Fully connected</td>
+<td>—</td>
+<td>400</td>
+<td>120</td>
+<td><code>ReLU</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">F7</td>
+<td>Fully connected</td>
+<td>—</td>
+<td>120</td>
+<td>84</td>
+<td><code>ReLU</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">Output</td>
+<td>Fully connected</td>
+<td>—</td>
+<td>84</td>
+<td>10</td>
+<td><code>softmax</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="training-and-export">Training and Export</h2>
+<p>Noodle is an inference library. It does not provide model training functionality.</p>
+<p>In this example, the model is trained on a computer using Keras in Google Colab. After training, the weights and biases are exported and deployed to the ESP32.</p>
+<p>Resources:</p>
+<ul>
+<li><a href="https://drive.google.com/file/d/1rvQixKpxU0dBhDQ8B9gZxADqttoxJPK5/view?usp=drive_link">Dataset</a></li>
+<li><a href="https://drive.google.com/file/d/1BNx9QchbauAPEexnm5qL2H58Ve4BHAZP/view?usp=sharing">Google Colab notebook</a></li>
+</ul>
+<p>The exporter produces two kinds of files:</p>
+<ul>
+<li><code>.txt</code> files containing one floating-point value per line,</li>
+<li><code>.h</code> files containing C/C++ arrays that can be compiled into the firmware.</li>
+</ul>
+<p>In the current Noodle workflow, the <code>.txt</code> files are treated as an intermediate export format. Before uploading the model files to the ESP32 filesystem, the <code>.txt</code> files are converted into raw <code>.bin</code> files.</p>
+<p>The <code>.bin</code> files are preferred for file-based inference because they avoid repeated text parsing on the microcontroller. Each value is stored directly as a little-endian <code>float32</code>, matching common MCU targets such as ESP32, STM32, and RP2040.</p>
+<p>The <code>.h</code> files are still useful when parameters are stored as <code>const</code> arrays in flash.</p>
+<hr />
+<h2 id="weight-bias-and-bin-file-naming-convention">Weight, Bias, and BIN File Naming Convention</h2>
+<p>The training notebook exports weights and biases using a simple layer-indexed naming convention.</p>
+<h3 id="convolution-kernels">Convolution Kernels</h3>
+<p><strong>Filename format:</strong></p>
+<pre><code class="language-text">w&lt;NN&gt;.txt
+</code></pre>
+<p><code>&lt;NN&gt;</code> is a two-digit, zero-padded layer index.</p>
+<p>Example:</p>
+<pre><code class="language-text">w01.txt
+</code></pre>
+<p>This file stores the convolution weights for the first convolutional layer. The full 4D tensor is serialized into a 1D sequence.</p>
+<hr />
+<h3 id="dense-weights">Dense Weights</h3>
+<p>Dense weights use the same naming convention:</p>
+<pre><code class="language-text">w&lt;NN&gt;.txt
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">w03.txt
+</code></pre>
+<p>Dense weights are exported as a flattened array. In this example, they are arranged for Noodle's fully connected implementation, where weights are treated as row-major <code>[n_outputs, n_inputs]</code>.</p>
+<hr />
+<h3 id="bias-vectors">Bias Vectors</h3>
+<p>Biases use the following format:</p>
+<pre><code class="language-text">b&lt;NN&gt;.txt
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">b02.txt
+</code></pre>
+<p>Each bias file contains a flattened 1D bias vector, with one value per line.</p>
+<hr />
+<h2 id="converting-txt-files-to-bin-files">Converting TXT Files to BIN Files</h2>
+<p>The text files exported from the training notebook are easy to inspect, but they are inefficient for embedded inference. A text file requires the MCU to read characters, tokenize strings, and convert ASCII numbers into floating-point values.</p>
+<p>For Noodle file-based inference, the recommended workflow is now:</p>
+<pre><code class="language-text">Keras / PyTorch training
+        ↓
+TXT export from notebook
+        ↓
+TXT → BIN conversion on PC
+        ↓
+Upload BIN files to ESP32 filesystem
+        ↓
+Noodle reads raw float32 values
+</code></pre>
+<p>The conversion can be performed using <code>txt2bin.py</code>.</p>
+<pre><code class="language-bash">python3 txt2bin.py w01.txt b01.txt w02.txt b02.txt --out-dir data
+</code></pre>
+<p>For a full LeNet-5 export, the conversion can be written explicitly:</p>
+<pre><code class="language-bash">python3 txt2bin.py \
+  w01.txt b01.txt \
+  w02.txt b02.txt \
+  w03.txt b03.txt \
+  w04.txt b04.txt \
+  w05.txt b05.txt \
+  --out-dir data
+</code></pre>
+<p>This creates files such as:</p>
+<pre><code class="language-text">data/w01.bin
+data/b01.bin
+data/w02.bin
+data/b02.bin
+data/w03.bin
+data/b03.bin
+data/w04.bin
+data/b04.bin
+data/w05.bin
+data/b05.bin
+</code></pre>
+<p>The binary files contain raw <code>float32</code> values with no header. The order of the values is exactly the same as in the original <code>.txt</code> file.</p>
+<p>The converter writes values using little-endian float32 format:</p>
+<pre><code class="language-text">&lt;f4
+</code></pre>
+<p>This matches the native float representation used by common Noodle targets such as ESP32, STM32, and RP2040.</p>
+<p>When binary files are used, Noodle must be configured to read files using the binary file format, for example by selecting the <code>NOODLE_FILE_FORMAT_BIN</code> option in the Noodle configuration.</p>
+<hr />
+<h2 id="example-exported-files">Example Exported Files</h2>
+<p>After running the exporter, the output directory contains both <code>.txt</code> and <code>.h</code> files.</p>
+<p>Example exporter output:</p>
+<pre><code class="language-text">/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w01.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w01.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b01.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b01.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w02.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w02.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b02.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b02.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w03.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w03.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b03.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b03.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w04.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w04.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b04.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b04.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w05.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/w05.h
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b05.txt
+/content/drive/MyDrive/NOODLE/datasets/mnist/lenet-5/b05.h
+</code></pre>
+<p>After conversion, the files uploaded to the ESP32 filesystem should be the <code>.bin</code> files:</p>
+<pre><code class="language-text">/w01.bin
+/b01.bin
+/w02.bin
+/b02.bin
+</code></pre>
+<p>In this example, only the convolutional-layer parameters are loaded from files. Therefore, only <code>w01</code>, <code>b01</code>, <code>w02</code>, and <code>b02</code> are required in the filesystem. The fully connected layers are compiled into the firmware using the generated <code>.h</code> files.</p>
+<hr />
+<h2 id="parameter-placement-strategy">Parameter Placement Strategy</h2>
+<p>On an embedded system, deciding where parameters are stored is part of the implementation.</p>
+<p>For this example, the convolution layers use file-based parameters, while the fully connected layers use in-memory <code>const</code> arrays.</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Files</th>
+<th>Location</th>
+<th>In-memory <code>const</code></th>
+<th>File-based</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td><code>w01.bin</code>, <code>b01.bin</code></td>
+<td>FFat / file</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>C3</td>
+<td><code>w02.bin</code>, <code>b02.bin</code></td>
+<td>FFat / file</td>
+<td></td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F6</td>
+<td><code>w03.h</code>, <code>b03.h</code></td>
+<td>Flash <code>const</code></td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>F7</td>
+<td><code>w04.h</code>, <code>b04.h</code></td>
+<td>Flash <code>const</code></td>
+<td>✓</td>
+<td></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>w05.h</code>, <code>b05.h</code></td>
+<td>Flash <code>const</code></td>
+<td>✓</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>This hybrid placement reduces firmware size pressure for the convolution parameters while keeping the fully connected layers fast.</p>
+<hr />
+<h2 id="noodle-parameter-structures">Noodle Parameter Structures</h2>
+<p>For fully connected layers, Noodle provides two parameter structures:</p>
+<pre><code class="language-cpp">/** FCN parameters stored as files. */
+struct FCNFile {
+  const char *weight_fn = nullptr;
+  const char *bias_fn   = nullptr;
+  Activation act = ACT_RELU;
+};
+
+/** FCN parameters stored in memory. */
+struct FCNMem {
+  const float *weight = nullptr;  // row-major [n_outputs, n_inputs]
+  const float *bias   = nullptr;
+  Activation act = ACT_RELU;
+};
+</code></pre>
+<p>Use <code>FCNMem</code> when weights and biases are compiled into the firmware as arrays.</p>
+<p>Use <code>FCNFile</code> when weights and biases are read from files.</p>
+<p>For convolution layers, the same idea applies:</p>
+<ul>
+<li><code>ConvMem</code> is used for in-memory convolution parameters,</li>
+<li><code>Conv</code> is used for file-based convolution parameters.</li>
+</ul>
+<p>In this example, <code>Conv</code> points to <code>.bin</code> files, not <code>.txt</code> files. Therefore, the Noodle file backend should be configured for binary reading before inference.</p>
+<hr />
+<h2 id="layer-by-layer-implementation">Layer-by-Layer Implementation</h2>
+<p>The following implementation uses:</p>
+<ul>
+<li>file-based parameters for convolution layers,</li>
+<li>memory-based parameters for fully connected layers,</li>
+<li>RAM buffers for intermediate activations.</li>
+</ul>
+<pre><code class="language-cpp">#include &quot;noodle.h&quot;
+
+#include &quot;w03.h&quot;
+#include &quot;b03.h&quot;
+#include &quot;w04.h&quot;
+#include &quot;b04.h&quot;
+#include &quot;w05.h&quot;
+#include &quot;b05.h&quot;
+
+// Convolution layer #1: parameters from file
+Conv cnn1;
+cnn1.K = 5;
+cnn1.P = 2;
+cnn1.S = 1;              // same padding
+cnn1.weight_fn = &quot;/w01.bin&quot;;
+cnn1.bias_fn   = &quot;/b01.bin&quot;;
+
+// Convolution layer #2: parameters from file
+Conv cnn2;
+cnn2.K = 5;
+cnn2.P = 0;
+cnn2.S = 1;              // valid padding
+cnn2.weight_fn = &quot;/w02.bin&quot;;
+cnn2.bias_fn   = &quot;/b02.bin&quot;;
+
+// Average pooling
+Pool pool;
+pool.M = 2;
+pool.T = 2;
+
+// Fully connected layer #1: parameters from memory
+FCNMem fcn1;
+fcn1.weight = w03;
+fcn1.bias   = b03;
+fcn1.act    = ACT_RELU;
+
+// Fully connected layer #2: parameters from memory
+FCNMem fcn2;
+fcn2.weight = w04;
+fcn2.bias   = b04;
+fcn2.act    = ACT_RELU;
+
+// Output layer: parameters from memory
+FCNMem fcn3;
+fcn3.weight = w05;
+fcn3.bias   = b05;
+fcn3.act    = ACT_SOFTMAX;
+
+uint16_t V;
+
+V = noodle_conv_float(BUFFER1, 1, 6,  BUFFER3, 28, cnn1, pool, nullptr);
+V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V,  cnn2, pool, nullptr);
+
+V = noodle_flat(BUFFER1, BUFFER3, V, 16);
+
+V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn1, nullptr);
+V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn2, nullptr);
+V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn3, nullptr);
+</code></pre>
+<hr />
+<h2 id="buffer-usage">Buffer Usage</h2>
+<p>This implementation uses three buffers:</p>
+<ul>
+<li><code>BUFFER1</code>: input buffer and alternating activation buffer,</li>
+<li><code>BUFFER2</code>: temporary scratch buffer, configured using <code>noodle_setup_temp_buffers()</code>,</li>
+<li><code>BUFFER3</code>: alternating activation buffer.</li>
+</ul>
+<p>The data flow is:</p>
+<pre><code class="language-text">Input image      : BUFFER1
+Conv + Pool #1   : BUFFER1 → BUFFER3
+Conv + Pool #2   : BUFFER3 → BUFFER1
+Flatten          : BUFFER1 → BUFFER3
+Dense #1         : BUFFER3 → BUFFER1
+Dense #2         : BUFFER1 → BUFFER3
+Dense #3         : BUFFER3 → BUFFER1
+</code></pre>
+<p>This alternating-buffer pattern is a common strategy in Noodle examples. It avoids allocating a separate activation buffer for every layer.</p>
+<hr />
+<h2 id="visual-studio-code-and-platformio">Visual Studio Code and PlatformIO</h2>
+<p>This example uses <strong>Visual Studio Code</strong> with <strong>PlatformIO</strong>.</p>
+<p>PlatformIO is useful for ESP32 projects because it provides convenient support for building and uploading filesystem images. This is important when the neural-network parameters are stored as files.</p>
+<p><img alt="" src="../attachments/vscode.png" /></p>
+<p>The typical workflow is:</p>
+<ol>
+<li>Place all files intended for the ESP32 filesystem inside the project <code>data/</code> directory.</li>
+<li>Build the filesystem image from the <code>data/</code> directory.</li>
+<li>Upload the filesystem image to the ESP32.</li>
+<li>Upload or update the firmware as needed.</li>
+</ol>
+<p>The filesystem image contains the binary parameter files, such as:</p>
+<pre><code class="language-text">/w01.bin
+/b01.bin
+/w02.bin
+/b02.bin
+</code></pre>
+<hr />
+<h2 id="benchmarking">Benchmarking</h2>
+<p>Benchmarking is performed by deploying the model to the ESP32 and sending test images from a Python script over serial communication.</p>
+<p>The Python test harness applies random rotations in the range:</p>
+<pre><code class="language-text">±20 degrees
+</code></pre>
+<p>These random rotations were not used during training. Therefore, the benchmark gives a simple indication of robustness under input variation.</p>
+<p>Two implementation variants are compared:</p>
+<ol>
+<li>CNN parameters stored as variables.</li>
+<li>CNN parameters stored as files.</li>
+</ol>
+<hr />
+<h2 id="benchmark-variant-1-cnn-as-variables-fcn-as-variables">Benchmark Variant 1: CNN as Variables, FCN as Variables</h2>
+<p>In this version, both CNN and FCN parameters are stored in memory. The convolution layers use <code>ConvMem</code>.</p>
+<pre><code class="language-cpp">void predict()
+{
+  ConvMem cnn1;
+  cnn1.K = 5;
+  cnn1.P = 2;
+  cnn1.S = 1;              // same padding
+  cnn1.weight = w01;
+  cnn1.bias   = b01;
+
+  ConvMem cnn2;
+  cnn2.K = 5;
+  cnn2.P = 0;
+  cnn2.S = 1;              // valid padding
+  cnn2.weight = w02;
+  cnn2.bias   = b02;
+
+  Pool pool;
+  pool.M = 2;
+  pool.T = 2;
+
+  FCNMem fcn_mem1;
+  fcn_mem1.weight = w03;
+  fcn_mem1.bias   = b03;
+  fcn_mem1.act    = ACT_RELU;
+
+  FCNMem fcn_mem2;
+  fcn_mem2.weight = w04;
+  fcn_mem2.bias   = b04;
+  fcn_mem2.act    = ACT_RELU;
+
+  FCNMem fcn_mem3;
+  fcn_mem3.weight = w05;
+  fcn_mem3.bias   = b05;
+  fcn_mem3.act    = ACT_SOFTMAX;
+
+  unsigned long st = micros();
+  uint16_t V;
+
+  V = noodle_conv_float(BUFFER1, 1, 6,  BUFFER3, 28, cnn1, pool, NULL);
+  V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V,  cnn2, pool, NULL);
+
+  V = noodle_flat(BUFFER1, BUFFER3, V, 16);
+
+  V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn_mem1, NULL);
+  V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn_mem2, NULL);
+  V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn_mem3, NULL);
+
+  unsigned long elapsed = micros() - st;
+
+  // Print or log elapsed time and prediction result here.
+}
+</code></pre>
+<p><img alt="" src="../attachments/bench-sram.gif" /></p>
+<p>This version is faster because all parameters are accessed directly from memory. However, it requires more program memory or RAM, depending on where the arrays are placed.</p>
+<hr />
+<h2 id="benchmark-variant-2-cnn-as-files-fcn-as-variables">Benchmark Variant 2: CNN as Files, FCN as Variables</h2>
+<p>In this version, the CNN parameters are loaded from files, while the FCN parameters remain compiled into the firmware.</p>
+<p>The convolution layers use <code>Conv</code>.</p>
+<pre><code class="language-cpp">void predict()
+{
+  Conv cnn1;
+  cnn1.K = 5;
+  cnn1.P = 2;
+  cnn1.S = 1;              // same padding
+  cnn1.weight_fn = &quot;/w01.bin&quot;;
+  cnn1.bias_fn   = &quot;/b01.bin&quot;;
+
+  Conv cnn2;
+  cnn2.K = 5;
+  cnn2.P = 0;
+  cnn2.S = 1;              // valid padding
+  cnn2.weight_fn = &quot;/w02.bin&quot;;
+  cnn2.bias_fn   = &quot;/b02.bin&quot;;
+
+  Pool pool;
+  pool.M = 2;
+  pool.T = 2;
+
+  FCNMem fcn_mem1;
+  fcn_mem1.weight = w03;
+  fcn_mem1.bias   = b03;
+  fcn_mem1.act    = ACT_RELU;
+
+  FCNMem fcn_mem2;
+  fcn_mem2.weight = w04;
+  fcn_mem2.bias   = b04;
+  fcn_mem2.act    = ACT_RELU;
+
+  FCNMem fcn_mem3;
+  fcn_mem3.weight = w05;
+  fcn_mem3.bias   = b05;
+  fcn_mem3.act    = ACT_SOFTMAX;
+
+  unsigned long st = micros();
+  uint16_t V;
+
+  V = noodle_conv_float(BUFFER1, 1, 6,  BUFFER3, 28, cnn1, pool, NULL);
+  V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V,  cnn2, pool, NULL);
+
+  V = noodle_flat(BUFFER1, BUFFER3, V, 16);
+
+  V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn_mem1, NULL);
+  V = noodle_fcn(BUFFER1, V, 84,  BUFFER3, fcn_mem2, NULL);
+  V = noodle_fcn(BUFFER3, V, 10,  BUFFER1, fcn_mem3, NULL);
+
+  unsigned long elapsed = micros() - st;
+
+  // Print or log elapsed time and prediction result here.
+}
+</code></pre>
+<p><img alt="" src="../attachments/bench-file.gif" /></p>
+<p>This version is slower than direct in-memory access because convolution parameters are read from the filesystem. However, using <code>.bin</code> files avoids ASCII parsing overhead and reduces the amount of model data that must be compiled into the firmware.</p>
+<hr />
+<h3 id="ffat-versus-sd-card-for-noodle">FFat versus SD card for Noodle</h3>
+<p>The ESP32 FFat filesystem can be used to store model parameter files. In this example, the parameter files uploaded to FFat are <code>.bin</code> files, not <code>.txt</code> files. This is useful when weights and biases are prepared on a computer, converted to binary format, and uploaded to the ESP32 filesystem before inference. In this usage pattern, the files are mostly read-only, so flash wear is not a major concern.</p>
+<p>However, FFat should not be treated as a high-frequency scratch space for intermediate activations. Intermediate tensors may be written once per layer and once per inference. Repeating this for many inference cycles can produce many writes to the ESP32 flash partition. Although ESP32 FATFS can use wear levelling, the underlying flash still has finite write/erase endurance.</p>
+<p>For this reason, Noodle examples should distinguish between:</p>
+<ul>
+<li><strong>parameter storage</strong>, where FFat is acceptable because files are mostly read;</li>
+<li><strong>activation streaming</strong>, where SD card storage is preferred over internal flash;</li>
+<li><strong>fast inference</strong>, where RAM or PSRAM is preferred whenever the tensors fit.</li>
+</ul>
+<p>In short, FFat is suitable for model files, but SD card or RAM/PSRAM is a better choice for repeatedly written intermediate outputs.</p>
+<hr />
+<h2 id="discussion">Discussion</h2>
+<p>The two benchmark variants show an important embedded TinyML trade-off.</p>
+<p>Storing parameters as variables gives faster inference because weights and biases can be accessed directly. The drawback is that the firmware becomes larger, and memory pressure increases.</p>
+<p>Storing parameters as <code>.bin</code> files reduces firmware memory pressure and makes it easier to replace model parameters without recompiling the whole program. The drawback is slower inference compared with direct memory access because the filesystem becomes part of the inner computation path.</p>
+<p>For small models and boards with enough flash, <code>const</code> arrays are usually simpler and faster. For larger models, filesystem-backed parameters become useful because they allow the model to exceed what is convenient to compile directly into the firmware.</p>
+<p>In this example, only the CNN parameters are moved to files. This gives a simple demonstration of mixed parameter placement while keeping the fully connected layers fast and simple.</p>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>This example demonstrates a BIN-file-assisted LeNet-5 implementation on ESP32 using Noodle.</p>
+<p>The main ideas are:</p>
+<ul>
+<li>train the model externally using Keras,</li>
+<li>export weights and biases as <code>.txt</code> and <code>.h</code> files,</li>
+<li>convert selected <code>.txt</code> files into <code>.bin</code> files,</li>
+<li>store CNN parameters as <code>.bin</code> files,</li>
+<li>store FCN parameters as <code>const</code> arrays,</li>
+<li>use alternating activation buffers,</li>
+<li>and benchmark the effect of parameter placement on inference speed.</li>
+</ul>
+<p>This example also introduces an important Noodle design principle: the user explicitly controls where model parameters and activations live. This makes the implementation more manual, but also more transparent and adaptable to constrained microcontrollers.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
