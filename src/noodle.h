@@ -235,6 +235,26 @@ bool noodle_fs_init();
  */
 bool noodle_fs_init(uint8_t cs_pin);
 
+#if defined(NOODLE_USE_SDFAT)
+/**
+ * @brief Initialize SdFat with an explicit SPI bus and clock speed.
+ * @ingroup noodle_public
+ *
+ * This overload is available only when `NOODLE_USE_SDFAT` is selected. It sets
+ * the chip-select pin inactive, then starts `NOODLE_FS` using the supplied SPI
+ * instance in dedicated-SPI mode at the requested SD clock.
+ *
+ * Use this overload when the SD card is connected to a non-default SPI bus or
+ * to custom SPI pins that have already been configured on @p spi.
+ *
+ * @param cs_pin SPI chip-select pin for the SD card.
+ * @param spi SPI bus instance used by SdFat.
+ * @param sck_mhz Requested SD SPI clock in MHz.
+ * @return `true` when SdFat initializes successfully.
+ */
+bool noodle_fs_init(uint8_t cs_pin, SPIClass &spi, uint8_t sck_mhz);
+#endif
+
 /**
  * @brief Read the first line from a text file.
  * @ingroup noodle_public
