@@ -1,0 +1,12 @@
+<map id="noodle.h" name="noodle.h">
+<area shape="rect" id="Node000001" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="42,5,112,32"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="15,155,80,181"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="53,35,31,54,11,81,8,96,11,112,28,142,23,144,6,114,3,96,6,79,27,51,56,30"/>
+<area shape="rect" id="Node000003" href="$noodle__config_8h.html" title=" " alt="" coords="21,80,133,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="78,30,79,65,74,64,76,35"/>
+<area shape="rect" id="Node000004" href="$noodle__fs_8h.html" title=" " alt="" coords="157,80,245,107"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="99,30,169,71,164,73,98,35"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="176,109,89,150,87,145,172,105"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="167,155,235,181"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="203,105,203,140,198,138,199,109"/>
+</map>

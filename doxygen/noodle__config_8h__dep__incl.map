@@ -1,0 +1,7 @@
+<map id="noodle_config.h" name="noodle_config.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,118,32"/>
+<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="26,80,97,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,45,64,80,59,79,61,50"/>
+<area shape="rect" id="Node000003" href="$noodle_8cpp.html" title="Noodle implementation (streaming kernels, filesystem init, parsing helpers)." alt="" coords="19,155,104,181"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="63,121,64,155,59,154,60,124"/>
+</map>
