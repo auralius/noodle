@@ -172,10 +172,10 @@ void draw_buttons(const char *label1, const char *label2)
 
 void alloc_buffers()
 {
-  GRID = (float *)malloc(IMG_SIZE * sizeof(float));
+  GRID    = (float *)malloc(28 * 28 * sizeof(float));
   BUFFER1 = GRID;
-  BUFFER2 = (float *)malloc(IMG_SIZE * sizeof(float));
-  BUFFER3 = (float *)malloc(14 * 14 * 6 * sizeof(float));
+  BUFFER2 = (float *)malloc(28 * 28 * sizeof(float));       // temp accumulator
+  BUFFER3 = (float *)malloc(14 * 14 * 6 * sizeof(float));   // final Conv1 output
 }
 
 byte summarize(float et, float *buf)
@@ -220,15 +220,15 @@ void predict()
   cnn1.K = 5;
   cnn1.P = 2;
   cnn1.S = 1; // same padding
-  cnn1.weight_fn = "/w01.txt";
-  cnn1.bias_fn = "/b01.txt";
+  cnn1.weight_fn = "/w01.bin";
+  cnn1.bias_fn = "/b01.bin";
 
   Conv cnn2;
   cnn2.K = 5;
   cnn2.P = 0;
   cnn2.S = 1; // valid padding
-  cnn2.weight_fn = "/w02.txt";
-  cnn2.bias_fn = "/b02.txt";
+  cnn2.weight_fn = "/w02.bin";
+  cnn2.bias_fn = "/b02.bin";
 
   Pool pool;
   pool.M = 2;
@@ -253,6 +253,7 @@ void predict()
   uint16_t V;
 
   tft.println(F("Conv #1 ..."));
+  Serial.println(F("Conv #1 ..."));
   V = noodle_conv_float(BUFFER1, 1, 6, BUFFER3, 28, cnn1, pool, NULL);
 
   tft.println(F("Conv #2 ..."));
@@ -279,32 +280,40 @@ void setup()
 {
   Serial.begin(115200);
 
-  // while (!noodle_fs_init(14, 15, 2)) { // 1-bit pins for ESP32-CAM (AI-Thinker)
-  while (!noodle_fs_init())
-  { // 4-bit
-    delay(500);
-    tft.println(".");
-  }
-  tft.println(F("FFAT OK!"));
-
-  touchscreenSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
-  ts.begin(touchscreenSPI);
   tft.init();
-
   tft.setRotation(2);
-  ts.setRotation(2);
-
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_GREEN);
 
+  touchscreenSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
+  ts.begin(touchscreenSPI);
+  ts.setRotation(2);
+  delay(3000);
+  while (!noodle_fs_init())
+  {
+    delay(500);
+    Serial.println(".");
+    tft.println(".");
+  }
+
+  Serial.println(F("FFAT OK!"));
+
   alloc_buffers();
+
+  if (!GRID || !BUFFER2 || !BUFFER3) {
+    Serial.println("[ERR] malloc failed");
+    tft.println("[ERR] malloc failed");
+    while (1) delay(1000);
+  }
+
+  //noodle_setup_temp_buffers((void *)BUFFER2);
+  noodle_setup_temp_buffers(BUFFER1, BUFFER2);
+
+  //noodle_read_top_line("info.txt", INFO, 8);
 
   reset_grid();
   area_setup();
   draw_buttons("CLEAR", "PREDICT");
-
-  noodle_setup_temp_buffers((void *)BUFFER2);
-  noodle_read_top_line("/info.txt", INFO, 8);
 }
 
 void loop()

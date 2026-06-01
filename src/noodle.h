@@ -19,14 +19,22 @@
  * helpers.
  *
  * @section noodle_temp_buffers Temporary Buffers
- * File-streaming convolution and FCN paths reuse caller-owned temporary buffers.
- * Call noodle_setup_temp_buffers() before using those APIs.
+ * Several convolution overloads reuse caller-owned temporary buffers. The exact
+ * requirement is documented on each overload that uses them. Call
+ * noodle_setup_temp_buffers() before using those APIs.
  *
- * Typical buffer requirements:
- * - Buffer 1: one input plane, usually `W * W * sizeof(float)` bytes for 2D or
- *   `W * sizeof(float)` bytes for 1D.
- * - Buffer 2: one accumulation/output plane, usually `W * W * sizeof(float)`
- *   bytes for 2D or `W * sizeof(float)` bytes for 1D.
+ * Buffer roles:
+ * - Buffer 1 (`b1`): file-input scratch. It holds one input plane/sequence.
+ * - Buffer 2 (`b2`): accumulation scratch. It holds one pre-pooling output
+ *   plane/sequence.
+ *
+ * Typical sizes:
+ * - 2D input scratch: `W * W` input values (`byte` for byte-input convolution,
+ *   `float` otherwise).
+ * - 2D accumulator: `Vconv * Vconv` floats, where
+ *   `Vconv = noodle_compute_V(K, W, P, S)`.
+ * - 1D input scratch: `W` floats.
+ * - 1D accumulator: `W` floats in the current 1D convolution overloads.
  *
  * @section noodle_layout Tensor Layout And Text Files
  * Unless a function says otherwise, tensors are channel-first and packed
@@ -148,15 +156,14 @@ struct Pool {
 typedef void (*CBFPtr)(float progress);
 
 /**
- * @brief Configure both reusable temporary buffers for file-streaming operations.
+ * @brief Configure both reusable temporary buffers for convolution operations.
  * @ingroup noodle_public
  *
- * Call this before APIs that read file-backed inputs or parameters and require
- * scratch space. The buffers are stored as raw pointers and are not owned by
- * Noodle.
+ * Call this before APIs that require scratch space. The buffers are stored as
+ * raw pointers and are not owned by Noodle.
  *
- * @param b1 Input scratch buffer.
- * @param b2 Accumulation/output scratch buffer.
+ * @param b1 Input scratch buffer, used by overloads that stream file inputs.
+ * @param b2 Accumulation/pre-pooling output scratch buffer.
  */
 void noodle_setup_temp_buffers(void *b1, void *b2);
 
@@ -164,10 +171,11 @@ void noodle_setup_temp_buffers(void *b1, void *b2);
  * @brief Configure only the reusable accumulation/output temporary buffer.
  * @ingroup noodle_public
  *
- * Use this overload for mixed memory-to-file operations that do not need an input
- * scratch buffer but do need a plane-sized accumulator.
+ * Use this overload for operations that do not need an input scratch buffer but
+ * do need a plane-sized accumulator. This includes some memory-to-memory and
+ * memory-to-file convolution overloads.
  *
- * @param b2 Accumulation/output scratch buffer.
+ * @param b2 Accumulation/pre-pooling output scratch buffer.
  */
 void noodle_setup_temp_buffers(void *b2);
 
@@ -227,6 +235,26 @@ bool noodle_fs_init();
  */
 bool noodle_fs_init(uint8_t cs_pin);
 
+#if defined(NOODLE_USE_SDFAT)
+/**
+ * @brief Initialize SdFat with an explicit SPI bus and clock speed.
+ * @ingroup noodle_public
+ *
+ * This overload is available only when `NOODLE_USE_SDFAT` is selected. It sets
+ * the chip-select pin inactive, then starts `NOODLE_FS` using the supplied SPI
+ * instance in dedicated-SPI mode at the requested SD clock.
+ *
+ * Use this overload when the SD card is connected to a non-default SPI bus or
+ * to custom SPI pins that have already been configured on @p spi.
+ *
+ * @param cs_pin SPI chip-select pin for the SD card.
+ * @param spi SPI bus instance used by SdFat.
+ * @param sck_mhz Requested SD SPI clock in MHz.
+ * @return `true` when SdFat initializes successfully.
+ */
+bool noodle_fs_init(uint8_t cs_pin, SPIClass &spi, uint8_t sck_mhz);
+#endif
+
 /**
  * @brief Read the first line from a text file.
  * @ingroup noodle_public
@@ -267,7 +295,7 @@ size_t noodle_read_bytes_until(NDL_File &file, char terminator, char *buffer, si
  */
  
 /**
- * @brief Write a float as a text line.
+ * @brief Write a float using the configured file scalar format.
  * @ingroup noodle_internal
  * @param f Open output file.
  * @param d Value to write.
@@ -275,7 +303,7 @@ size_t noodle_read_bytes_until(NDL_File &file, char terminator, char *buffer, si
 void noodle_write_float(NDL_File &f, float d);
 
 /**
- * @brief Read a float from the next text line.
+ * @brief Read a float using the configured file scalar format.
  * @ingroup noodle_internal
  * @param f Open input file.
  * @return Parsed float value.
@@ -283,7 +311,7 @@ void noodle_write_float(NDL_File &f, float d);
 float noodle_read_float(NDL_File &f);
 
 /**
- * @brief Read a byte value from the next text line.
+ * @brief Read a byte value using the configured file scalar format.
  * @ingroup noodle_internal
  * @param f Open input file.
  * @return Parsed byte value.
@@ -291,7 +319,7 @@ float noodle_read_float(NDL_File &f);
 byte noodle_read_byte(NDL_File &f);
 
 /**
- * @brief Write a byte value as an integer text line.
+ * @brief Write a byte value using the configured file scalar format.
  * @ingroup noodle_internal
  * @param f Open output file.
  * @param d Value to write.
@@ -543,8 +571,9 @@ uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, N
  * For 2D convolution, `P == 65535` requests SAME-style output sizing via
  * noodle_compute_V().
  *
- * File-backed overloads require temporary buffers configured with
- * noodle_setup_temp_buffers().
+ * Temp-buffer requirements are listed per overload. Some memory-to-memory
+ * overloads still require buffer 2 because pooling needs a separate
+ * pre-pooling accumulation plane.
  */
 
 /**
@@ -554,6 +583,11 @@ uint16_t noodle_do_pooling1d(float *input, uint16_t W, uint16_t K, uint16_t S, N
  * Reads packed byte-valued input planes from @p in_fn, streams file-backed
  * weights/biases from @p conv, applies activation and pooling, and writes packed
  * float output planes to @p out_fn.
+ *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W * W` byte values. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
  *
  * @param in_fn Input file containing packed `[I][W][W]` planes.
  * @param n_inputs Number of input channels.
@@ -582,6 +616,11 @@ uint16_t noodle_conv_byte(const char *in_fn,
  * weights/biases from @p conv, applies activation and pooling, and writes packed
  * output planes to @p out_fn.
  *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W * W` floats. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
  * @param in_fn Input file containing packed `[I][W][W]` planes.
  * @param n_inputs Number of input channels.
  * @param n_outputs Number of output channels.
@@ -607,6 +646,11 @@ uint16_t noodle_conv_float(const char *in_fn,
  *
  * The output tensor is channel-first and packed as `[O][Vout][Vout]`.
  *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W * W` floats. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
  * @param in_fn Input file containing packed `[I][W][W]` planes.
  * @param n_inputs Number of input channels.
  * @param n_outputs Number of output channels.
@@ -629,6 +673,11 @@ uint16_t noodle_conv_float(const char *in_fn,
 /**
  * @brief Run memory-to-file 2D convolution with file-backed parameters.
  * @ingroup noodle_public
+ *
+ * @warning Requires the second temporary buffer. Call
+ * `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)` before
+ * calling. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
  *
  * @param input Input tensor in packed `[I][W][W]` layout.
  * @param n_inputs Number of input channels.
@@ -653,6 +702,11 @@ uint16_t noodle_conv_float(float *input,
  * @brief Run memory-to-file 2D convolution with memory-backed parameters.
  * @ingroup noodle_public
  *
+ * @warning Requires the second temporary buffer. Call
+ * `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)` before
+ * calling. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
  * @param input Input tensor in packed `[I][W][W]` layout.
  * @param n_inputs Number of input channels.
  * @param n_outputs Number of output channels.
@@ -675,6 +729,12 @@ uint16_t noodle_conv_float(float *input,
 /**
  * @brief Run memory-to-memory 2D convolution with file-backed parameters.
  * @ingroup noodle_public
+ *
+ * @warning Requires the second temporary buffer, even though both input and
+ * output tensors are in memory. Call
+ * `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)` before
+ * calling. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
  *
  * @param input Input tensor in packed `[I][W][W]` layout.
  * @param n_inputs Number of input channels.
@@ -699,6 +759,12 @@ uint16_t noodle_conv_float(float *input,
  * @brief Run memory-to-memory 2D convolution with memory-backed parameters.
  * @ingroup noodle_public
  *
+ * @warning Requires the second temporary buffer, even though the tensors and
+ * parameters are in memory. Call `noodle_setup_temp_buffers(b2)` or
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b2` must hold at least
+ * `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
  * @param input Input tensor in packed `[I][W][W]` layout.
  * @param n_inputs Number of input channels.
  * @param n_outputs Number of output channels.
@@ -722,7 +788,8 @@ uint16_t noodle_conv_float(float *input,
  * @name 1D Convolution
  *
  * 1D convolution uses packed `[C][W]` tensors. `Conv::K`/`ConvMem::K` is the
- * kernel length and @p W is the input sequence length.
+ * kernel length and @p W is the input sequence length. Temp-buffer
+ * requirements are listed per overload.
  */
  
 /**
@@ -732,6 +799,11 @@ uint16_t noodle_conv_float(float *input,
  * Reads packed `[I][W]` input samples from @p in_fn, accumulates one output
  * sequence per output channel, applies bias/activation, applies valid 1D max
  * pooling, and appends packed `[O][Vout]` output samples to @p out_fn.
+ *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W` floats for one input sequence, and `b2` must hold at least `W` floats for
+ * one accumulated output sequence.
  *
  * @param in_fn Input file containing packed `[I][W]` sequences.
  * @param n_inputs Number of input channels.
@@ -759,6 +831,11 @@ uint16_t noodle_conv1d(const char *in_fn,
  * This overload does not pool. It writes packed raw convolution outputs after
  * bias/activation.
  *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W` floats for one input sequence, and `b2` must hold at least `W` floats for
+ * one accumulated output sequence.
+ *
  * @param in_fn Input file containing packed `[I][W]` sequences.
  * @param n_inputs Number of input channels.
  * @param out_fn Output file for packed `[O][V]` sequences.
@@ -780,8 +857,12 @@ uint16_t noodle_conv1d(const char *in_fn,
  * @brief Run file-to-file 1D convolution with memory-backed parameters.
  * @ingroup noodle_public
  *
- * This overload does not pool. It requires both temporary buffers because input
- * samples are streamed from a file into memory and accumulated before writing.
+ * This overload does not pool.
+ *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W` floats for one input sequence, and `b2` must hold at least `W` floats for
+ * one accumulated output sequence.
  *
  * @param in_fn Input file containing packed `[I][W]` sequences.
  * @param n_inputs Number of input channels.
@@ -827,8 +908,11 @@ uint16_t noodle_conv1d(float *in,
  * @brief Run memory-to-file 1D convolution with memory-backed parameters.
  * @ingroup noodle_public
  *
- * This overload does not pool. It requires the second temporary buffer as an
- * output accumulator.
+ * This overload does not pool.
+ *
+ * @warning Requires the second temporary buffer as an output accumulator. Call
+ * `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)` before
+ * calling. `b2` must hold at least `W` floats.
  *
  * @param in Input tensor in packed `[I][W]` layout.
  * @param n_inputs Number of input channels.
@@ -853,6 +937,10 @@ uint16_t noodle_conv1d(float *in,
  *
  * This overload does not pool. The output buffer is packed by output channel,
  * with each channel occupying `Vmax = (W - K + 2P) / S + 1` values.
+ *
+ * @warning Requires the first temporary buffer. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W` floats for one input sequence. This overload does not use `b2`.
  *
  * @param in_fn Input file containing packed `[I][W]` sequences.
  * @param n_inputs Number of input channels.
@@ -1042,7 +1130,8 @@ struct FCN {
  * @ingroup noodle_public
  *
  * The weight file is read in row-major `[O][I]` order and the bias file contains
- * one scalar per output neuron.
+ * one scalar per output neuron. Float-input FCN overloads may buffer weight
+ * reads in chunks of `NOODLE_FCN_BLOCK` floats to reduce file I/O overhead.
  */
 struct FCNFile {
   const char *weight_fn = nullptr; ///< Weight filename with row-major `[O][I]` values.
@@ -1065,6 +1154,14 @@ struct FCNMem {
 
 /**
  * @name Fully Connected Layers
+ *
+ * File-backed fully-connected weights are consumed sequentially in row-major
+ * `[O][I]` order. For overloads that receive the input vector as `float *` and
+ * use @ref FCNFile parameters, weights are read through a stack buffer of
+ * `NOODLE_FCN_BLOCK` floats. In binary file mode each chunk is read as raw
+ * little-endian float32 data; in text file mode the same chunk is filled by
+ * parsing one scalar at a time. Tune `NOODLE_FCN_BLOCK` in `noodle_config.h`
+ * to trade stack usage for fewer file read calls.
  */
 
 /**
@@ -1186,7 +1283,13 @@ uint16_t noodle_fcn(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs,
  * @brief Run a memory-to-memory fully-connected layer with float inputs.
  * @ingroup noodle_public
  *
- * Weights and biases are read from files. Applies ReLU or softmax when requested.
+ * Weights and biases are read from files. The weight stream is buffered in
+ * blocks of up to `NOODLE_FCN_BLOCK` floats before each dot-product chunk is
+ * accumulated. Applies ReLU or softmax when requested.
+ *
+ * @note Uses a stack buffer of `NOODLE_FCN_BLOCK * sizeof(float)` bytes and
+ * returns `0` if an input/output pointer is null, a parameter file cannot be
+ * opened, or a weight block cannot be read completely.
  *
  * @param input Input vector with @p n_inputs floats.
  * @param n_inputs Number of input values.
@@ -1204,8 +1307,14 @@ uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
  * @brief Run a memory-to-file fully-connected layer with float inputs.
  * @ingroup noodle_public
  *
- * Computes `y = W*x + b`, applies ReLU when requested, and writes one output
- * float per line to @p out_fn.
+ * Computes `y = W*x + b`, applies ReLU when requested, and writes each output
+ * using the configured file scalar format. The weight stream is buffered in
+ * blocks of up to `NOODLE_FCN_BLOCK` floats before each dot-product chunk is
+ * accumulated.
+ *
+ * @note Uses a stack buffer of `NOODLE_FCN_BLOCK * sizeof(float)` bytes and
+ * returns `0` if @p input is null, a file cannot be opened, or a weight block
+ * cannot be read completely.
  *
  * @param input Input vector with @p n_inputs floats.
  * @param n_inputs Number of input values.
@@ -1254,6 +1363,34 @@ uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_fi
 uint16_t noodle_flat(float *input, float *output, uint16_t V, uint16_t n_filters);
 
 /**
+ * @brief Convert HWC-like memory order into packed channel-first tensor order.
+ * @ingroup noodle_public
+ *
+ * Reads @p src_hwc as an interleaved spatial-major tensor,
+ * `src_hwc[(y * W + x) * C + c]`, and writes @p dst_chw as packed
+ * channel-first planes, `dst_chw[c * W * W + y * W + x]`.
+ *
+ * This is the inverse layout conversion for the memory form of
+ * noodle_flat() when the tensor is square.
+ *
+ * @note Source and destination buffers must not overlap. This helper does not
+ * allocate memory and performs no bounds checks.
+ *
+ * @param src_hwc Input tensor in HWC-like `[W][W][C]` memory order.
+ * @param dst_chw Destination tensor with room for `W * W * C` floats in
+ * packed `[C][W][W]` order.
+ * @param W Width and height of the square spatial plane.
+ * @param C Number of channels.
+ * @return Number of values written. The return type is `uint16_t` for API
+ * compatibility, so callers should ensure `W * W * C <= 65535` if the returned
+ * count is significant.
+ */
+uint16_t noodle_reshape(const float *src_hwc,
+                        float *dst_chw,
+                        uint16_t W,
+                        uint16_t C);
+
+/**
  * @brief Apply global average pooling in place.
  * @ingroup noodle_public
  *
@@ -1284,6 +1421,9 @@ void noodle_find_max(float *input,
 
 /** 
  *  @name 2D Depth-wise Convolution 
+ *
+ * Temp-buffer requirements are listed per overload. Buffer 2 is used as the
+ * pre-pooling accumulation plane for depthwise convolution.
  */
 
 /**
@@ -1292,7 +1432,11 @@ void noodle_find_max(float *input,
  *
  * The input and output are packed channel-first files. Each channel is convolved
  * with its own `K x K` kernel, then bias, activation, and pooling are applied.
- * Requires temporary buffers configured with noodle_setup_temp_buffers().
+ *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W * W` floats. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
  *
  * @param in_fn Input file containing packed `[C][W][W]` planes.
  * @param n_channels Number of input/output channels.
@@ -1316,6 +1460,11 @@ uint16_t noodle_dwconv_float(const char *in_fn,
  * @brief Run memory-to-memory 2D depthwise convolution with file-backed parameters.
  * @ingroup noodle_public
  *
+ * @warning Requires the second temporary buffer. Call
+ * `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)` before
+ * calling. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
  * @param input Input tensor in packed `[C][W][W]` layout.
  * @param n_channels Number of input/output channels.
  * @param output Destination tensor in packed `[C][Vout][Vout]` layout.
@@ -1335,6 +1484,12 @@ uint16_t noodle_dwconv_float(float *input,
 /**
  * @brief Run memory-to-memory 2D depthwise convolution with memory-backed parameters.
  * @ingroup noodle_public
+ *
+ * @warning Requires the second temporary buffer, even though the tensors and
+ * parameters are in memory. Call `noodle_setup_temp_buffers(b2)` or
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b2` must hold at least
+ * `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
  *
  * @param input Input tensor in packed `[C][W][W]` layout.
  * @param n_channels Number of input/output channels.
