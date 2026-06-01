@@ -11,6 +11,10 @@
         <link rel="canonical" href="https://auralius.github.io/noodle/fcn-uno/">
       
       
+        <link rel="prev" href="../lenet-5-bluepill/">
+      
+      
+        <link rel="next" href="../mobile-lenet/">
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -18,7 +22,7 @@
     
     
       
-        <title>Two-Layer Fully Connected Network on ATmega328P (Arduino Uno R3) - Noodle - The Documentation</title>
+        <title>Two-Layer FCN on UNO R3 - Noodle - The Documentation</title>
       
     
     
@@ -97,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Two-Layer Fully Connected Network on ATmega328P (Arduino Uno R3)
+              Two-Layer FCN on UNO R3
             
           </span>
         </div>
@@ -383,7 +387,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../lenet-5-esp32-sdio.md" class="md-nav__link">
+      <a href="../lenet-5-bluepill/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -401,10 +405,31 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../usps-fcn-uno.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Two-Layer FCN on UNO R3
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -414,6 +439,116 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#preface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plan
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      Hardware
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spatial-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spatial Normalization
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parameter-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameter Export
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#noodle-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Noodle Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-the-uno-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      On the Uno Side
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inference Time
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -481,7 +616,7 @@
 </ul>
 </li>
 </ul>
-<p><img alt="" src="fcn-uno-demo.png" /></p>
+<p><img alt="" src="../attachments/fcn-uno-demo.png" /></p>
 <h2 id="plan">Plan</h2>
 <p>This project demonstrates how an SD card can be used to implement a two-layer Fully Connected Network (FCN) for digit recognition on an Arduino Uno R3. The Arduino Uno R3 is based on the ATmega328P microcontroller, which has only 2 KB of SRAM. In practical applications, especially those involving a graphical user interface, the interface itself can consume a large portion of the available resources. This makes it impractical to store all intermediate activations, layer outputs, and large parameter arrays directly in SRAM.</p>
 <p>To address this limitation, this project relies on external storage in the form of an SD card. The FCN weights and biases are stored on the SD card and streamed during inference. This allows the microcontroller to execute a simple neural network pipeline under tight embedded constraints, at the cost of longer inference time.</p>

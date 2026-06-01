@@ -11,6 +11,10 @@
         <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-bluepill/">
       
       
+        <link rel="prev" href="../lenet-5-pico/">
+      
+      
+        <link rel="next" href="../fcn-uno/">
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -18,7 +22,7 @@
     
     
       
-        <title>Lenet 5 bluepill - Noodle - The Documentation</title>
+        <title>SD-Card–Backed LeNet-5 - Noodle - The Documentation</title>
       
     
     
@@ -97,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Lenet 5 bluepill
+              SD-Card–Backed LeNet-5
             
           </span>
         </div>
@@ -380,10 +384,29 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../lenet-5-esp32-sdio.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    SD-Card–Backed LeNet-5
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -393,6 +416,138 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sd-card-backed-lenet-5-inference-on-stm32-blue-pill" class="md-nav__link">
+    <span class="md-ellipsis">
+      SD-Card-Backed LeNet-5 Inference on STM32 Blue Pill
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-use-an-sd-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Use an SD Card?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage Strategy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#layer-by-layer-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Layer-by-Layer Data Flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#noodle-implementation-sketch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Noodle Implementation Sketch
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sd-card-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      SD Card Interface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benchmark Result
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Benchmark Result">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fully-file-backed-fc-activations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fully file-backed FC activations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ram-backed-fc-activations" class="md-nav__link">
+    <span class="md-ellipsis">
+      RAM-backed FC activations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why This Matters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-not-just-quantize" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why Not Just Quantize?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -404,7 +559,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../usps-fcn-uno.md" class="md-nav__link">
+      <a href="../fcn-uno/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -458,7 +613,7 @@
   
 
 
-  <h1>Lenet 5 bluepill</h1>
+  <h1>SD-Card–Backed LeNet-5</h1>
 
 <h2 id="sd-card-backed-lenet-5-inference-on-stm32-blue-pill">SD-Card-Backed LeNet-5 Inference on STM32 Blue Pill</h2>
 <p>This example evaluates a <strong>LeNet-5-style inference pipeline</strong> on an <strong>STM32F103 Blue Pill</strong>. The main goal is to show how Noodle can execute a model whose full parameter set cannot fit into the microcontroller’s internal memory. The STM32F103 Blue Pill is a useful target because it is highly constrained:</p>
