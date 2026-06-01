@@ -7,3 +7,4 @@ __pychace__/
 .vscode/launch.json
 .vscode/ipch
 examples/auto-encoder/test/mnist_train.csv
+examples/lenet-5-esp32-sdio/test/mnist_train.csv
