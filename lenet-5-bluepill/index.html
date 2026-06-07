@@ -273,48 +273,95 @@
 
 <h2 id="lenet-5-2828-on-stm32-blue-pill">LeNet-5-28×28 on STM32 Blue Pill</h2>
 <p>This example evaluates a LeNet-5 inference pipeline on an STM32F103 Blue Pill. The goal is to show how Noodle can run a model whose parameters are too large for the microcontroller's internal flash, while still keeping intermediate activations in SRAM when they fit.</p>
-<p><img alt="" src="../attachments/noodle-bluepills.png" /></p>
-<p>The STM32F103 Blue Pill is a constrained target:</p>
-<pre><code class="language-text">Flash : 64 KB nominal on common STM32F103C8 boards
-SRAM  : 20 KB
-````
-
-The LeNet-5 parameter set is much larger than the available flash when represented as `float32`. Therefore, this implementation stores weights and biases on an external SD card. Activations are kept in SRAM to avoid unnecessary SD-card traffic.
-
-In this implementation:
-
-* weights and biases are stored as binary `.bin` files on the SD card,
-* convolution and fully connected activations are stored in SRAM,
-* the SD card is used only as parameter storage,
-* and inference is executed layer by layer using Noodle.
-
-The use of binary files is important. Text files are easier to inspect, but they require ASCII parsing on the microcontroller. Binary files store raw `float32` values directly, making them more suitable for repeated embedded inference.
-
----
-
-## Why Use an SD Card?
-
-The SD card is required because the full `float32` LeNet-5 parameter set is too large for the internal flash of a typical Blue Pill.
-
-Approximate parameter sizes are:
-
-| Layer         |  Parameter shape | Number of floats |    Size |
-| ------------- | ---------------: | ---------------: | ------: |
-| Conv1 weights |  `6 × 1 × 5 × 5` |              150 |   600 B |
-| Conv1 bias    |              `6` |                6 |    24 B |
-| Conv2 weights | `16 × 6 × 5 × 5` |            2,400 |  9.6 KB |
-| Conv2 bias    |             `16` |               16 |    64 B |
-| FC1 weights   |      `400 × 120` |           48,000 |  192 KB |
-| FC1 bias      |            `120` |              120 |   480 B |
-| FC2 weights   |       `120 × 84` |           10,080 | 40.3 KB |
-| FC2 bias      |             `84` |               84 |   336 B |
-| FC3 weights   |        `84 × 10` |              840 | 3.36 KB |
-| FC3 bias      |             `10` |               10 |    40 B |
-
-The total parameter count is:
-
-```text
-61,706 float32 values
+<p><img alt="" src="../attachments/demo-bluepill.png" /></p>
+<p>The STM32F103 Blue Pill is a constrained target:
+- <strong>Flash :</strong> 64 KB nominal on common STM32F103C8 boards
+- <strong>SRAM :</strong> 20 KB</p>
+<p>The LeNet-5 parameter set is much larger than the available flash when represented as <code>float32</code>. Therefore, this implementation stores weights and biases on an external SD card. Activations are kept in SRAM to avoid unnecessary SD-card traffic. In this implementation:</p>
+<ul>
+<li>weights and biases are stored as binary <code>.bin</code> files on the SD card,</li>
+<li>convolution and fully connected activations are stored in SRAM,</li>
+<li>the SD card is used only as parameter storage,</li>
+<li>and inference is executed layer by layer using Noodle.</li>
+</ul>
+<p>The use of binary files is important. Text files are easier to inspect, but they require ASCII parsing on the microcontroller. Binary files store raw <code>float32</code> values directly, making them more suitable for repeated embedded inference.</p>
+<hr />
+<h2 id="why-use-an-sd-card">Why Use an SD Card?</h2>
+<p>The SD card is required because the full <code>float32</code> LeNet-5 parameter set is too large for the internal flash of a typical Blue Pill. Approximate parameter sizes are:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th style="text-align: right;">Parameter shape</th>
+<th style="text-align: right;">Number of floats</th>
+<th style="text-align: right;">Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Conv1 weights</td>
+<td style="text-align: right;"><code>6 × 1 × 5 × 5</code></td>
+<td style="text-align: right;">150</td>
+<td style="text-align: right;">600 B</td>
+</tr>
+<tr>
+<td>Conv1 bias</td>
+<td style="text-align: right;"><code>6</code></td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">24 B</td>
+</tr>
+<tr>
+<td>Conv2 weights</td>
+<td style="text-align: right;"><code>16 × 6 × 5 × 5</code></td>
+<td style="text-align: right;">2,400</td>
+<td style="text-align: right;">9.6 KB</td>
+</tr>
+<tr>
+<td>Conv2 bias</td>
+<td style="text-align: right;"><code>16</code></td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">64 B</td>
+</tr>
+<tr>
+<td>FC1 weights</td>
+<td style="text-align: right;"><code>400 × 120</code></td>
+<td style="text-align: right;">48,000</td>
+<td style="text-align: right;">192 KB</td>
+</tr>
+<tr>
+<td>FC1 bias</td>
+<td style="text-align: right;"><code>120</code></td>
+<td style="text-align: right;">120</td>
+<td style="text-align: right;">480 B</td>
+</tr>
+<tr>
+<td>FC2 weights</td>
+<td style="text-align: right;"><code>120 × 84</code></td>
+<td style="text-align: right;">10,080</td>
+<td style="text-align: right;">40.3 KB</td>
+</tr>
+<tr>
+<td>FC2 bias</td>
+<td style="text-align: right;"><code>84</code></td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">336 B</td>
+</tr>
+<tr>
+<td>FC3 weights</td>
+<td style="text-align: right;"><code>84 × 10</code></td>
+<td style="text-align: right;">840</td>
+<td style="text-align: right;">3.36 KB</td>
+</tr>
+<tr>
+<td>FC3 bias</td>
+<td style="text-align: right;"><code>10</code></td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">40 B</td>
+</tr>
+</tbody>
+</table>
+<p>The total parameter count is:</p>
+<pre><code class="language-text">61,706 float32 values
 </code></pre>
 <p>At 4 bytes per value:</p>
 <pre><code class="language-text">61,706 × 4 = 246,824 bytes ≈ 241 KB
@@ -327,8 +374,7 @@ The total parameter count is:
 <pre><code class="language-text">Weights and biases  → SD card
 Activations         → SRAM
 </code></pre>
-<p>This is possible because the activation tensors are much smaller than the parameter set.</p>
-<p>The largest activation buffers are:</p>
+<p>This is possible because the activation tensors are much smaller than the parameter set. The largest activation buffers are:</p>
 <pre><code class="language-text">Input image      : 28 × 28       = 784 floats  = 3136 B
 Conv1 + Pool1    : 14 × 14 × 6   = 1176 floats = 4704 B
 Conv2 + Pool2    : 5 × 5 × 16    = 400 floats  = 1600 B
@@ -338,8 +384,7 @@ RX buffer        : 784 bytes
 <p>The explicit runtime buffers require about:</p>
 <pre><code class="language-text">13.36 KB
 </code></pre>
-<p>This fits inside the 20 KB SRAM of the Blue Pill, while still leaving space for stack, heap metadata, SD/SPI objects, and local variables.</p>
-<p>The key point is that the full convolution outputs do not need to be materialized. Noodle applies internal pooling during convolution, so Conv1 directly produces the pooled <code>14 × 14 × 6</code> output instead of storing the larger unpooled <code>28 × 28 × 6</code> tensor.</p>
+<p>This fits inside the 20 KB SRAM of the Blue Pill, while still leaving space for stack, heap metadata, SD/SPI objects, and local variables. The key point is that the full convolution outputs do not need to be materialized. Noodle applies internal pooling during convolution, so Conv1 directly produces the pooled <code>14 × 14 × 6</code> output instead of storing the larger unpooled <code>28 × 28 × 6</code> tensor.</p>
 <hr />
 <h2 id="layer-by-layer-data-flow">Layer-by-Layer Data Flow</h2>
 <p>The SRAM-activation implementation uses the following placement:</p>
