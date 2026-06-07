@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "ecg-classifier",
+			"path": "."
+		}
+	],
+	"settings": {}
+}

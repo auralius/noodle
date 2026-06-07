@@ -1070,3 +1070,42 @@ def debug_tflite_ops(tflite_path):
                   "shape", d.get("shape", None),
                   "dtype", d.get("dtype", None))
         print()
+
+if __name__ == "__main__":
+    import argparse
+
+    # Set up command line argument parsing
+    parser = argparse.ArgumentParser(
+        description="Convert a float TFLite model into Noodle-friendly .h and .txt files."
+    )
+    
+    # Required arguments
+    parser.add_argument(
+        "tflite_path", 
+        type=str, 
+        help="Path to the input .tflite file"
+    )
+    parser.add_argument(
+        "out_dir", 
+        type=str, 
+        help="Path to the directory where exported files will be saved"
+    )
+    
+    # Optional flags
+    parser.add_argument(
+        "--debug", 
+        action="store_true", 
+        help="Print verbose TFLite operator information before exporting"
+    )
+
+    args = parser.parse_args()
+
+    # Run debug print if requested by the user
+    if args.debug:
+        print(f"=== Debugging operators for {args.tflite_path} ===")
+        debug_tflite_ops(args.tflite_path)
+        print("==================================================\n")
+
+    # Execute the exporter
+    print(f"Exporting {args.tflite_path} to directory '{args.out_dir}'...")
+    exporter_tflite(args.tflite_path, args.out_dir)

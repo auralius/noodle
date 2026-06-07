@@ -80,6 +80,18 @@
 #ifndef ARDUINO
 typedef unsigned char byte;    ///< Arduino-compatible byte alias for non-Arduino builds.
 #endif
+
+#if defined(__AVR__)
+#include <avr/pgmspace.h>
+#endif
+
+static inline float noodle_pgm_float(const float *p, uint32_t idx) {
+#if defined(__AVR__)
+  return pgm_read_float_near(p + idx);
+#else
+  return p[idx];
+#endif
+}
 // ============================================================================
 
 /**
@@ -118,6 +130,27 @@ struct Conv {
 };
 
 /**
+ * @brief File-backed convolution parameters.
+ * @ingroup noodle_public
+ *
+ * Weight files are read sequentially in output-major order. For normal 2D
+ * convolution the layout is `[O][I][K][K]`; for 1D convolution it is `[O][I][K]`.
+ * Bias files contain one scalar per output channel. The same type is also used
+ * by depthwise convolution, where weights and biases are ordered by channel.
+ */
+struct ConvFile {
+  uint16_t K  = 3;    ///< Kernel size (`K x K` for 2D, `K` taps for 1D).
+  uint16_t P  = 0;    ///< Zero padding per side; `65535` requests SAME-style 2D padding.
+  uint16_t S  = 1;    ///< Convolution stride.
+  uint16_t OP = 0;    ///< Output padding for transpose convolution.
+
+  const char *weight_fn = nullptr; ///< Weight filename.
+  const char *bias_fn   = nullptr; ///< Bias filename.
+
+  Activation act = ACT_RELU; ///< Activation applied after adding bias.
+};
+
+/**
  * @brief Memory-backed convolution parameters.
  * @ingroup noodle_public
  *
@@ -136,6 +169,20 @@ struct ConvMem {
   const float *bias   = nullptr; ///< Pointer to packed bias values.
 
   Activation act = ACT_RELU; ///< Activation applied after adding bias.
+};
+
+// Near-PROGMEM convolution parameters for AVR MCUs, like Uno and Mega2560.
+// Intended for small/medium parameter arrays that do not require far addressing.
+struct ConvProgmem {
+  uint16_t K  = 3;
+  uint16_t P  = 0;
+  uint16_t S  = 1;
+  uint16_t OP = 0;
+
+  const float *weight = nullptr;  // PROGMEM, layout [O][I][K][K] or [C][K][K] for DW
+  const float *bias   = nullptr;  // PROGMEM
+
+  Activation act = ACT_RELU;
 };
 
 /**
@@ -663,6 +710,40 @@ uint16_t noodle_conv_float(const char *in_fn,
                            CBFPtr progress_cb = NULL);
 
 /**
+ * @brief Run file-to-file 2D convolution on float input feature maps with memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Reads packed float input planes from @p in_fn, uses packed memory-backed
+ * weights from @p conv, applies optional memory-backed bias, activation, and
+ * pooling, then writes packed output planes to @p out_fn. `ConvMem::weight`
+ * must use `[O][I][K][K]` layout. When `ConvMem::bias` is `nullptr`, zero bias
+ * is used.
+ *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W * W` floats. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
+ * @param in_fn Input file containing packed `[I][W][W]` planes.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param out_fn Output file for packed `[O][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv Memory-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling.
+ */
+uint16_t noodle_conv_float(const char *in_fn,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           const char *out_fn,
+                           uint16_t W,
+                           const ConvMem &conv,
+                           const Pool &pool,
+                           CBFPtr progress_cb = NULL);
+
+/**
  * @brief Run file-to-memory 2D convolution on float input feature maps.
  * @ingroup noodle_public
  *
@@ -1102,7 +1183,7 @@ uint16_t noodle_do_bias_act(float *output, float bias, uint16_t n, Activation ac
  * @param P1 Bottom/right padding.
  * @return Grid value converted to float, or `0.0f` outside the unpadded grid.
  */
-static inline float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1) __attribute__((always_inline));
+float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
 
 /**
  * @brief Read a float grid sample with zero padding.
@@ -1115,7 +1196,7 @@ static inline float noodle_get_padded_x(byte *grid, int16_t i, int16_t j, int16_
  * @param P1 Bottom/right padding.
  * @return Grid value, or `0.0f` outside the unpadded grid.
  */
-static inline float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1) __attribute__((always_inline));
+float noodle_get_padded_x(float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1);
 
 
 /**
@@ -1206,6 +1287,22 @@ struct FCNMem {
 };
 
 /**
+ * @brief AVR PROGMEM-backed fully-connected parameter bundle.
+ * @ingroup noodle_public
+ *
+ * Use this when fully-connected weights and optional biases are stored in AVR
+ * flash memory and must be read with `pgm_read_float_far()`. `weight_far` is a
+ * far flash address, typically produced with `pgm_get_far_address(weights)`,
+ * and points to row-major `[O][I]` float values. `bias_far` points to
+ * @p n_outputs float biases, or is `0` to use zero bias.
+ */
+struct FCNProgmem {
+  uint32_t weight_far; ///< Far flash address of row-major `[O][I]` weights.
+  uint32_t bias_far;   ///< Far flash address of output biases, or `0` for zero bias.
+  uint8_t act;         ///< Activation mode, using @ref Activation values.
+};
+
+/**
  * @name Fully Connected Layers
  *
  * File-backed fully-connected weights are consumed sequentially in row-major
@@ -1275,6 +1372,32 @@ uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
                     float *output, const FCNMem &fcn,
                     CBFPtr progress_cb = NULL);
 
+/**
+ * @brief Run a memory-to-memory fully-connected layer with AVR PROGMEM parameters.
+ * @ingroup noodle_public
+ *
+ * Reads row-major `[O][I]` weights from the far flash address in
+ * `FCNProgmem::weight_far`, reads optional biases from `FCNProgmem::bias_far`,
+ * computes `y = W*x + b`, and applies ReLU or softmax when requested by
+ * @p fcn.
+ *
+ * @note Returns `0` if @p input or @p output is null, or if
+ * `FCNProgmem::weight_far` is `0`.
+ *
+ * @param input Input vector with @p n_inputs floats.
+ * @param n_inputs Number of input values.
+ * @param n_outputs Number of output neurons.
+ * @param output Destination vector with room for @p n_outputs floats.
+ * @param fcn PROGMEM-backed weights, optional biases, and activation mode.
+ * @param progress_cb Optional normalized progress callback.
+ * @return @p n_outputs on success, or `0` on invalid input.
+ */
+uint16_t noodle_fcn(const float *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    float *output,
+                    const FCNProgmem &fcn,
+                    CBFPtr progress_cb = NULL);
 
 /**
  * @brief Run a memory-to-memory fully-connected layer with byte inputs.
@@ -1381,6 +1504,16 @@ uint16_t noodle_fcn(const float *input, uint16_t n_inputs, uint16_t n_outputs,
                     const char *out_fn, const FCNFile &fcn,
                     CBFPtr progress_cb);
 
+// Memory FCN with PROGMEM weights/bias.
+// Weight layout: [O][I].
+uint16_t noodle_fcn_progmem(const float *input,
+                            uint16_t n_inputs,
+                            uint16_t n_outputs,
+                            float *output,
+                            const float *weight,
+                            const float *bias,
+                            Activation act,
+                            CBFPtr progress_cb = nullptr);
 /**
  * @name Tensor Reshaping And Reductions
  */
@@ -1578,32 +1711,95 @@ uint16_t noodle_dwconv_float(float *input,
                              CBFPtr progress_cb);                            
 
 /**
- * @brief Split packed batch-normalization parameters into per-field pointers.
- * @ingroup noodle_internal
- *
- * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
- *
- * @param bn_params Packed batch-normalization parameter array.
- * @param C Number of channels.
- * @param gamma Receives pointer to the gamma/scale values.
- * @param beta Receives pointer to the beta/offset values.
- * @param mean Receives pointer to the mean values.
- * @param var Receives pointer to the variance values.
- */
-void noodle_unpack_bn_params(const float *bn_params,
-                             uint16_t C,
-                             const float **gamma,
-                             const float **beta,
-                             const float **mean,
-                             const float **var);
-
-/**
  * @name Batch Normalization
  */
 
 /**
- * @brief Apply batch normalization to a packed channel-first tensor in place.
+ * @brief Apply 1D batch normalization to a vector in place.
  * @ingroup noodle_public
+ *
+ * This is the correct BN form after FCN/Dense layers, GAP/GMP outputs, or any
+ * already-flattened feature vector.
+ *
+ * Computes `gamma[i] * (x[i] - mean[i]) / sqrt(var[i] + eps) + beta[i]`.
+ *
+ * @param x Vector with @p N features; modified in place.
+ * @param N Number of vector features.
+ * @param gamma Per-feature scale values.
+ * @param beta Per-feature offset values.
+ * @param mean Per-feature means.
+ * @param var Per-feature variances.
+ * @param eps Small constant added to variance.
+ * @return @p N.
+ */
+uint16_t noodle_bn1d(float *x,
+                     uint16_t N,
+                     const float *gamma,
+                     const float *beta,
+                     const float *mean,
+                     const float *var,
+                     float eps=1e-3);
+
+/**
+ * @brief Apply 1D batch normalization to a vector using packed parameters.
+ * @ingroup noodle_public
+ *
+ * @p bn_params must be packed as `[gamma[N]][beta[N]][mean[N]][var[N]]`.
+ *
+ * @param x Vector with @p N features; modified in place.
+ * @param N Number of vector features.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small constant added to variance.
+ * @return @p N.
+ */
+uint16_t noodle_bn1d(float *x,
+                     uint16_t N,
+                     const float *bn_params,
+                     float eps=1e-3);
+
+/**
+ * @brief Apply 1D batch normalization followed by ReLU in place.
+ * @ingroup noodle_public
+ * @param x Vector with @p N features; modified in place.
+ * @param N Number of vector features.
+ * @param gamma Per-feature scale values.
+ * @param beta Per-feature offset values.
+ * @param mean Per-feature means.
+ * @param var Per-feature variances.
+ * @param eps Small constant added to variance.
+ * @return @p N.
+ */
+uint16_t noodle_bn1d_relu(float *x,
+                          uint16_t N,
+                          const float *gamma,
+                          const float *beta,
+                          const float *mean,
+                          const float *var,
+                          float eps=1e-3);
+
+/**
+ * @brief Apply 1D batch normalization followed by ReLU using packed parameters.
+ * @ingroup noodle_public
+ *
+ * @p bn_params must be packed as `[gamma[N]][beta[N]][mean[N]][var[N]]`.
+ *
+ * @param x Vector with @p N features; modified in place.
+ * @param N Number of vector features.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small constant added to variance.
+ * @return @p N.
+ */
+uint16_t noodle_bn1d_relu(float *x,
+                          uint16_t N,
+                          const float *bn_params,
+                          float eps=1e-3);
+
+/**
+ * @brief Apply 2D channel-wise batch normalization to a packed tensor in place.
+ * @ingroup noodle_public
+ *
+ * This is the correct BN form after Conv2D, depthwise Conv2D, or pointwise Conv2D
+ * when tensors are stored as channel-first `[C][W][W]` planes.
  *
  * Computes `gamma[c] * (x - mean[c]) / sqrt(var[c] + eps) + beta[c]` for each
  * element of channel @p c.
@@ -1618,17 +1814,36 @@ void noodle_unpack_bn_params(const float *bn_params,
  * @param eps Small constant added to variance.
  * @return @p W.
  */
-uint16_t noodle_bn(float *x,
-                   uint16_t C,
-                   uint16_t W,
-                   const float *gamma,
-                   const float *beta,
-                   const float *mean,
-                   const float *var,
-                   float eps=1e-3);
+uint16_t noodle_bn2d(float *x,
+                     uint16_t C,
+                     uint16_t W,
+                     const float *gamma,
+                     const float *beta,
+                     const float *mean,
+                     const float *var,
+                     float eps=1e-3);
 
 /**
- * @brief Apply batch normalization followed by ReLU in place.
+ * @brief Apply 2D channel-wise batch normalization using packed parameters.
+ * @ingroup noodle_public
+ *
+ * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor in packed `[C][W][W]` layout; modified in place.
+ * @param C Number of channels.
+ * @param W Width and height of each channel plane.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small constant added to variance.
+ * @return @p W.
+ */
+uint16_t noodle_bn2d(float *x,
+                     uint16_t C,
+                     uint16_t W,
+                     const float *bn_params,
+                     float eps=1e-3);
+
+/**
+ * @brief Apply 2D channel-wise batch normalization followed by ReLU in place.
  * @ingroup noodle_public
  * @param x Tensor in packed `[C][W][W]` layout; modified in place.
  * @param C Number of channels.
@@ -1640,6 +1855,54 @@ uint16_t noodle_bn(float *x,
  * @param eps Small constant added to variance.
  * @return @p W.
  */
+uint16_t noodle_bn2d_relu(float *x,
+                          uint16_t C,
+                          uint16_t W,
+                          const float *gamma,
+                          const float *beta,
+                          const float *mean,
+                          const float *var,
+                          float eps=1e-3);
+
+/**
+ * @brief Apply 2D channel-wise batch normalization followed by ReLU using packed parameters.
+ * @ingroup noodle_public
+ *
+ * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor in packed `[C][W][W]` layout; modified in place.
+ * @param C Number of channels.
+ * @param W Width and height of each channel plane.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small constant added to variance.
+ * @return @p W.
+ */
+uint16_t noodle_bn2d_relu(float *x,
+                          uint16_t C,
+                          uint16_t W,
+                          const float *bn_params,
+                          float eps=1e-3);
+
+/**
+ * @brief Backward-compatible alias for `noodle_bn2d()`.
+ * @ingroup noodle_public
+ *
+ * Existing code keeps the old channel-first 2D behavior. New code should prefer
+ * the explicit `noodle_bn2d()` or `noodle_bn1d()` names.
+ */
+uint16_t noodle_bn(float *x,
+                   uint16_t C,
+                   uint16_t W,
+                   const float *gamma,
+                   const float *beta,
+                   const float *mean,
+                   const float *var,
+                   float eps=1e-3);
+
+/**
+ * @brief Backward-compatible alias for `noodle_bn2d_relu()`.
+ * @ingroup noodle_public
+ */
 uint16_t noodle_bn_relu(float *x,
                         uint16_t C,
                         uint16_t W,
@@ -1650,18 +1913,9 @@ uint16_t noodle_bn_relu(float *x,
                         float eps=1e-3);
 
 /**
- * @brief Apply batch normalization using packed parameter storage.
+ * @brief Backward-compatible alias for packed-parameter `noodle_bn2d()`.
  * @ingroup noodle_public
- *
- * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
- *
- * @param x Tensor in packed `[C][W][W]` layout; modified in place.
- * @param C Number of channels.
- * @param W Width and height of each channel plane.
- * @param bn_params Packed batch-normalization parameters.
- * @param eps Small constant added to variance.
- * @return @p W.
- */ 
+ */
 uint16_t noodle_bn(float *x,
                    uint16_t C,
                    uint16_t W,
@@ -1669,17 +1923,8 @@ uint16_t noodle_bn(float *x,
                    float eps=1e-3);
 
 /**
- * @brief Apply batch normalization and ReLU using packed parameter storage.
+ * @brief Backward-compatible alias for packed-parameter `noodle_bn2d_relu()`.
  * @ingroup noodle_public
- *
- * @p bn_params must be packed as `[gamma[C]][beta[C]][mean[C]][var[C]]`.
- *
- * @param x Tensor in packed `[C][W][W]` layout; modified in place.
- * @param C Number of channels.
- * @param W Width and height of each channel plane.
- * @param bn_params Packed batch-normalization parameters.
- * @param eps Small constant added to variance.
- * @return @p W.
  */
 uint16_t noodle_bn_relu(float *x,
                         uint16_t C,
@@ -1831,3 +2076,149 @@ uint16_t noodle_conv_transpose_float(float *input,
                                      uint16_t W,
                                      const ConvMem &conv,
                                      CBFPtr progress_cb = NULL);
+
+/**
+ * @brief Run file-to-file 2D convolution with PROGMEM-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Reads packed float input planes from @p in_fn, reads packed PROGMEM weights
+ * from @p conv in `[O][I][K][K]` order, applies optional PROGMEM bias,
+ * activation, and pooling, then writes packed output planes to @p out_fn. When
+ * `ConvProgmem::bias` is `nullptr`, zero bias is used.
+ *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W * W` floats. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
+ * @param in_fn Input file containing packed `[I][W][W]` planes.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param out_fn Output file for packed `[O][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv PROGMEM-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling, or `0` on invalid input or setup.
+ */
+uint16_t noodle_conv_float(const char *in_fn,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           const char *out_fn,
+                           uint16_t W,
+                           const ConvProgmem &conv,
+                           const Pool &pool,
+                           CBFPtr progress_cb = nullptr);
+
+/**
+ * @brief Run memory-to-memory 2D convolution with PROGMEM-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Uses input planes packed as `[I][W][W]`, reads packed PROGMEM weights from
+ * @p conv in `[O][I][K][K]` order, applies optional PROGMEM bias, activation,
+ * and pooling, then writes packed `[O][Vout][Vout]` output planes to
+ * @p output. When `ConvProgmem::bias` is `nullptr`, zero bias is used.
+ *
+ * @warning Requires the second temporary buffer. Call
+ * `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)` before
+ * calling. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
+ * @param input Input tensor in packed `[I][W][W]` layout.
+ * @param n_inputs Number of input channels.
+ * @param n_outputs Number of output channels.
+ * @param output Destination tensor in packed `[O][Vout][Vout]` layout.
+ * @param W Input width and height.
+ * @param conv PROGMEM-backed convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling, or `0` on invalid input or setup.
+ */
+uint16_t noodle_conv_float(float *input,
+                           uint16_t n_inputs,
+                           uint16_t n_outputs,
+                           float *output,
+                           uint16_t W,
+                           const ConvProgmem &conv,
+                           const Pool &pool,
+                           CBFPtr progress_cb = nullptr);
+
+/**
+ * @brief Run file-to-file 2D depthwise convolution with PROGMEM-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Reads packed float input planes from @p in_fn, reads one PROGMEM `K x K`
+ * kernel per channel from @p conv in `[C][K][K]` order, applies optional
+ * PROGMEM bias, activation, and pooling, then writes packed output planes to
+ * @p out_fn. When `ConvProgmem::bias` is `nullptr`, zero bias is used.
+ *
+ * @warning Requires both temporary buffers. Call
+ * `noodle_setup_temp_buffers(b1, b2)` before calling. `b1` must hold at least
+ * `W * W` floats. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
+ * @param in_fn Input file containing packed `[C][W][W]` planes.
+ * @param C Number of input/output channels.
+ * @param out_fn Output file for packed `[C][Vout][Vout]` planes.
+ * @param W Input width and height.
+ * @param conv PROGMEM-backed depthwise convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling, or `0` on invalid input or setup.
+ */
+uint16_t noodle_dwconv_float(const char *in_fn,
+                             uint16_t C,
+                             const char *out_fn,
+                             uint16_t W,
+                             const ConvProgmem &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb = nullptr);
+
+/**
+ * @brief Run memory-to-memory 2D depthwise convolution with PROGMEM-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Uses input planes packed as `[C][W][W]`, reads one PROGMEM `K x K` kernel per
+ * channel from @p conv in `[C][K][K]` order, applies optional PROGMEM bias,
+ * activation, and pooling, then writes packed `[C][Vout][Vout]` output planes
+ * to @p output. When `ConvProgmem::bias` is `nullptr`, zero bias is used.
+ *
+ * @warning Requires the second temporary buffer. Call
+ * `noodle_setup_temp_buffers(b2)` or `noodle_setup_temp_buffers(b1, b2)` before
+ * calling. `b2` must hold at least `Vconv * Vconv` floats, where
+ * `Vconv = noodle_compute_V(conv.K, W, conv.P, conv.S)`.
+ *
+ * @param input Input tensor in packed `[C][W][W]` layout.
+ * @param C Number of input/output channels.
+ * @param output Destination tensor in packed `[C][Vout][Vout]` layout.
+ * @param W Input width and height.
+ * @param conv PROGMEM-backed depthwise convolution parameters.
+ * @param pool Pooling parameters applied after bias/activation.
+ * @param progress_cb Optional normalized progress callback.
+ * @return Output width after pooling, or `0` on invalid input or setup.
+ */
+uint16_t noodle_dwconv_float(float *input,
+                             uint16_t C,
+                             float *output,
+                             uint16_t W,
+                             const ConvProgmem &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb = nullptr);
+
+/**
+ * @brief Copy one square convolution kernel from PROGMEM into RAM.
+ * @ingroup noodle_internal
+ *
+ * Copies `K * K` consecutive floats starting at @p base from @p w into the
+ * row-major destination buffer @p kernel. On AVR, values are read through
+ * `noodle_pgm_float()`; on other targets the source pointer is read normally.
+ *
+ * @param w PROGMEM-backed packed weight array.
+ * @param base Index of the first kernel value in @p w.
+ * @param K Kernel width and height.
+ * @param kernel Destination buffer with room for `K * K` floats.
+ */
+void noodle_copy_kernel_progmem(const float *w,
+                                uint32_t base,
+                                uint16_t K,
+                                float *kernel);
