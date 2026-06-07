@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['implementation_20files_0',['Implementation Files',['../group__noodle__api.html',1,'']]],
+  ['include_20and_20refactored_20source_20layout_0',['Public Include And Refactored Source Layout',['../index.html#autotoc_md3',1,'']]],
   ['internal_20helpers_1',['Internal Helpers',['../group__noodle__internal.html',1,'']]],
-  ['is_20and_20is_20not_2',['Is And Is Not',['../group__noodle__api.html#autotoc_md0',1,'What Noodle Is And Is Not'],['../group__noodle__api.html#autotoc_md15',1,'What Noodle Is And Is Not']]],
-  ['is_20not_3',['Is Not',['../group__noodle__api.html#autotoc_md0',1,'What Noodle Is And Is Not'],['../group__noodle__api.html#autotoc_md15',1,'What Noodle Is And Is Not']]]
+  ['is_20and_20is_20not_2',['What Noodle Is And Is Not',['../index.html#autotoc_md0',1,'']]],
+  ['is_20not_3',['What Noodle Is And Is Not',['../index.html#autotoc_md0',1,'']]]
 ];

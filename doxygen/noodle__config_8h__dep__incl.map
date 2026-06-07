@@ -1,7 +1,23 @@
 <map id="noodle_config.h" name="noodle_config.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,118,32"/>
-<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="26,80,97,107"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="62,45,64,80,59,79,61,50"/>
-<area shape="rect" id="Node000003" href="$noodle_8cpp.html" title="Noodle implementation (streaming kernels, filesystem init, parsing helpers)." alt="" coords="19,155,104,181"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="63,121,64,155,59,154,60,124"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="494,5,606,32"/>
+<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="515,80,585,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="551,46,552,81,548,78,548,50"/>
+<area shape="rect" id="Node000003" href="$noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files." alt="" coords="490,155,610,181"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="552,120,552,156,548,153,548,124"/>
+<area shape="rect" id="Node000004" href="$noodle__conv_8cpp.html" title="Public convolution layer wrappers: Conv1D, Conv2D, and ConvTranspose2D." alt="" coords="5,229,124,256"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="475,182,137,232,125,234,124,229,136,227,474,177"/>
+<area shape="rect" id="Node000005" href="$noodle__dw_8cpp.html" title="Depthwise convolution operators." alt="" coords="148,229,256,256"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="477,185,256,233,255,228,472,184"/>
+<area shape="rect" id="Node000006" href="$noodle__fcn_8cpp.html" title="Fully connected layers." alt="" coords="279,229,388,256"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="501,186,372,231,371,226,495,187"/>
+<area shape="rect" id="Node000007" href="$noodle__internal_8cpp.html" title="Private shared globals and helpers for Noodle implementation files." alt="" coords="412,229,546,256"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="529,192,493,231,490,227,525,194"/>
+<area shape="rect" id="Node000008" href="$noodle__io_8cpp.html" title="Noodle file/storage I/O helpers." alt="" coords="570,229,671,256"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="574,190,611,230,606,228,572,195"/>
+<area shape="rect" id="Node000009" href="$noodle__math_8cpp.html" title="Reusable math and numeric helper primitives." alt="" coords="695,229,815,256"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="601,184,722,229,716,229,600,190"/>
+<area shape="rect" id="Node000010" href="$noodle__memory_8cpp.html" title="Noodle memory access management helpers." alt="" coords="840,229,977,256"/>
+<area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="625,182,849,229,843,229,624,187"/>
+<area shape="rect" id="Node000011" href="$noodle__shape_8cpp.html" title="Tensor&#45;to&#45;vector transforms: flatten, reshape, GAP, and GMP." alt="" coords="1001,229,1128,256"/>
+<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="625,176,990,227,1004,231,998,231,989,232,625,182"/>
 </map>

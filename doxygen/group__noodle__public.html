@@ -115,6 +115,8 @@ Files</h2></td></tr>
 Classes</h2></td></tr>
 <tr class="memitem:Conv" id="r_Conv"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structConv.html">Conv</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">File-backed convolution parameters.  <a href="structConv.html#details">More...</a><br /></td></tr>
+<tr class="memitem:ConvFile" id="r_ConvFile"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structConvFile.html">ConvFile</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">File-backed convolution parameters.  <a href="structConvFile.html#details">More...</a><br /></td></tr>
 <tr class="memitem:ConvMem" id="r_ConvMem"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structConvMem.html">ConvMem</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Memory-backed convolution parameters.  <a href="structConvMem.html#details">More...</a><br /></td></tr>
 <tr class="memitem:Pool" id="r_Pool"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structPool.html">Pool</a></td></tr>
@@ -125,6 +127,8 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">File-backed fully-connected parameter bundle.  <a href="structFCNFile.html#details">More...</a><br /></td></tr>
 <tr class="memitem:FCNMem" id="r_FCNMem"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structFCNMem.html">FCNMem</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Memory-backed fully-connected parameter bundle.  <a href="structFCNMem.html#details">More...</a><br /></td></tr>
+<tr class="memitem:FCNProgmem" id="r_FCNProgmem"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structFCNProgmem.html">FCNProgmem</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">AVR PROGMEM-backed fully-connected parameter bundle.  <a href="structFCNProgmem.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -179,15 +183,15 @@ Memory Utilities</h2></td></tr>
 <tr class="memdesc:ga57f41559d71e9be9f79a0764320f9d31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an <span class="tt">n x n</span> float grid to a text file in row-major order.  <br /></td></tr>
 <tr class="memitem:gac6962991410d93d5a536be54d0aa9c73" id="r_gac6962991410d93d5a536be54d0aa9c73"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac6962991410d93d5a536be54d0aa9c73">noodle_array_from_file</a> (const char *fn, float *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:gac6962991410d93d5a536be54d0aa9c73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a float array from a text file.  <br /></td></tr>
-<tr class="memitem:ga252ddf012989eafcb43954c43ac05ff0" id="r_ga252ddf012989eafcb43954c43ac05ff0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga252ddf012989eafcb43954c43ac05ff0">noodle_array_from_file</a> (NDL_File &amp;<a class="el" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, float *buffer, uint16_t K)</td></tr>
+<tr class="memitem:ga252ddf012989eafcb43954c43ac05ff0" id="r_ga252ddf012989eafcb43954c43ac05ff0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga252ddf012989eafcb43954c43ac05ff0">noodle_array_from_file</a> (NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, float *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:ga252ddf012989eafcb43954c43ac05ff0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a float array from an already-open text file.  <br /></td></tr>
 <tr class="memitem:ga9bf89dfff1d1453acd59533775bdc60d" id="r_ga9bf89dfff1d1453acd59533775bdc60d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga9bf89dfff1d1453acd59533775bdc60d">noodle_grid_from_file</a> (const char *fn, <a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:ga9bf89dfff1d1453acd59533775bdc60d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <span class="tt">K x K</span> grid into a byte buffer.  <br /></td></tr>
-<tr class="memitem:gaa795bbd77501eecc0f36f9daec823f0a" id="r_gaa795bbd77501eecc0f36f9daec823f0a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaa795bbd77501eecc0f36f9daec823f0a">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, <a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *buffer, uint16_t K)</td></tr>
+<tr class="memitem:gaa795bbd77501eecc0f36f9daec823f0a" id="r_gaa795bbd77501eecc0f36f9daec823f0a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaa795bbd77501eecc0f36f9daec823f0a">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, <a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:gaa795bbd77501eecc0f36f9daec823f0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <span class="tt">K x K</span> grid into a byte buffer from an already-open file.  <br /></td></tr>
 <tr class="memitem:ga5eeca834c9246a86a20bed4d29e72b66" id="r_ga5eeca834c9246a86a20bed4d29e72b66"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5eeca834c9246a86a20bed4d29e72b66">noodle_grid_from_file</a> (const char *fn, int8_t *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:ga5eeca834c9246a86a20bed4d29e72b66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <span class="tt">K x K</span> grid into an int8 buffer.  <br /></td></tr>
-<tr class="memitem:ga5cbd16d986db83d85565943455344290" id="r_ga5cbd16d986db83d85565943455344290"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5cbd16d986db83d85565943455344290">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, int8_t *buffer, uint16_t K)</td></tr>
+<tr class="memitem:ga5cbd16d986db83d85565943455344290" id="r_ga5cbd16d986db83d85565943455344290"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5cbd16d986db83d85565943455344290">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, int8_t *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:ga5cbd16d986db83d85565943455344290"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <span class="tt">K x K</span> grid into an int8 buffer from an already-open file.  <br /></td></tr>
 <tr class="memitem:ga5d1a79af6250043ed4f0793922175bbf" id="r_ga5d1a79af6250043ed4f0793922175bbf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5d1a79af6250043ed4f0793922175bbf">noodle_grid_from_file</a> (const char *fn, float *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:ga5d1a79af6250043ed4f0793922175bbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <span class="tt">K x K</span> grid into a float buffer.  <br /></td></tr>
@@ -195,13 +199,13 @@ Memory Utilities</h2></td></tr>
 <tr class="memdesc:ga902815632d6fcc18e720696671455e70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fill a float buffer with zeros.  <br /></td></tr>
 <tr class="memitem:ga914806cc09ef8e194c13c4d90b09413a" id="r_ga914806cc09ef8e194c13c4d90b09413a"><td class="memItemLeft" align="right" valign="top">float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga914806cc09ef8e194c13c4d90b09413a">noodle_slice</a> (float *flat, size_t W, size_t z)</td></tr>
 <tr class="memdesc:ga914806cc09ef8e194c13c4d90b09413a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a channel plane from a packed <span class="tt">[Z][W][W]</span> tensor.  <br /></td></tr>
-<tr class="memitem:ga003f3cbc2a26dbb746f87a49982e6fee" id="r_ga003f3cbc2a26dbb746f87a49982e6fee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga003f3cbc2a26dbb746f87a49982e6fee">noodle_array_to_file</a> (float *array, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
+<tr class="memitem:ga003f3cbc2a26dbb746f87a49982e6fee" id="r_ga003f3cbc2a26dbb746f87a49982e6fee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga003f3cbc2a26dbb746f87a49982e6fee">noodle_array_to_file</a> (float *array, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
 <tr class="memdesc:ga003f3cbc2a26dbb746f87a49982e6fee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a float array to an already-open text file.  <br /></td></tr>
-<tr class="memitem:gab547644cbbfbdf2fbbed04567043a8e9" id="r_gab547644cbbfbdf2fbbed04567043a8e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab547644cbbfbdf2fbbed04567043a8e9">noodle_grid_to_file</a> (<a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *grid, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
+<tr class="memitem:gab547644cbbfbdf2fbbed04567043a8e9" id="r_gab547644cbbfbdf2fbbed04567043a8e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab547644cbbfbdf2fbbed04567043a8e9">noodle_grid_to_file</a> (<a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *grid, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
 <tr class="memdesc:gab547644cbbfbdf2fbbed04567043a8e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an <span class="tt">n x n</span> byte grid to an already-open text file.  <br /></td></tr>
-<tr class="memitem:ga9e8949021924758a7de780a41b65fc7e" id="r_ga9e8949021924758a7de780a41b65fc7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga9e8949021924758a7de780a41b65fc7e">noodle_grid_to_file</a> (float *grid, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
+<tr class="memitem:ga9e8949021924758a7de780a41b65fc7e" id="r_ga9e8949021924758a7de780a41b65fc7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga9e8949021924758a7de780a41b65fc7e">noodle_grid_to_file</a> (float *grid, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
 <tr class="memdesc:ga9e8949021924758a7de780a41b65fc7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an <span class="tt">n x n</span> float grid to an already-open text file.  <br /></td></tr>
-<tr class="memitem:gad68dd39d7efde78eaf7090a56bb74eca" id="r_gad68dd39d7efde78eaf7090a56bb74eca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gad68dd39d7efde78eaf7090a56bb74eca">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, float *buffer, uint16_t K)</td></tr>
+<tr class="memitem:gad68dd39d7efde78eaf7090a56bb74eca" id="r_gad68dd39d7efde78eaf7090a56bb74eca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gad68dd39d7efde78eaf7090a56bb74eca">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, float *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:gad68dd39d7efde78eaf7090a56bb74eca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <span class="tt">K x K</span> grid into a float buffer from an already-open file.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-member-group" class="groupheader"><a id="member-group" name="member-group"></a>
@@ -217,6 +221,8 @@ Memory Utilities</h2></td></tr>
 <tr class="memdesc:gaca013d4c8a03732dced2f9c3fe1f2348"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run file-to-file 2D convolution on byte input feature maps.  <br /></td></tr>
 <tr class="memitem:ga31bf8b8e6222200a0099ccefa27cbd8a" id="r_ga31bf8b8e6222200a0099ccefa27cbd8a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga31bf8b8e6222200a0099ccefa27cbd8a">noodle_conv_float</a> (const char *in_fn, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, uint16_t W, const <a class="el" href="structConv.html">Conv</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
 <tr class="memdesc:ga31bf8b8e6222200a0099ccefa27cbd8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run file-to-file 2D convolution on float input feature maps.  <br /></td></tr>
+<tr class="memitem:ga00a9b2425b4c405b2d713cd2bc451c7a" id="r_ga00a9b2425b4c405b2d713cd2bc451c7a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga00a9b2425b4c405b2d713cd2bc451c7a">noodle_conv_float</a> (const char *in_fn, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, uint16_t W, const <a class="el" href="structConvMem.html">ConvMem</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
+<tr class="memdesc:ga00a9b2425b4c405b2d713cd2bc451c7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run file-to-file 2D convolution on float input feature maps with memory-backed parameters.  <br /></td></tr>
 <tr class="memitem:ga173784e32049bb7290ba24125e8ef8ac" id="r_ga173784e32049bb7290ba24125e8ef8ac"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga173784e32049bb7290ba24125e8ef8ac">noodle_conv_float</a> (const char *in_fn, uint16_t n_inputs, uint16_t n_outputs, float *output, uint16_t W, const <a class="el" href="structConv.html">Conv</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
 <tr class="memdesc:ga173784e32049bb7290ba24125e8ef8ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run file-to-memory 2D convolution on float input feature maps.  <br /></td></tr>
 <tr class="memitem:gaaf8b731b75f9918795c40e483ecf8fd7" id="r_gaaf8b731b75f9918795c40e483ecf8fd7"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaaf8b731b75f9918795c40e483ecf8fd7">noodle_conv_float</a> (float *input, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, uint16_t W, const <a class="el" href="structConv.html">Conv</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
@@ -240,6 +246,8 @@ Memory Utilities</h2></td></tr>
 <tr class="memdesc:ga3ed30e6da28e7c91d9e8c70c37c289e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run file-to-file 1D convolution with memory-backed parameters.  <br /></td></tr>
 <tr class="memitem:gaf8fbe4d85a5de5eaae4701b1ad5053b1" id="r_gaf8fbe4d85a5de5eaae4701b1ad5053b1"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaf8fbe4d85a5de5eaae4701b1ad5053b1">noodle_conv1d</a> (float *in, uint16_t n_inputs, float *out, uint16_t n_outputs, uint16_t W, const <a class="el" href="structConvMem.html">ConvMem</a> &amp;conv, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
 <tr class="memdesc:gaf8fbe4d85a5de5eaae4701b1ad5053b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-memory 1D convolution with memory-backed parameters.  <br /></td></tr>
+<tr class="memitem:gacafffe8c633e75677353fd034ff3c410" id="r_gacafffe8c633e75677353fd034ff3c410"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gacafffe8c633e75677353fd034ff3c410">noodle_conv1d</a> (float *in, uint16_t n_inputs, float *out, uint16_t n_outputs, uint16_t W, const <a class="el" href="structConvMem.html">ConvMem</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
+<tr class="memdesc:gacafffe8c633e75677353fd034ff3c410"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-memory 1D convolution with memory-backed parameters and pooling.  <br /></td></tr>
 <tr class="memitem:gabc7401f53cbb450ffed6853a9325b101" id="r_gabc7401f53cbb450ffed6853a9325b101"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gabc7401f53cbb450ffed6853a9325b101">noodle_conv1d</a> (float *in, uint16_t n_inputs, const char *out_fn, uint16_t n_outputs, uint16_t W, const <a class="el" href="structConvMem.html">ConvMem</a> &amp;conv, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb)</td></tr>
 <tr class="memdesc:gabc7401f53cbb450ffed6853a9325b101"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-file 1D convolution with memory-backed parameters.  <br /></td></tr>
 <tr class="memitem:ga73bc38cadc249600a190f446e6f8749b" id="r_ga73bc38cadc249600a190f446e6f8749b"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga73bc38cadc249600a190f446e6f8749b">noodle_conv1d</a> (const char *in_fn, uint16_t n_inputs, float *out, uint16_t n_outputs, uint16_t W, const <a class="el" href="structConvMem.html">ConvMem</a> &amp;conv, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb)</td></tr>
@@ -268,6 +276,8 @@ Fully Connected Layers</h2></td></tr>
 <tr class="memdesc:gae743d461e784058bc25a6432a85d0105"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a file-to-file fully-connected layer with file-backed parameters.  <br /></td></tr>
 <tr class="memitem:ga1b296e23047a07331a039f23d5c295c4" id="r_ga1b296e23047a07331a039f23d5c295c4"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga1b296e23047a07331a039f23d5c295c4">noodle_fcn</a> (const float *input, uint16_t n_inputs, uint16_t n_outputs, float *output, const <a class="el" href="structFCNMem.html">FCNMem</a> &amp;fcn, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
 <tr class="memdesc:ga1b296e23047a07331a039f23d5c295c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a memory-to-memory fully-connected layer with memory-backed parameters.  <br /></td></tr>
+<tr class="memitem:gad9596098d4853bdd986f90edd0ee1b0c" id="r_gad9596098d4853bdd986f90edd0ee1b0c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gad9596098d4853bdd986f90edd0ee1b0c">noodle_fcn</a> (const float *input, uint16_t n_inputs, uint16_t n_outputs, float *output, const <a class="el" href="structFCNProgmem.html">FCNProgmem</a> &amp;fcn, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
+<tr class="memdesc:gad9596098d4853bdd986f90edd0ee1b0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a memory-to-memory fully-connected layer with AVR PROGMEM parameters.  <br /></td></tr>
 <tr class="memitem:gac69cf3a861a93856dde12ecf16e8a426" id="r_gac69cf3a861a93856dde12ecf16e8a426"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac69cf3a861a93856dde12ecf16e8a426">noodle_fcn</a> (const <a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *input, uint16_t n_inputs, uint16_t n_outputs, float *output, const <a class="el" href="structFCNFile.html">FCNFile</a> &amp;fcn, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
 <tr class="memdesc:gac69cf3a861a93856dde12ecf16e8a426"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a memory-to-memory fully-connected layer with byte inputs.  <br /></td></tr>
 <tr class="memitem:gacdf86e9336733b4222b55a5c7f179587" id="r_gacdf86e9336733b4222b55a5c7f179587"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gacdf86e9336733b4222b55a5c7f179587">noodle_fcn</a> (const int8_t *input, uint16_t n_inputs, uint16_t n_outputs, float *output, const <a class="el" href="structFCNFile.html">FCNFile</a> &amp;fcn, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
@@ -278,6 +288,7 @@ Fully Connected Layers</h2></td></tr>
 <tr class="memdesc:ga1d2b8cbc06cd00a06d574d98ebe03f2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a memory-to-memory fully-connected layer with float inputs.  <br /></td></tr>
 <tr class="memitem:ga23376a8483317d3748a51b23739efffc" id="r_ga23376a8483317d3748a51b23739efffc"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga23376a8483317d3748a51b23739efffc">noodle_fcn</a> (const float *input, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, const <a class="el" href="structFCNFile.html">FCNFile</a> &amp;fcn, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb)</td></tr>
 <tr class="memdesc:ga23376a8483317d3748a51b23739efffc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a memory-to-file fully-connected layer with float inputs.  <br /></td></tr>
+<tr class="memitem:ga791dda082adbc98d40a785ffe07d3d47" id="r_ga791dda082adbc98d40a785ffe07d3d47"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga791dda082adbc98d40a785ffe07d3d47">noodle_fcn_progmem</a> (const float *input, uint16_t n_inputs, uint16_t n_outputs, float *output, const float *weight, const float *bias, <a class="el" href="#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a> act, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=nullptr)</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-member-group" class="groupheader"><a id="member-group" name="member-group"></a>
 Tensor Reshaping And Reductions</h2></td></tr>
@@ -289,6 +300,8 @@ Tensor Reshaping And Reductions</h2></td></tr>
 <tr class="memdesc:gaa0bc285b257edbfd9553229e5144e378"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert HWC-like memory order into packed channel-first tensor order.  <br /></td></tr>
 <tr class="memitem:ga29cb2e57cc14be1b46809365525f7899" id="r_ga29cb2e57cc14be1b46809365525f7899"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga29cb2e57cc14be1b46809365525f7899">noodle_gap</a> (float *inout, uint16_t C, uint16_t W)</td></tr>
 <tr class="memdesc:ga29cb2e57cc14be1b46809365525f7899"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply global average pooling in place.  <br /></td></tr>
+<tr class="memitem:gad928ec0ba91d1abaea1764a875754b6b" id="r_gad928ec0ba91d1abaea1764a875754b6b"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gad928ec0ba91d1abaea1764a875754b6b">noodle_gmp</a> (float *inout, uint16_t C, uint16_t W)</td></tr>
+<tr class="memdesc:gad928ec0ba91d1abaea1764a875754b6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply global max pooling in place.  <br /></td></tr>
 <tr class="memitem:ga5cb5bfd7ae0945284e3f692646893332" id="r_ga5cb5bfd7ae0945284e3f692646893332"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5cb5bfd7ae0945284e3f692646893332">noodle_find_max</a> (float *input, uint16_t n, float &amp;max_val, uint16_t &amp;max_idx)</td></tr>
 <tr class="memdesc:ga5cb5bfd7ae0945284e3f692646893332"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the maximum value and index in a float vector.  <br /></td></tr>
 </table><table class="memberdecls">
@@ -302,19 +315,33 @@ Tensor Reshaping And Reductions</h2></td></tr>
 <tr class="memdesc:ga5f11f1aec153b269fe4a484b2ea336d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-memory 2D depthwise convolution with file-backed parameters.  <br /></td></tr>
 <tr class="memitem:gac0bb7cf45d65b44bf26bf87e6fd5e4d9" id="r_gac0bb7cf45d65b44bf26bf87e6fd5e4d9"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac0bb7cf45d65b44bf26bf87e6fd5e4d9">noodle_dwconv_float</a> (float *input, uint16_t n_channels, float *output, uint16_t W, const <a class="el" href="structConvMem.html">ConvMem</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb)</td></tr>
 <tr class="memdesc:gac0bb7cf45d65b44bf26bf87e6fd5e4d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-memory 2D depthwise convolution with memory-backed parameters.  <br /></td></tr>
-<tr class="memitem:ga952a655f5b7774828abe96900b58aec4" id="r_ga952a655f5b7774828abe96900b58aec4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga952a655f5b7774828abe96900b58aec4">noodle_unpack_bn_params</a> (const float *bn_params, uint16_t C, const float **gamma, const float **beta, const float **mean, const float **var)</td></tr>
-<tr class="memdesc:ga952a655f5b7774828abe96900b58aec4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split packed batch-normalization parameters into per-field pointers.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-member-group" class="groupheader"><a id="member-group" name="member-group"></a>
 Batch Normalization</h2></td></tr>
+<tr class="memitem:ga1d8755c957357c0ef2663058b560e596" id="r_ga1d8755c957357c0ef2663058b560e596"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga1d8755c957357c0ef2663058b560e596">noodle_bn1d</a> (float *x, uint16_t N, const float *gamma, const float *beta, const float *mean, const float *var, float eps=1e-3)</td></tr>
+<tr class="memdesc:ga1d8755c957357c0ef2663058b560e596"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 1D batch normalization to a vector in place.  <br /></td></tr>
+<tr class="memitem:ga287c9df3b284f1f8848061e957fc72bd" id="r_ga287c9df3b284f1f8848061e957fc72bd"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga287c9df3b284f1f8848061e957fc72bd">noodle_bn1d</a> (float *x, uint16_t N, const float *bn_params, float eps=1e-3)</td></tr>
+<tr class="memdesc:ga287c9df3b284f1f8848061e957fc72bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 1D batch normalization to a vector using packed parameters.  <br /></td></tr>
+<tr class="memitem:ga5bbcee45a252b3620867f308fd3fd38e" id="r_ga5bbcee45a252b3620867f308fd3fd38e"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5bbcee45a252b3620867f308fd3fd38e">noodle_bn1d_relu</a> (float *x, uint16_t N, const float *gamma, const float *beta, const float *mean, const float *var, float eps=1e-3)</td></tr>
+<tr class="memdesc:ga5bbcee45a252b3620867f308fd3fd38e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 1D batch normalization followed by ReLU in place.  <br /></td></tr>
+<tr class="memitem:ga2a83b9169fdc1d9739b5aa4c9ee742f9" id="r_ga2a83b9169fdc1d9739b5aa4c9ee742f9"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga2a83b9169fdc1d9739b5aa4c9ee742f9">noodle_bn1d_relu</a> (float *x, uint16_t N, const float *bn_params, float eps=1e-3)</td></tr>
+<tr class="memdesc:ga2a83b9169fdc1d9739b5aa4c9ee742f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 1D batch normalization followed by ReLU using packed parameters.  <br /></td></tr>
+<tr class="memitem:gad19f5fd8ad6bdbcbe691f72af6438b9d" id="r_gad19f5fd8ad6bdbcbe691f72af6438b9d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gad19f5fd8ad6bdbcbe691f72af6438b9d">noodle_bn2d</a> (float *x, uint16_t C, uint16_t W, const float *gamma, const float *beta, const float *mean, const float *var, float eps=1e-3)</td></tr>
+<tr class="memdesc:gad19f5fd8ad6bdbcbe691f72af6438b9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 2D channel-wise batch normalization to a packed tensor in place.  <br /></td></tr>
+<tr class="memitem:gacf2f427760f7a07eb7e58607d0e85a0b" id="r_gacf2f427760f7a07eb7e58607d0e85a0b"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gacf2f427760f7a07eb7e58607d0e85a0b">noodle_bn2d</a> (float *x, uint16_t C, uint16_t W, const float *bn_params, float eps=1e-3)</td></tr>
+<tr class="memdesc:gacf2f427760f7a07eb7e58607d0e85a0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 2D channel-wise batch normalization using packed parameters.  <br /></td></tr>
+<tr class="memitem:ga2af23a847b7e4fab0546732199a9c048" id="r_ga2af23a847b7e4fab0546732199a9c048"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga2af23a847b7e4fab0546732199a9c048">noodle_bn2d_relu</a> (float *x, uint16_t C, uint16_t W, const float *gamma, const float *beta, const float *mean, const float *var, float eps=1e-3)</td></tr>
+<tr class="memdesc:ga2af23a847b7e4fab0546732199a9c048"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 2D channel-wise batch normalization followed by ReLU in place.  <br /></td></tr>
+<tr class="memitem:gaa15f1295b6ce5dedec362adf7b95465c" id="r_gaa15f1295b6ce5dedec362adf7b95465c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaa15f1295b6ce5dedec362adf7b95465c">noodle_bn2d_relu</a> (float *x, uint16_t C, uint16_t W, const float *bn_params, float eps=1e-3)</td></tr>
+<tr class="memdesc:gaa15f1295b6ce5dedec362adf7b95465c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply 2D channel-wise batch normalization followed by ReLU using packed parameters.  <br /></td></tr>
 <tr class="memitem:gaf660760aea8b471c05150148efdd52dd" id="r_gaf660760aea8b471c05150148efdd52dd"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaf660760aea8b471c05150148efdd52dd">noodle_bn</a> (float *x, uint16_t C, uint16_t W, const float *gamma, const float *beta, const float *mean, const float *var, float eps=1e-3)</td></tr>
-<tr class="memdesc:gaf660760aea8b471c05150148efdd52dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply batch normalization to a packed channel-first tensor in place.  <br /></td></tr>
+<tr class="memdesc:gaf660760aea8b471c05150148efdd52dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Backward-compatible alias for <span class="tt"><a class="el" href="#gad19f5fd8ad6bdbcbe691f72af6438b9d" title="Apply 2D channel-wise batch normalization to a packed tensor in place.">noodle_bn2d()</a></span>.  <br /></td></tr>
 <tr class="memitem:ga4a17bb02687be3b04b6486e0dca93a02" id="r_ga4a17bb02687be3b04b6486e0dca93a02"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga4a17bb02687be3b04b6486e0dca93a02">noodle_bn_relu</a> (float *x, uint16_t C, uint16_t W, const float *gamma, const float *beta, const float *mean, const float *var, float eps=1e-3)</td></tr>
-<tr class="memdesc:ga4a17bb02687be3b04b6486e0dca93a02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply batch normalization followed by ReLU in place.  <br /></td></tr>
+<tr class="memdesc:ga4a17bb02687be3b04b6486e0dca93a02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Backward-compatible alias for <span class="tt"><a class="el" href="#ga2af23a847b7e4fab0546732199a9c048" title="Apply 2D channel-wise batch normalization followed by ReLU in place.">noodle_bn2d_relu()</a></span>.  <br /></td></tr>
 <tr class="memitem:gae3083583cd8a60027380bbfd93e6c6ab" id="r_gae3083583cd8a60027380bbfd93e6c6ab"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gae3083583cd8a60027380bbfd93e6c6ab">noodle_bn</a> (float *x, uint16_t C, uint16_t W, const float *bn_params, float eps=1e-3)</td></tr>
-<tr class="memdesc:gae3083583cd8a60027380bbfd93e6c6ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply batch normalization using packed parameter storage.  <br /></td></tr>
+<tr class="memdesc:gae3083583cd8a60027380bbfd93e6c6ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Backward-compatible alias for packed-parameter <span class="tt"><a class="el" href="#gad19f5fd8ad6bdbcbe691f72af6438b9d" title="Apply 2D channel-wise batch normalization to a packed tensor in place.">noodle_bn2d()</a></span>.  <br /></td></tr>
 <tr class="memitem:gafe774fc872b3f09645db24e688e25706" id="r_gafe774fc872b3f09645db24e688e25706"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gafe774fc872b3f09645db24e688e25706">noodle_bn_relu</a> (float *x, uint16_t C, uint16_t W, const float *bn_params, float eps=1e-3)</td></tr>
-<tr class="memdesc:gafe774fc872b3f09645db24e688e25706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply batch normalization and ReLU using packed parameter storage.  <br /></td></tr>
+<tr class="memdesc:gafe774fc872b3f09645db24e688e25706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Backward-compatible alias for packed-parameter <span class="tt"><a class="el" href="#ga2af23a847b7e4fab0546732199a9c048" title="Apply 2D channel-wise batch normalization followed by ReLU in place.">noodle_bn2d_relu()</a></span>.  <br /></td></tr>
 <tr class="memitem:ga48f5a5419de4d80277903f2d3f4d62f1" id="r_ga48f5a5419de4d80277903f2d3f4d62f1"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga48f5a5419de4d80277903f2d3f4d62f1">noodle_compute_V</a> (uint16_t K, uint16_t W, uint16_t P, uint16_t S)</td></tr>
 <tr class="memdesc:ga48f5a5419de4d80277903f2d3f4d62f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the square output width for 2D convolution.  <br /></td></tr>
 <tr class="memitem:gab2083af82a5cdb9857189dcbf246a944" id="r_gab2083af82a5cdb9857189dcbf246a944"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab2083af82a5cdb9857189dcbf246a944">noodle_compute_V_and_P</a> (uint16_t K, uint16_t W, uint16_t P, uint16_t S, uint16_t &amp;P0, uint16_t &amp;P1)</td></tr>
@@ -331,9 +358,19 @@ Batch Normalization</h2></td></tr>
 <tr class="memdesc:ga427a7e92ee2e25e32739d2648f525f9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the output width for 2D transpose convolution.  <br /></td></tr>
 <tr class="memitem:ga176651c271bc5926d0d017a496854ce6" id="r_ga176651c271bc5926d0d017a496854ce6"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga176651c271bc5926d0d017a496854ce6">noodle_conv_transpose_float</a> (float *input, uint16_t n_inputs, uint16_t n_outputs, float *output, uint16_t W, const <a class="el" href="structConvMem.html">ConvMem</a> &amp;conv, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=NULL)</td></tr>
 <tr class="memdesc:ga176651c271bc5926d0d017a496854ce6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-memory 2D transpose convolution with memory-backed parameters.  <br /></td></tr>
+<tr class="memitem:ga20ae1b35f7f8d9ef845b17b09b954a1e" id="r_ga20ae1b35f7f8d9ef845b17b09b954a1e"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga20ae1b35f7f8d9ef845b17b09b954a1e">noodle_conv_float</a> (const char *in_fn, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, uint16_t W, const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=nullptr)</td></tr>
+<tr class="memdesc:ga20ae1b35f7f8d9ef845b17b09b954a1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run file-to-file 2D convolution with PROGMEM-backed parameters.  <br /></td></tr>
+<tr class="memitem:ga3b7ffae1b47a0cd96c6abb7080e024b6" id="r_ga3b7ffae1b47a0cd96c6abb7080e024b6"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga3b7ffae1b47a0cd96c6abb7080e024b6">noodle_conv_float</a> (float *input, uint16_t n_inputs, uint16_t n_outputs, float *output, uint16_t W, const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=nullptr)</td></tr>
+<tr class="memdesc:ga3b7ffae1b47a0cd96c6abb7080e024b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-memory 2D convolution with PROGMEM-backed parameters.  <br /></td></tr>
+<tr class="memitem:ga5b1d7efe6e4c4f26413790b17c86857c" id="r_ga5b1d7efe6e4c4f26413790b17c86857c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5b1d7efe6e4c4f26413790b17c86857c">noodle_dwconv_float</a> (const char *in_fn, uint16_t C, const char *out_fn, uint16_t W, const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=nullptr)</td></tr>
+<tr class="memdesc:ga5b1d7efe6e4c4f26413790b17c86857c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run file-to-file 2D depthwise convolution with PROGMEM-backed parameters.  <br /></td></tr>
+<tr class="memitem:ga3783efaa4456732c46a70545a431c162" id="r_ga3783efaa4456732c46a70545a431c162"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga3783efaa4456732c46a70545a431c162">noodle_dwconv_float</a> (float *input, uint16_t C, float *output, uint16_t W, const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;conv, const <a class="el" href="structPool.html">Pool</a> &amp;pool, <a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a> progress_cb=nullptr)</td></tr>
+<tr class="memdesc:ga3783efaa4456732c46a70545a431c162"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run memory-to-memory 2D depthwise convolution with PROGMEM-backed parameters.  <br /></td></tr>
 <tr class="memitem:gafc47321f0f830961bf47283c473dec0a" id="r_gafc47321f0f830961bf47283c473dec0a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gafc47321f0f830961bf47283c473dec0a">noodle_compute_Vt_and_P</a> (uint16_t K, uint16_t W, uint16_t P, uint16_t S, uint16_t OP, uint16_t &amp;P0, uint16_t &amp;P1)</td></tr>
 <tr class="memitem:gab850f9407c7f05686dc383da37daad63" id="r_gab850f9407c7f05686dc383da37daad63"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab850f9407c7f05686dc383da37daad63">noodle_do_conv_transpose</a> (float *input, const float *kernel, uint16_t K, uint16_t W, float *output, uint16_t P, uint16_t S, uint16_t OP=0)</td></tr>
 <tr class="memdesc:gab850f9407c7f05686dc383da37daad63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accumulate one 2D transpose-convolution input plane into an output plane.  <br /></td></tr>
+<tr class="memitem:ga6d4b6f5152dab294edae9f589802a5da" id="r_ga6d4b6f5152dab294edae9f589802a5da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga6d4b6f5152dab294edae9f589802a5da">noodle_copy_kernel_progmem</a> (const float *w, uint32_t base, uint16_t K, float *kernel)</td></tr>
+<tr class="memdesc:ga6d4b6f5152dab294edae9f589802a5da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy one square convolution kernel from PROGMEM into RAM.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <p>Public functions, types, and configuration intended for application use. </p>
@@ -565,19 +602,7 @@ Batch Normalization</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Apply batch normalization using packed parameter storage. </p>
-<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[C]][beta[C]][mean[C]][var[C]]</span>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">x</td><td>Tensor in packed <span class="tt">[C][W][W]</span> layout; modified in place. </td></tr>
-    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
-    <tr><td class="paramname">W</td><td>Width and height of each channel plane. </td></tr>
-    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameters. </td></tr>
-    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code class="param">W</code>. </dd></dl>
+<p>Backward-compatible alias for packed-parameter <span class="tt"><a class="el" href="#gad19f5fd8ad6bdbcbe691f72af6438b9d" title="Apply 2D channel-wise batch normalization to a packed tensor in place.">noodle_bn2d()</a></span>. </p>
 
 </div>
 </div>
@@ -630,8 +655,442 @@ Batch Normalization</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Apply batch normalization to a packed channel-first tensor in place. </p>
+<p>Backward-compatible alias for <span class="tt"><a class="el" href="#gad19f5fd8ad6bdbcbe691f72af6438b9d" title="Apply 2D channel-wise batch normalization to a packed tensor in place.">noodle_bn2d()</a></span>. </p>
+<p>Existing code keeps the old channel-first 2D behavior. New code should prefer the explicit <span class="tt"><a class="el" href="#gad19f5fd8ad6bdbcbe691f72af6438b9d" title="Apply 2D channel-wise batch normalization to a packed tensor in place.">noodle_bn2d()</a></span> or <span class="tt"><a class="el" href="#ga1d8755c957357c0ef2663058b560e596" title="Apply 1D batch normalization to a vector in place.">noodle_bn1d()</a></span> names. </p>
+
+</div>
+</div>
+<a id="ga287c9df3b284f1f8848061e957fc72bd" name="ga287c9df3b284f1f8848061e957fc72bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga287c9df3b284f1f8848061e957fc72bd">&#9670;&#160;</a></span>noodle_bn1d() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn1d </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>N</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bn_params</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 1D batch normalization to a vector using packed parameters. </p>
+<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[N]][beta[N]][mean[N]][var[N]]</span>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Vector with <code class="param">N</code> features; modified in place. </td></tr>
+    <tr><td class="paramname">N</td><td>Number of vector features. </td></tr>
+    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameters. </td></tr>
+    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">N</code>. </dd></dl>
+
+</div>
+</div>
+<a id="ga1d8755c957357c0ef2663058b560e596" name="ga1d8755c957357c0ef2663058b560e596"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1d8755c957357c0ef2663058b560e596">&#9670;&#160;</a></span>noodle_bn1d() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn1d </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>N</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>gamma</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>mean</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>var</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 1D batch normalization to a vector in place. </p>
+<p>This is the correct BN form after FCN/Dense layers, GAP/GMP outputs, or any already-flattened feature vector.</p>
+<p>Computes <span class="tt">gamma[i] * (x[i] - mean[i]) / sqrt(var[i] + eps) + beta[i]</span>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Vector with <code class="param">N</code> features; modified in place. </td></tr>
+    <tr><td class="paramname">N</td><td>Number of vector features. </td></tr>
+    <tr><td class="paramname">gamma</td><td>Per-feature scale values. </td></tr>
+    <tr><td class="paramname">beta</td><td>Per-feature offset values. </td></tr>
+    <tr><td class="paramname">mean</td><td>Per-feature means. </td></tr>
+    <tr><td class="paramname">var</td><td>Per-feature variances. </td></tr>
+    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">N</code>. </dd></dl>
+
+</div>
+</div>
+<a id="ga2a83b9169fdc1d9739b5aa4c9ee742f9" name="ga2a83b9169fdc1d9739b5aa4c9ee742f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2a83b9169fdc1d9739b5aa4c9ee742f9">&#9670;&#160;</a></span>noodle_bn1d_relu() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn1d_relu </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>N</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bn_params</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 1D batch normalization followed by ReLU using packed parameters. </p>
+<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[N]][beta[N]][mean[N]][var[N]]</span>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Vector with <code class="param">N</code> features; modified in place. </td></tr>
+    <tr><td class="paramname">N</td><td>Number of vector features. </td></tr>
+    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameters. </td></tr>
+    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">N</code>. </dd></dl>
+
+</div>
+</div>
+<a id="ga5bbcee45a252b3620867f308fd3fd38e" name="ga5bbcee45a252b3620867f308fd3fd38e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5bbcee45a252b3620867f308fd3fd38e">&#9670;&#160;</a></span>noodle_bn1d_relu() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn1d_relu </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>N</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>gamma</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>mean</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>var</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 1D batch normalization followed by ReLU in place. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Vector with <code class="param">N</code> features; modified in place. </td></tr>
+    <tr><td class="paramname">N</td><td>Number of vector features. </td></tr>
+    <tr><td class="paramname">gamma</td><td>Per-feature scale values. </td></tr>
+    <tr><td class="paramname">beta</td><td>Per-feature offset values. </td></tr>
+    <tr><td class="paramname">mean</td><td>Per-feature means. </td></tr>
+    <tr><td class="paramname">var</td><td>Per-feature variances. </td></tr>
+    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">N</code>. </dd></dl>
+
+</div>
+</div>
+<a id="gacf2f427760f7a07eb7e58607d0e85a0b" name="gacf2f427760f7a07eb7e58607d0e85a0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacf2f427760f7a07eb7e58607d0e85a0b">&#9670;&#160;</a></span>noodle_bn2d() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn2d </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bn_params</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 2D channel-wise batch normalization using packed parameters. </p>
+<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[C]][beta[C]][mean[C]][var[C]]</span>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Tensor in packed <span class="tt">[C][W][W]</span> layout; modified in place. </td></tr>
+    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
+    <tr><td class="paramname">W</td><td>Width and height of each channel plane. </td></tr>
+    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameters. </td></tr>
+    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">W</code>. </dd></dl>
+
+</div>
+</div>
+<a id="gad19f5fd8ad6bdbcbe691f72af6438b9d" name="gad19f5fd8ad6bdbcbe691f72af6438b9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad19f5fd8ad6bdbcbe691f72af6438b9d">&#9670;&#160;</a></span>noodle_bn2d() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn2d </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>gamma</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>mean</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>var</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 2D channel-wise batch normalization to a packed tensor in place. </p>
+<p>This is the correct BN form after Conv2D, depthwise Conv2D, or pointwise Conv2D when tensors are stored as channel-first <span class="tt">[C][W][W]</span> planes.</p>
 <p>Computes <span class="tt">gamma[c] * (x - mean[c]) / sqrt(var[c] + eps) + beta[c]</span> for each element of channel <code class="param">c</code>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Tensor in packed <span class="tt">[C][W][W]</span> layout; modified in place. </td></tr>
+    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
+    <tr><td class="paramname">W</td><td>Width and height of each channel plane. </td></tr>
+    <tr><td class="paramname">gamma</td><td>Per-channel scale values. </td></tr>
+    <tr><td class="paramname">beta</td><td>Per-channel offset values. </td></tr>
+    <tr><td class="paramname">mean</td><td>Per-channel means. </td></tr>
+    <tr><td class="paramname">var</td><td>Per-channel variances. </td></tr>
+    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">W</code>. </dd></dl>
+
+</div>
+</div>
+<a id="gaa15f1295b6ce5dedec362adf7b95465c" name="gaa15f1295b6ce5dedec362adf7b95465c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa15f1295b6ce5dedec362adf7b95465c">&#9670;&#160;</a></span>noodle_bn2d_relu() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn2d_relu </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bn_params</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 2D channel-wise batch normalization followed by ReLU using packed parameters. </p>
+<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[C]][beta[C]][mean[C]][var[C]]</span>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">x</td><td>Tensor in packed <span class="tt">[C][W][W]</span> layout; modified in place. </td></tr>
+    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
+    <tr><td class="paramname">W</td><td>Width and height of each channel plane. </td></tr>
+    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameters. </td></tr>
+    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">W</code>. </dd></dl>
+
+</div>
+</div>
+<a id="ga2af23a847b7e4fab0546732199a9c048" name="ga2af23a847b7e4fab0546732199a9c048"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2af23a847b7e4fab0546732199a9c048">&#9670;&#160;</a></span>noodle_bn2d_relu() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_bn2d_relu </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>gamma</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>mean</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>var</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>eps</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1e-3</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply 2D channel-wise batch normalization followed by ReLU in place. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">x</td><td>Tensor in packed <span class="tt">[C][W][W]</span> layout; modified in place. </td></tr>
@@ -683,19 +1142,7 @@ Batch Normalization</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Apply batch normalization and ReLU using packed parameter storage. </p>
-<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[C]][beta[C]][mean[C]][var[C]]</span>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">x</td><td>Tensor in packed <span class="tt">[C][W][W]</span> layout; modified in place. </td></tr>
-    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
-    <tr><td class="paramname">W</td><td>Width and height of each channel plane. </td></tr>
-    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameters. </td></tr>
-    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code class="param">W</code>. </dd></dl>
+<p>Backward-compatible alias for packed-parameter <span class="tt"><a class="el" href="#ga2af23a847b7e4fab0546732199a9c048" title="Apply 2D channel-wise batch normalization followed by ReLU in place.">noodle_bn2d_relu()</a></span>. </p>
 
 </div>
 </div>
@@ -748,21 +1195,7 @@ Batch Normalization</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Apply batch normalization followed by ReLU in place. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">x</td><td>Tensor in packed <span class="tt">[C][W][W]</span> layout; modified in place. </td></tr>
-    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
-    <tr><td class="paramname">W</td><td>Width and height of each channel plane. </td></tr>
-    <tr><td class="paramname">gamma</td><td>Per-channel scale values. </td></tr>
-    <tr><td class="paramname">beta</td><td>Per-channel offset values. </td></tr>
-    <tr><td class="paramname">mean</td><td>Per-channel means. </td></tr>
-    <tr><td class="paramname">var</td><td>Per-channel variances. </td></tr>
-    <tr><td class="paramname">eps</td><td>Small constant added to variance. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code class="param">W</code>. </dd></dl>
+<p>Backward-compatible alias for <span class="tt"><a class="el" href="#ga2af23a847b7e4fab0546732199a9c048" title="Apply 2D channel-wise batch normalization followed by ReLU in place.">noodle_bn2d_relu()</a></span>. </p>
 
 </div>
 </div>
@@ -962,7 +1395,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga1d6c005e3ddfee8d7dc8918f7f1e9e3b" name="ga1d6c005e3ddfee8d7dc8918f7f1e9e3b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1d6c005e3ddfee8d7dc8918f7f1e9e3b">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[1/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1d6c005e3ddfee8d7dc8918f7f1e9e3b">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[1/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1025,7 +1458,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga6e604b20916c45c10a1cda78537be758" name="ga6e604b20916c45c10a1cda78537be758"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga6e604b20916c45c10a1cda78537be758">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[2/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6e604b20916c45c10a1cda78537be758">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[2/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1094,7 +1527,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga3ed30e6da28e7c91d9e8c70c37c289e4" name="ga3ed30e6da28e7c91d9e8c70c37c289e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga3ed30e6da28e7c91d9e8c70c37c289e4">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[3/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3ed30e6da28e7c91d9e8c70c37c289e4">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[3/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1157,7 +1590,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga73bc38cadc249600a190f446e6f8749b" name="ga73bc38cadc249600a190f446e6f8749b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga73bc38cadc249600a190f446e6f8749b">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[4/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga73bc38cadc249600a190f446e6f8749b">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[4/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1220,7 +1653,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gabc7401f53cbb450ffed6853a9325b101" name="gabc7401f53cbb450ffed6853a9325b101"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gabc7401f53cbb450ffed6853a9325b101">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[5/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gabc7401f53cbb450ffed6853a9325b101">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[5/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1283,7 +1716,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gaf8fbe4d85a5de5eaae4701b1ad5053b1" name="gaf8fbe4d85a5de5eaae4701b1ad5053b1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf8fbe4d85a5de5eaae4701b1ad5053b1">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[6/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf8fbe4d85a5de5eaae4701b1ad5053b1">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[6/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1341,6 +1774,75 @@ Batch Normalization</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Output length before pooling. </dd></dl>
+
+</div>
+</div>
+<a id="gacafffe8c633e75677353fd034ff3c410" name="gacafffe8c633e75677353fd034ff3c410"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacafffe8c633e75677353fd034ff3c410">&#9670;&#160;</a></span>noodle_conv1d() <span class="overload">[7/7]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_conv1d </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>in</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_inputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>out</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_outputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structConvMem.html">ConvMem</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>conv</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structPool.html">Pool</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pool</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">NULL</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Run memory-to-memory 1D convolution with memory-backed parameters and pooling. </p>
+<p>Accumulates each output sequence, applies bias/activation, then applies valid 1D pooling. The output tensor is channel-first and packed as <span class="tt">[O][Vout]</span>.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Requires the second temporary buffer as a pre-pooling accumulator. Call <span class="tt">noodle_setup_temp_buffers(b2)</span> or <span class="tt">noodle_setup_temp_buffers(b1, b2)</span> before calling. <span class="tt">b2</span> must hold at least <span class="tt">Vconv</span> floats, where <span class="tt">Vconv = (@p W - conv.K + 2 * conv.P) / conv.S + 1</span>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">in</td><td>Input tensor in packed <span class="tt">[I][W]</span> layout. </td></tr>
+    <tr><td class="paramname">n_inputs</td><td>Number of input channels. </td></tr>
+    <tr><td class="paramname">out</td><td>Destination tensor in packed <span class="tt">[O][Vout]</span> layout. </td></tr>
+    <tr><td class="paramname">n_outputs</td><td>Number of output channels. </td></tr>
+    <tr><td class="paramname">W</td><td>Input sequence length. </td></tr>
+    <tr><td class="paramname">conv</td><td>Memory-backed convolution parameters. </td></tr>
+    <tr><td class="paramname">pool</td><td>Pooling parameters applied after bias/activation. </td></tr>
+    <tr><td class="paramname">progress_cb</td><td>Optional normalized progress callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output length after pooling, or <span class="tt">0</span> if input, output, weights, or scratch are missing. </dd></dl>
 
 </div>
 </div>
@@ -1414,7 +1916,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga31bf8b8e6222200a0099ccefa27cbd8a" name="ga31bf8b8e6222200a0099ccefa27cbd8a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga31bf8b8e6222200a0099ccefa27cbd8a">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[1/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga31bf8b8e6222200a0099ccefa27cbd8a">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[1/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1482,8 +1984,146 @@ Batch Normalization</h2></td></tr>
 
 </div>
 </div>
+<a id="ga00a9b2425b4c405b2d713cd2bc451c7a" name="ga00a9b2425b4c405b2d713cd2bc451c7a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga00a9b2425b4c405b2d713cd2bc451c7a">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[2/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_conv_float </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>in_fn</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_inputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_outputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>out_fn</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structConvMem.html">ConvMem</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>conv</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structPool.html">Pool</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pool</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">NULL</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Run file-to-file 2D convolution on float input feature maps with memory-backed parameters. </p>
+<p>Reads packed float input planes from <code class="param">in_fn</code>, uses packed memory-backed weights from <code class="param">conv</code>, applies optional memory-backed bias, activation, and pooling, then writes packed output planes to <code class="param">out_fn</code>. <span class="tt"><a class="el" href="structConvMem.html#a6e20a7b6d24a7cda27f929579d339593" title="Pointer to packed weight values.">ConvMem::weight</a></span> must use <span class="tt">[O][I][K][K]</span> layout. When <span class="tt"><a class="el" href="structConvMem.html#ae4c6b70e8e643a521685ee092eeaf6ab" title="Pointer to packed bias values.">ConvMem::bias</a></span> is <span class="tt">nullptr</span>, zero bias is used.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Requires both temporary buffers. Call <span class="tt">noodle_setup_temp_buffers(b1, b2)</span> before calling. <span class="tt">b1</span> must hold at least <span class="tt">W * W</span> floats. <span class="tt">b2</span> must hold at least <span class="tt">Vconv * Vconv</span> floats, where <span class="tt">Vconv = <a class="el" href="#ga48f5a5419de4d80277903f2d3f4d62f1" title="Compute the square output width for 2D convolution.">noodle_compute_V</a>(conv.K, W, conv.P, conv.S)</span>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">in_fn</td><td>Input file containing packed <span class="tt">[I][W][W]</span> planes. </td></tr>
+    <tr><td class="paramname">n_inputs</td><td>Number of input channels. </td></tr>
+    <tr><td class="paramname">n_outputs</td><td>Number of output channels. </td></tr>
+    <tr><td class="paramname">out_fn</td><td>Output file for packed <span class="tt">[O][Vout][Vout]</span> planes. </td></tr>
+    <tr><td class="paramname">W</td><td>Input width and height. </td></tr>
+    <tr><td class="paramname">conv</td><td>Memory-backed convolution parameters. </td></tr>
+    <tr><td class="paramname">pool</td><td>Pooling parameters applied after bias/activation. </td></tr>
+    <tr><td class="paramname">progress_cb</td><td>Optional normalized progress callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output width after pooling. </dd></dl>
+
+</div>
+</div>
+<a id="ga20ae1b35f7f8d9ef845b17b09b954a1e" name="ga20ae1b35f7f8d9ef845b17b09b954a1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga20ae1b35f7f8d9ef845b17b09b954a1e">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[3/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_conv_float </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>in_fn</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_inputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_outputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>out_fn</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>conv</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structPool.html">Pool</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pool</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Run file-to-file 2D convolution with PROGMEM-backed parameters. </p>
+<p>Reads packed float input planes from <code class="param">in_fn</code>, reads packed PROGMEM weights from <code class="param">conv</code> in <span class="tt">[O][I][K][K]</span> order, applies optional PROGMEM bias, activation, and pooling, then writes packed output planes to <code class="param">out_fn</code>. When <span class="tt"><a class="el" href="structConvProgmem.html#ac82da77c6ef58c7ba09191e9302b498e">ConvProgmem::bias</a></span> is <span class="tt">nullptr</span>, zero bias is used.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Requires both temporary buffers. Call <span class="tt">noodle_setup_temp_buffers(b1, b2)</span> before calling. <span class="tt">b1</span> must hold at least <span class="tt">W * W</span> floats. <span class="tt">b2</span> must hold at least <span class="tt">Vconv * Vconv</span> floats, where <span class="tt">Vconv = <a class="el" href="#ga48f5a5419de4d80277903f2d3f4d62f1" title="Compute the square output width for 2D convolution.">noodle_compute_V</a>(conv.K, W, conv.P, conv.S)</span>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">in_fn</td><td>Input file containing packed <span class="tt">[I][W][W]</span> planes. </td></tr>
+    <tr><td class="paramname">n_inputs</td><td>Number of input channels. </td></tr>
+    <tr><td class="paramname">n_outputs</td><td>Number of output channels. </td></tr>
+    <tr><td class="paramname">out_fn</td><td>Output file for packed <span class="tt">[O][Vout][Vout]</span> planes. </td></tr>
+    <tr><td class="paramname">W</td><td>Input width and height. </td></tr>
+    <tr><td class="paramname">conv</td><td>PROGMEM-backed convolution parameters. </td></tr>
+    <tr><td class="paramname">pool</td><td>Pooling parameters applied after bias/activation. </td></tr>
+    <tr><td class="paramname">progress_cb</td><td>Optional normalized progress callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output width after pooling, or <span class="tt">0</span> on invalid input or setup. </dd></dl>
+
+</div>
+</div>
 <a id="ga173784e32049bb7290ba24125e8ef8ac" name="ga173784e32049bb7290ba24125e8ef8ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga173784e32049bb7290ba24125e8ef8ac">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[2/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga173784e32049bb7290ba24125e8ef8ac">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[4/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1552,7 +2192,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gaaf8b731b75f9918795c40e483ecf8fd7" name="gaaf8b731b75f9918795c40e483ecf8fd7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaaf8b731b75f9918795c40e483ecf8fd7">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[3/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gaaf8b731b75f9918795c40e483ecf8fd7">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[5/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1620,7 +2260,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga147ffc13899ef8ab1f10a85cb3c835dc" name="ga147ffc13899ef8ab1f10a85cb3c835dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga147ffc13899ef8ab1f10a85cb3c835dc">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[4/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga147ffc13899ef8ab1f10a85cb3c835dc">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[6/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1688,7 +2328,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga10d973891d7a8cacd6edb2fc8109f572" name="ga10d973891d7a8cacd6edb2fc8109f572"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga10d973891d7a8cacd6edb2fc8109f572">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[5/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga10d973891d7a8cacd6edb2fc8109f572">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[7/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1756,7 +2396,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gad2f74b82e8470213aefaf656a33a6e9d" name="gad2f74b82e8470213aefaf656a33a6e9d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gad2f74b82e8470213aefaf656a33a6e9d">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[6/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gad2f74b82e8470213aefaf656a33a6e9d">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[8/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1823,6 +2463,75 @@ Batch Normalization</h2></td></tr>
 
 </div>
 </div>
+<a id="ga3b7ffae1b47a0cd96c6abb7080e024b6" name="ga3b7ffae1b47a0cd96c6abb7080e024b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3b7ffae1b47a0cd96c6abb7080e024b6">&#9670;&#160;</a></span>noodle_conv_float() <span class="overload">[9/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_conv_float </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>input</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_inputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_outputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>output</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>conv</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structPool.html">Pool</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pool</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Run memory-to-memory 2D convolution with PROGMEM-backed parameters. </p>
+<p>Uses input planes packed as <span class="tt">[I][W][W]</span>, reads packed PROGMEM weights from <code class="param">conv</code> in <span class="tt">[O][I][K][K]</span> order, applies optional PROGMEM bias, activation, and pooling, then writes packed <span class="tt">[O][Vout][Vout]</span> output planes to <code class="param">output</code>. When <span class="tt"><a class="el" href="structConvProgmem.html#ac82da77c6ef58c7ba09191e9302b498e">ConvProgmem::bias</a></span> is <span class="tt">nullptr</span>, zero bias is used.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Requires the second temporary buffer. Call <span class="tt">noodle_setup_temp_buffers(b2)</span> or <span class="tt">noodle_setup_temp_buffers(b1, b2)</span> before calling. <span class="tt">b2</span> must hold at least <span class="tt">Vconv * Vconv</span> floats, where <span class="tt">Vconv = <a class="el" href="#ga48f5a5419de4d80277903f2d3f4d62f1" title="Compute the square output width for 2D convolution.">noodle_compute_V</a>(conv.K, W, conv.P, conv.S)</span>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">input</td><td>Input tensor in packed <span class="tt">[I][W][W]</span> layout. </td></tr>
+    <tr><td class="paramname">n_inputs</td><td>Number of input channels. </td></tr>
+    <tr><td class="paramname">n_outputs</td><td>Number of output channels. </td></tr>
+    <tr><td class="paramname">output</td><td>Destination tensor in packed <span class="tt">[O][Vout][Vout]</span> layout. </td></tr>
+    <tr><td class="paramname">W</td><td>Input width and height. </td></tr>
+    <tr><td class="paramname">conv</td><td>PROGMEM-backed convolution parameters. </td></tr>
+    <tr><td class="paramname">pool</td><td>Pooling parameters applied after bias/activation. </td></tr>
+    <tr><td class="paramname">progress_cb</td><td>Optional normalized progress callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output width after pooling, or <span class="tt">0</span> on invalid input or setup. </dd></dl>
+
+</div>
+</div>
 <a id="ga176651c271bc5926d0d017a496854ce6" name="ga176651c271bc5926d0d017a496854ce6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga176651c271bc5926d0d017a496854ce6">&#9670;&#160;</a></span>noodle_conv_transpose_float()</h2>
 
@@ -1882,6 +2591,49 @@ Batch Normalization</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Output width, or <span class="tt">0</span> if the input or parameters are invalid. </dd></dl>
+
+</div>
+</div>
+<a id="ga6d4b6f5152dab294edae9f589802a5da" name="ga6d4b6f5152dab294edae9f589802a5da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6d4b6f5152dab294edae9f589802a5da">&#9670;&#160;</a></span>noodle_copy_kernel_progmem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void noodle_copy_kernel_progmem </td>
+          <td>(</td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>w</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>base</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>K</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>kernel</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Copy one square convolution kernel from PROGMEM into RAM. </p>
+<p>Copies <span class="tt">K * K</span> consecutive floats starting at <code class="param">base</code> from <code class="param">w</code> into the row-major destination buffer <code class="param">kernel</code>. On AVR, values are read through <span class="tt"><a class="el" href="noodle_8h.html#aa340390a22150ee34a137d6b1fcad3ca">noodle_pgm_float()</a></span>; on other targets the source pointer is read normally.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">w</td><td>PROGMEM-backed packed weight array. </td></tr>
+    <tr><td class="paramname">base</td><td>Index of the first kernel value in <code class="param">w</code>. </td></tr>
+    <tr><td class="paramname">K</td><td>Kernel width and height. </td></tr>
+    <tr><td class="paramname">kernel</td><td>Destination buffer with room for <span class="tt">K * K</span> floats. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -2030,8 +2782,71 @@ Batch Normalization</h2></td></tr>
 
 </div>
 </div>
+<a id="ga5b1d7efe6e4c4f26413790b17c86857c" name="ga5b1d7efe6e4c4f26413790b17c86857c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5b1d7efe6e4c4f26413790b17c86857c">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[1/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_dwconv_float </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>in_fn</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>out_fn</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>conv</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structPool.html">Pool</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pool</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Run file-to-file 2D depthwise convolution with PROGMEM-backed parameters. </p>
+<p>Reads packed float input planes from <code class="param">in_fn</code>, reads one PROGMEM <span class="tt">K x K</span> kernel per channel from <code class="param">conv</code> in <span class="tt">[C][K][K]</span> order, applies optional PROGMEM bias, activation, and pooling, then writes packed output planes to <code class="param">out_fn</code>. When <span class="tt"><a class="el" href="structConvProgmem.html#ac82da77c6ef58c7ba09191e9302b498e">ConvProgmem::bias</a></span> is <span class="tt">nullptr</span>, zero bias is used.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Requires both temporary buffers. Call <span class="tt">noodle_setup_temp_buffers(b1, b2)</span> before calling. <span class="tt">b1</span> must hold at least <span class="tt">W * W</span> floats. <span class="tt">b2</span> must hold at least <span class="tt">Vconv * Vconv</span> floats, where <span class="tt">Vconv = <a class="el" href="#ga48f5a5419de4d80277903f2d3f4d62f1" title="Compute the square output width for 2D convolution.">noodle_compute_V</a>(conv.K, W, conv.P, conv.S)</span>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">in_fn</td><td>Input file containing packed <span class="tt">[C][W][W]</span> planes. </td></tr>
+    <tr><td class="paramname">C</td><td>Number of input/output channels. </td></tr>
+    <tr><td class="paramname">out_fn</td><td>Output file for packed <span class="tt">[C][Vout][Vout]</span> planes. </td></tr>
+    <tr><td class="paramname">W</td><td>Input width and height. </td></tr>
+    <tr><td class="paramname">conv</td><td>PROGMEM-backed depthwise convolution parameters. </td></tr>
+    <tr><td class="paramname">pool</td><td>Pooling parameters applied after bias/activation. </td></tr>
+    <tr><td class="paramname">progress_cb</td><td>Optional normalized progress callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output width after pooling, or <span class="tt">0</span> on invalid input or setup. </dd></dl>
+
+</div>
+</div>
 <a id="gae8752ff6cd686a1791203a91911c4fa6" name="gae8752ff6cd686a1791203a91911c4fa6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae8752ff6cd686a1791203a91911c4fa6">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gae8752ff6cd686a1791203a91911c4fa6">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[2/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2093,8 +2908,71 @@ Batch Normalization</h2></td></tr>
 
 </div>
 </div>
+<a id="ga3783efaa4456732c46a70545a431c162" name="ga3783efaa4456732c46a70545a431c162"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3783efaa4456732c46a70545a431c162">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[3/5]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_dwconv_float </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>input</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>output</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structConvProgmem.html">ConvProgmem</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>conv</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structPool.html">Pool</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>pool</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Run memory-to-memory 2D depthwise convolution with PROGMEM-backed parameters. </p>
+<p>Uses input planes packed as <span class="tt">[C][W][W]</span>, reads one PROGMEM <span class="tt">K x K</span> kernel per channel from <code class="param">conv</code> in <span class="tt">[C][K][K]</span> order, applies optional PROGMEM bias, activation, and pooling, then writes packed <span class="tt">[C][Vout][Vout]</span> output planes to <code class="param">output</code>. When <span class="tt"><a class="el" href="structConvProgmem.html#ac82da77c6ef58c7ba09191e9302b498e">ConvProgmem::bias</a></span> is <span class="tt">nullptr</span>, zero bias is used.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Requires the second temporary buffer. Call <span class="tt">noodle_setup_temp_buffers(b2)</span> or <span class="tt">noodle_setup_temp_buffers(b1, b2)</span> before calling. <span class="tt">b2</span> must hold at least <span class="tt">Vconv * Vconv</span> floats, where <span class="tt">Vconv = <a class="el" href="#ga48f5a5419de4d80277903f2d3f4d62f1" title="Compute the square output width for 2D convolution.">noodle_compute_V</a>(conv.K, W, conv.P, conv.S)</span>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">input</td><td>Input tensor in packed <span class="tt">[C][W][W]</span> layout. </td></tr>
+    <tr><td class="paramname">C</td><td>Number of input/output channels. </td></tr>
+    <tr><td class="paramname">output</td><td>Destination tensor in packed <span class="tt">[C][Vout][Vout]</span> layout. </td></tr>
+    <tr><td class="paramname">W</td><td>Input width and height. </td></tr>
+    <tr><td class="paramname">conv</td><td>PROGMEM-backed depthwise convolution parameters. </td></tr>
+    <tr><td class="paramname">pool</td><td>Pooling parameters applied after bias/activation. </td></tr>
+    <tr><td class="paramname">progress_cb</td><td>Optional normalized progress callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output width after pooling, or <span class="tt">0</span> on invalid input or setup. </dd></dl>
+
+</div>
+</div>
 <a id="ga5f11f1aec153b269fe4a484b2ea336d5" name="ga5f11f1aec153b269fe4a484b2ea336d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5f11f1aec153b269fe4a484b2ea336d5">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5f11f1aec153b269fe4a484b2ea336d5">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[4/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2156,7 +3034,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gac0bb7cf45d65b44bf26bf87e6fd5e4d9" name="gac0bb7cf45d65b44bf26bf87e6fd5e4d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac0bb7cf45d65b44bf26bf87e6fd5e4d9">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gac0bb7cf45d65b44bf26bf87e6fd5e4d9">&#9670;&#160;</a></span>noodle_dwconv_float() <span class="overload">[5/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2218,7 +3096,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gac69cf3a861a93856dde12ecf16e8a426" name="gac69cf3a861a93856dde12ecf16e8a426"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac69cf3a861a93856dde12ecf16e8a426">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[1/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gac69cf3a861a93856dde12ecf16e8a426">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[1/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2274,7 +3152,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gae743d461e784058bc25a6432a85d0105" name="gae743d461e784058bc25a6432a85d0105"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gae743d461e784058bc25a6432a85d0105">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[2/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gae743d461e784058bc25a6432a85d0105">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[2/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2330,7 +3208,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga460617e68240ab9e80a7ce4b9e534c69" name="ga460617e68240ab9e80a7ce4b9e534c69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga460617e68240ab9e80a7ce4b9e534c69">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[3/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga460617e68240ab9e80a7ce4b9e534c69">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[3/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2386,7 +3264,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga23376a8483317d3748a51b23739efffc" name="ga23376a8483317d3748a51b23739efffc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga23376a8483317d3748a51b23739efffc">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[4/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga23376a8483317d3748a51b23739efffc">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[4/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2443,7 +3321,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga1d2b8cbc06cd00a06d574d98ebe03f2a" name="ga1d2b8cbc06cd00a06d574d98ebe03f2a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1d2b8cbc06cd00a06d574d98ebe03f2a">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[5/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1d2b8cbc06cd00a06d574d98ebe03f2a">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[5/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2500,7 +3378,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="ga1b296e23047a07331a039f23d5c295c4" name="ga1b296e23047a07331a039f23d5c295c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga1b296e23047a07331a039f23d5c295c4">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[6/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga1b296e23047a07331a039f23d5c295c4">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[6/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2555,8 +3433,65 @@ Batch Normalization</h2></td></tr>
 
 </div>
 </div>
+<a id="gad9596098d4853bdd986f90edd0ee1b0c" name="gad9596098d4853bdd986f90edd0ee1b0c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad9596098d4853bdd986f90edd0ee1b0c">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[7/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_fcn </td>
+          <td>(</td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>input</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_inputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_outputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>output</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structFCNProgmem.html">FCNProgmem</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>fcn</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">NULL</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Run a memory-to-memory fully-connected layer with AVR PROGMEM parameters. </p>
+<p>Reads row-major <span class="tt">[O][I]</span> weights from the far flash address in <span class="tt"><a class="el" href="structFCNProgmem.html#a0f37309cbe41e8f73c1e14d5866b92fe" title="Far flash address of row-major [O][I] weights.">FCNProgmem::weight_far</a></span>, reads optional biases from <span class="tt"><a class="el" href="structFCNProgmem.html#ad57c7e81884518edd383b3b23d375ca9" title="Far flash address of output biases, or 0 for zero bias.">FCNProgmem::bias_far</a></span>, computes <span class="tt">y = W*x + b</span>, and applies ReLU or softmax when requested by <code class="param">fcn</code>.</p>
+<dl class="section note"><dt>Note</dt><dd>Returns <span class="tt">0</span> if <code class="param">input</code> or <code class="param">output</code> is null, or if <span class="tt"><a class="el" href="structFCNProgmem.html#a0f37309cbe41e8f73c1e14d5866b92fe" title="Far flash address of row-major [O][I] weights.">FCNProgmem::weight_far</a></span> is <span class="tt">0</span>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">input</td><td>Input vector with <code class="param">n_inputs</code> floats. </td></tr>
+    <tr><td class="paramname">n_inputs</td><td>Number of input values. </td></tr>
+    <tr><td class="paramname">n_outputs</td><td>Number of output neurons. </td></tr>
+    <tr><td class="paramname">output</td><td>Destination vector with room for <code class="param">n_outputs</code> floats. </td></tr>
+    <tr><td class="paramname">fcn</td><td>PROGMEM-backed weights, optional biases, and activation mode. </td></tr>
+    <tr><td class="paramname">progress_cb</td><td>Optional normalized progress callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">n_outputs</code> on success, or <span class="tt">0</span> on invalid input. </dd></dl>
+
+</div>
+</div>
 <a id="ga173bcc3844c49c58115ddc09ca144027" name="ga173bcc3844c49c58115ddc09ca144027"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga173bcc3844c49c58115ddc09ca144027">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[7/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga173bcc3844c49c58115ddc09ca144027">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[8/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2612,7 +3547,7 @@ Batch Normalization</h2></td></tr>
 </div>
 </div>
 <a id="gacdf86e9336733b4222b55a5c7f179587" name="gacdf86e9336733b4222b55a5c7f179587"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gacdf86e9336733b4222b55a5c7f179587">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[8/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#gacdf86e9336733b4222b55a5c7f179587">&#9670;&#160;</a></span>noodle_fcn() <span class="overload">[9/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2664,6 +3599,57 @@ Batch Normalization</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code class="param">n_outputs</code>. </dd></dl>
+
+</div>
+</div>
+<a id="ga791dda082adbc98d40a785ffe07d3d47" name="ga791dda082adbc98d40a785ffe07d3d47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga791dda082adbc98d40a785ffe07d3d47">&#9670;&#160;</a></span>noodle_fcn_progmem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_fcn_progmem </td>
+          <td>(</td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>input</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_inputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>n_outputs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>output</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>weight</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bias</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a></td>          <td class="paramname"><span class="paramname"><em>act</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#ga5656db4f2a4f8526caa2ba41543c0767">CBFPtr</a></td>          <td class="paramname"><span class="paramname"><em>progress_cb</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -2963,7 +3949,7 @@ Batch Normalization</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Initialize SdFat with an explicit SPI bus and clock speed. </p>
-<p>This overload is available only when <span class="tt"><a class="el" href="noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7">NOODLE_USE_SDFAT</a></span> is selected. It sets the chip-select pin inactive, then starts <span class="tt"><a class="el" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a></span> using the supplied SPI instance in dedicated-SPI mode at the requested SD clock.</p>
+<p>This overload is available only when <span class="tt"><a class="el" href="noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7">NOODLE_USE_SDFAT</a></span> is selected. It sets the chip-select pin inactive, then starts <span class="tt"><a class="el" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a></span> using the supplied SPI instance in dedicated-SPI mode at the requested SD clock.</p>
 <p>Use this overload when the SD card is connected to a non-default SPI bus or to custom SPI pins that have already been configured on <code class="param">spi</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -3008,6 +3994,44 @@ Batch Normalization</h2></td></tr>
     <tr><td class="paramname">inout</td><td>Input/output buffer containing a packed <span class="tt">[C][W][W]</span> tensor. </td></tr>
     <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
     <tr><td class="paramname">W</td><td>Width and height of each channel plane. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code class="param">C</code>. </dd></dl>
+
+</div>
+</div>
+<a id="gad928ec0ba91d1abaea1764a875754b6b" name="gad928ec0ba91d1abaea1764a875754b6b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad928ec0ba91d1abaea1764a875754b6b">&#9670;&#160;</a></span>noodle_gmp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_gmp </td>
+          <td>(</td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>inout</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply global max pooling in place. </p>
+<p>Reads a channel-first <span class="tt">[C][W]</span> tensor from <code class="param">inout</code> and writes the per-channel maximum values into the first <code class="param">C</code> positions of the same buffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">inout</td><td>Input/output buffer containing a packed <span class="tt">[C][W]</span> tensor. </td></tr>
+    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
+    <tr><td class="paramname">W</td><td>Length of each channel sequence. </td></tr>
   </table>
   </dd>
 </dl>
@@ -3713,9 +4737,6 @@ Batch Normalization</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">float * noodle_slice </td>
@@ -3733,11 +4754,6 @@ Batch Normalization</h2></td></tr>
           <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>z</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Return a channel plane from a packed <span class="tt">[Z][W][W]</span> tensor. </p>
@@ -3781,61 +4797,6 @@ Batch Normalization</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><code class="param">n</code>. </dd></dl>
-
-</div>
-</div>
-<a id="ga952a655f5b7774828abe96900b58aec4" name="ga952a655f5b7774828abe96900b58aec4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga952a655f5b7774828abe96900b58aec4">&#9670;&#160;</a></span>noodle_unpack_bn_params()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void noodle_unpack_bn_params </td>
-          <td>(</td>
-          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bn_params</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>gamma</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>mean</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>var</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Split packed batch-normalization parameters into per-field pointers. </p>
-<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[C]][beta[C]][mean[C]][var[C]]</span>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameter array. </td></tr>
-    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
-    <tr><td class="paramname">gamma</td><td>Receives pointer to the gamma/scale values. </td></tr>
-    <tr><td class="paramname">beta</td><td>Receives pointer to the beta/offset values. </td></tr>
-    <tr><td class="paramname">mean</td><td>Receives pointer to the mean values. </td></tr>
-    <tr><td class="paramname">var</td><td>Receives pointer to the variance values. </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>

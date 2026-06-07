@@ -179,7 +179,7 @@ $(function() {
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      <span class="keyword">using </span>NDL_File = File;     <span class="comment">// SdFat on AVR often uses File wrapper</span></div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="preprocessor">    #endif</span></div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span></div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keyword">extern</span> SdFat <a class="code hl_variable" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>;      <span class="comment">// defined in noodle.cpp</span></div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keyword">extern</span> SdFat <a class="code hl_variable" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>;      <span class="comment">// defined in noodle.cpp</span></div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span><span class="preprocessor">  #elif defined(NOODLE_USE_FFAT)</span></div>
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span><span class="preprocessor">    #include &lt;FFat.h&gt;</span></div>
@@ -247,9 +247,9 @@ $(function() {
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  (void)path;</div>
 <div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  <span class="keywordflow">return</span> NDL_File{}; <span class="comment">// invalid handle</span></div>
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span><span class="preprocessor">#elif defined(NOODLE_USE_SDFAT)</span></div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, O_RDONLY);</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, O_RDONLY);</div>
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, FILE_READ);</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, FILE_READ);</div>
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>}</div>
 </div>
@@ -262,9 +262,9 @@ $(function() {
 <div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>  <span class="keywordflow">return</span> NDL_File{}; <span class="comment">// invalid handle</span></div>
 <div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span><span class="preprocessor">#elif defined(NOODLE_USE_SDFAT)</span></div>
 <div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  <span class="keywordtype">int</span> flags = O_WRITE | O_CREAT | O_TRUNC;</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, flags);</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, flags);</div>
 <div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, FILE_WRITE);</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.open(path, FILE_WRITE);</div>
 <div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>}</div>
 </div>
@@ -276,20 +276,20 @@ $(function() {
 <div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>  (void)path;</div>
 <div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>  <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.remove(path);</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a>.remove(path);</div>
 <div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>}</div>
 </div>
 <div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span></div>
 <div class="foldopen" id="foldopen00303" data-start="{" data-end="}">
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno"><a class="line" href="group__noodle__fs.html#ga1a593eb3990e10577afd3528aa5848e2">  303</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__noodle__fs.html#ga1a593eb3990e10577afd3528aa5848e2">noodle_rewind_file</a>(NDL_File &amp;<a class="code hl_variable" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>) {</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno"><a class="line" href="group__noodle__fs.html#ga1a593eb3990e10577afd3528aa5848e2">  303</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__noodle__fs.html#ga1a593eb3990e10577afd3528aa5848e2">noodle_rewind_file</a>(NDL_File &amp;<a class="code hl_variable" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>) {</div>
 <div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span><span class="preprocessor">#if defined(NOODLE_USE_SDFAT)</span></div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>  <a class="code hl_variable" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>.seekSet(0);</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>  <a class="code hl_variable" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>.seekSet(0);</div>
 <div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span><span class="preprocessor">#elif defined(NOODLE_USE_FFAT) || defined(NOODLE_USE_LITTLEFS) || defined(NOODLE_USE_SD_MMC) || defined(NOODLE_USE_SD)</span></div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>  <a class="code hl_variable" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>.seek(0);</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>  <a class="code hl_variable" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>.seek(0);</div>
 <div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>  <span class="comment">// NOODLE_USE_NONE (or unknown backend): nothing to seek. Close the handle.</span></div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>  <a class="code hl_variable" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>.close();</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>  <a class="code hl_variable" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>.close();</div>
 <div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>}</div>
 </div>
@@ -300,8 +300,8 @@ $(function() {
 <div class="ttc" id="agroup__noodle__fs_html_gadf921fb8ac0e8ef8c1cd813727f6bb17"><div class="ttname"><a href="group__noodle__fs.html#gadf921fb8ac0e8ef8c1cd813727f6bb17">noodle_fs_open_write</a></div><div class="ttdeci">NDL_File noodle_fs_open_write(const char *path)</div><div class="ttdoc">Open a file for writing using the selected backend.</div><div class="ttdef"><b>Definition</b> noodle_fs.h:262</div></div>
 <div class="ttc" id="agroup__noodle__fs_html_gae2aa969aab31cda295d25d16a61fdb1d"><div class="ttname"><a href="group__noodle__fs.html#gae2aa969aab31cda295d25d16a61fdb1d">noodle_fs_open_read</a></div><div class="ttdeci">NDL_File noodle_fs_open_read(const char *path)</div><div class="ttdoc">Open a file for reading using the selected backend.</div><div class="ttdef"><b>Definition</b> noodle_fs.h:239</div></div>
 <div class="ttc" id="agroup__noodle__fs_html_gafe6e88826b205695ee88ad8879754e2a"><div class="ttname"><a href="group__noodle__fs.html#gafe6e88826b205695ee88ad8879754e2a">noodle_norm_filename</a></div><div class="ttdeci">const char * noodle_norm_filename(const char *name)</div><div class="ttdoc">Normalize a filename/path for the selected filesystem backend.</div><div class="ttdef"><b>Definition</b> noodle_fs.h:207</div></div>
-<div class="ttc" id="anoodle_8cpp_html_aaecba4c62e76ceb436ddfe04bc6abb65"><div class="ttname"><a href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a></div><div class="ttdeci">NDL_File fi</div><div class="ttdef"><b>Definition</b> noodle.cpp:16</div></div>
-<div class="ttc" id="anoodle_8cpp_html_ae7a5c8ccd2782283f68dd9fa5f8cacc9"><div class="ttname"><a href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a></div><div class="ttdeci">SdFat NOODLE_FS</div><div class="ttdef"><b>Definition</b> noodle.cpp:12</div></div>
+<div class="ttc" id="anoodle__internal_8cpp_html_aaecba4c62e76ceb436ddfe04bc6abb65"><div class="ttname"><a href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a></div><div class="ttdeci">NDL_File fi</div><div class="ttdef"><b>Definition</b> noodle_internal.cpp:13</div></div>
+<div class="ttc" id="anoodle__internal_8cpp_html_ae7a5c8ccd2782283f68dd9fa5f8cacc9"><div class="ttname"><a href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a></div><div class="ttdeci">SdFat NOODLE_FS</div><div class="ttdef"><b>Definition</b> noodle_internal.cpp:9</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

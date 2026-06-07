@@ -11,8 +11,6 @@
         <link rel="canonical" href="https://auralius.github.io/noodle/mobile-lenet/">
       
       
-        <link rel="prev" href="../fcn-uno/">
-      
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -20,7 +18,7 @@
     
     
       
-        <title>Mobile-LeNet - Noodle - The Documentation</title>
+        <title>Mobile-LeNet-28×28 on ESP32 - Noodle - The Documentation</title>
       
     
     
@@ -64,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#mobile-lenet" class="md-skip">
+        <a href="#mobile-lenet-2828-on-esp32" class="md-skip">
           Skip to content
         </a>
       
@@ -99,7 +97,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Mobile-LeNet
+              Mobile-LeNet-28×28 on ESP32
             
           </span>
         </div>
@@ -252,374 +250,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ad-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Anomali Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ecg-peak-detect/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Peak Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../blood/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Blood-MNIST Classification on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../vww-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Visual Wake Word on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-pico/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on Pico
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-bluepill/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    SD-Card–Backed LeNet-5
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../fcn-uno/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Two-Layer FCN on UNO R3
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Mobile-LeNet
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    Mobile-LeNet
-    
-  </span>
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#design-choices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Design Choices
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architectural-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Architectural Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stem-convolution" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stem Convolution
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#depth-wise-separable-blocks-dw-pw" class="md-nav__link">
-    <span class="md-ellipsis">
-      Depth-wise Separable Blocks (DW → PW)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Depth-wise Separable Blocks (DW → PW)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-depth-wise-convolution-dwconv" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Depth-wise Convolution (DWConv)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-point-wise-convolution-pwconv-11" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Point-wise Convolution (PWConv, 1×1)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stage-wise-organization" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage-wise Organization
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Stage-wise Organization">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#stage-1-feature-refinement-2828" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage 1 — Feature Refinement (28×28)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stage-2-first-downsampling-1414" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage 2 — First Downsampling (14×14)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stage-3-second-downsampling-77" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stage 3 — Second Downsampling (7×7)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#padding-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Padding Strategy
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#global-average-pooling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Global Average Pooling
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#classification-layer" class="md-nav__link">
-    <span class="md-ellipsis">
-      Classification Layer
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#noodle-implementation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Noodle Implementation
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -639,11 +269,11 @@
   
 
 
-<h1 id="mobile-lenet">Mobile-LeNet</h1>
+<h1 id="mobile-lenet-2828-on-esp32">Mobile-LeNet-28×28 on ESP32</h1>
 <p><img alt="" src="../attachments/mobile-lenet.png" /></p>
 <ul>
 <li><a href="https://colab.research.google.com/drive/1WQ1yPFyfsqXl6NcWHlDjNY3L3Xgk8aC2?usp=sharing"><em>Google Colab notebook can be found here.</em></a></li>
-<li><a href="https://github.com/auralius/noodle/tree/main/examples/mobile-lenet-5-esp32"><em>Noodle Implementation can be found here.</em></a></li>
+<li><a href="https://github.com/auralius/noodle/tree/main/examples/mobile-lenet-esp32"><em>Noodle Implementation can be found here.</em></a></li>
 </ul>
 <h2 id="design-choices">Design Choices</h2>
 <p><strong>Mobile-LeNet</strong> is a compact convolutional neural network inspired by both <strong>LeNet-5</strong> and <strong>MobileNet-V1</strong>. Its purpose is <em>didactic rather than competitive</em>: to expose, in a single small model, the full set of modern CNN building blocks commonly used in edge and embedded deep learning. Specifically, this model demonstrates:</p>

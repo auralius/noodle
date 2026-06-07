@@ -1,0 +1,23 @@
+<map id="noodle_shape.cpp" name="noodle_shape.cpp">
+<area shape="rect" id="Node000001" title="Tensor&#45;to&#45;vector transforms: flatten, reshape, GAP, and GMP." alt="" coords="322,5,449,32"/>
+<area shape="rect" id="Node000002" href="$noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files." alt="" coords="326,80,445,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="387,30,388,65,383,63,384,35"/>
+<area shape="rect" id="Node000003" href="$noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="181,155,251,181"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="354,109,261,150,259,146,358,106"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="239,304,303,331"/>
+<area shape="poly" id="edge10_Node000002_Node000004" title=" " alt="" coords="378,105,345,156,309,228,283,291,279,288,304,226,341,153,374,109"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="355,155,416,181"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="387,105,388,140,383,138,384,109"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="441,155,498,181"/>
+<area shape="poly" id="edge9_Node000002_Node000009" title=" " alt="" coords="401,105,446,144,441,144,400,110"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="522,155,585,181"/>
+<area shape="poly" id="edge11_Node000002_Node000010" title=" " alt="" coords="415,105,513,148,507,148,415,110"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="223,179,244,228,265,290,260,288,239,230,220,184"/>
+<area shape="rect" id="Node000005" href="$noodle__config_8h.html" title=" " alt="" coords="5,229,118,256"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="188,184,104,225,101,220,191,180"/>
+<area shape="rect" id="Node000006" href="$noodle__fs_8h.html" title=" " alt="" coords="141,229,230,256"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="213,180,199,216,195,213,209,184"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="201,254,247,294,242,294,199,259"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="146,304,214,331"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="186,255,184,290,180,287,183,258"/>
+</map>

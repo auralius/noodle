@@ -11,10 +11,6 @@
         <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-bluepill/">
       
       
-        <link rel="prev" href="../lenet-5-pico/">
-      
-      
-        <link rel="next" href="../fcn-uno/">
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -22,7 +18,7 @@
     
     
       
-        <title>SD-Card–Backed LeNet-5 - Noodle - The Documentation</title>
+        <title>Lenet 5 bluepill - Noodle - The Documentation</title>
       
     
     
@@ -66,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sd-card-backed-lenet-5-inference-on-stm32-blue-pill" class="md-skip">
+        <a href="#lenet-5-2828-on-stm32-blue-pill" class="md-skip">
           Skip to content
         </a>
       
@@ -101,7 +97,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SD-Card–Backed LeNet-5
+              Lenet 5 bluepill
             
           </span>
         </div>
@@ -254,346 +250,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ad-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Anomali Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ecg-peak-detect/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Peak Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../blood/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Blood-MNIST Classification on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../vww-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Visual Wake Word on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-pico/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on Pico
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    SD-Card–Backed LeNet-5
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    SD-Card–Backed LeNet-5
-    
-  </span>
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#sd-card-backed-lenet-5-inference-on-stm32-blue-pill" class="md-nav__link">
-    <span class="md-ellipsis">
-      SD-Card-Backed LeNet-5 Inference on STM32 Blue Pill
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-use-an-sd-card" class="md-nav__link">
-    <span class="md-ellipsis">
-      Why Use an SD Card?
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#storage-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Storage Strategy
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#layer-by-layer-data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Layer-by-Layer Data Flow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#noodle-implementation-sketch" class="md-nav__link">
-    <span class="md-ellipsis">
-      Noodle Implementation Sketch
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sd-card-interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      SD Card Interface
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#benchmark-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      Benchmark Result
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Benchmark Result">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#fully-file-backed-fc-activations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fully file-backed FC activations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ram-backed-fc-activations" class="md-nav__link">
-    <span class="md-ellipsis">
-      RAM-backed FC activations
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-this-matters" class="md-nav__link">
-    <span class="md-ellipsis">
-      Why This Matters
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-not-just-quantize" class="md-nav__link">
-    <span class="md-ellipsis">
-      Why Not Just Quantize?
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      Summary
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../fcn-uno/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Two-Layer FCN on UNO R3
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../mobile-lenet/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Mobile-LeNet
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -613,153 +269,80 @@
   
 
 
-  <h1>SD-Card–Backed LeNet-5</h1>
+  <h1>Lenet 5 bluepill</h1>
 
-<h2 id="sd-card-backed-lenet-5-inference-on-stm32-blue-pill">SD-Card-Backed LeNet-5 Inference on STM32 Blue Pill</h2>
-<p>This example evaluates a <strong>LeNet-5-style inference pipeline</strong> on an <strong>STM32F103 Blue Pill</strong>. The main goal is to show how Noodle can execute a model whose full parameter set cannot fit into the microcontroller’s internal memory. The STM32F103 Blue Pill is a useful target because it is highly constrained:</p>
+<h2 id="lenet-5-2828-on-stm32-blue-pill">LeNet-5-28×28 on STM32 Blue Pill</h2>
+<p>This example evaluates a LeNet-5 inference pipeline on an STM32F103 Blue Pill. The goal is to show how Noodle can run a model whose parameters are too large for the microcontroller's internal flash, while still keeping intermediate activations in SRAM when they fit.</p>
+<p><img alt="" src="../attachments/noodle-bluepills.png" /></p>
+<p>The STM32F103 Blue Pill is a constrained target:</p>
 <pre><code class="language-text">Flash : 64 KB nominal on common STM32F103C8 boards
 SRAM  : 20 KB
+````
+
+The LeNet-5 parameter set is much larger than the available flash when represented as `float32`. Therefore, this implementation stores weights and biases on an external SD card. Activations are kept in SRAM to avoid unnecessary SD-card traffic.
+
+In this implementation:
+
+* weights and biases are stored as binary `.bin` files on the SD card,
+* convolution and fully connected activations are stored in SRAM,
+* the SD card is used only as parameter storage,
+* and inference is executed layer by layer using Noodle.
+
+The use of binary files is important. Text files are easier to inspect, but they require ASCII parsing on the microcontroller. Binary files store raw `float32` values directly, making them more suitable for repeated embedded inference.
+
+---
+
+## Why Use an SD Card?
+
+The SD card is required because the full `float32` LeNet-5 parameter set is too large for the internal flash of a typical Blue Pill.
+
+Approximate parameter sizes are:
+
+| Layer         |  Parameter shape | Number of floats |    Size |
+| ------------- | ---------------: | ---------------: | ------: |
+| Conv1 weights |  `6 × 1 × 5 × 5` |              150 |   600 B |
+| Conv1 bias    |              `6` |                6 |    24 B |
+| Conv2 weights | `16 × 6 × 5 × 5` |            2,400 |  9.6 KB |
+| Conv2 bias    |             `16` |               16 |    64 B |
+| FC1 weights   |      `400 × 120` |           48,000 |  192 KB |
+| FC1 bias      |            `120` |              120 |   480 B |
+| FC2 weights   |       `120 × 84` |           10,080 | 40.3 KB |
+| FC2 bias      |             `84` |               84 |   336 B |
+| FC3 weights   |        `84 × 10` |              840 | 3.36 KB |
+| FC3 bias      |             `10` |               10 |    40 B |
+
+The total parameter count is:
+
+```text
+61,706 float32 values
 </code></pre>
-<p>A float32 LeNet-style model quickly exceeds these limits. Therefore, this implementation stores the model weights and biases on an external SD card, while still using RAM for small activation buffers whenever possible.</p>
-<p>In this implementation:</p>
-<ul>
-<li>weights and biases are stored as raw <code>.bin</code> files on the SD card,</li>
-<li>large intermediate convolution outputs are stored as files,</li>
-<li>small fully connected activation vectors are kept in RAM,</li>
-<li>and the network is executed layer by layer using Noodle.</li>
-</ul>
-<p>The use of <code>.bin</code> files is important. Text files are easy to inspect, but they require ASCII parsing on the microcontroller. Binary files store raw <code>float32</code> values directly, making them more suitable for repeated embedded inference.</p>
-<hr />
-<h2 id="why-use-an-sd-card">Why Use an SD Card?</h2>
-<p>The SD card is not used merely as a convenience. It is required because the full float32 parameter set is too large to store as <code>const</code> arrays in the flash memory of a typical Blue Pill. For the LeNet-style network used here, the parameter sizes are approximately:</p>
-<table>
-<thead>
-<tr>
-<th>Layer</th>
-<th style="text-align: right;">Parameter shape</th>
-<th style="text-align: right;">Number of floats</th>
-<th style="text-align: right;">Size</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Conv1 weights</td>
-<td style="text-align: right;"><code>6 × 1 × 5 × 5</code></td>
-<td style="text-align: right;">150</td>
-<td style="text-align: right;">600 B</td>
-</tr>
-<tr>
-<td>Conv1 bias</td>
-<td style="text-align: right;"><code>6</code></td>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">24 B</td>
-</tr>
-<tr>
-<td>Conv2 weights</td>
-<td style="text-align: right;"><code>16 × 6 × 5 × 5</code></td>
-<td style="text-align: right;">2,400</td>
-<td style="text-align: right;">9.6 KB</td>
-</tr>
-<tr>
-<td>Conv2 bias</td>
-<td style="text-align: right;"><code>16</code></td>
-<td style="text-align: right;">16</td>
-<td style="text-align: right;">64 B</td>
-</tr>
-<tr>
-<td>FC1 weights</td>
-<td style="text-align: right;"><code>400 × 120</code></td>
-<td style="text-align: right;">48,000</td>
-<td style="text-align: right;">192 KB</td>
-</tr>
-<tr>
-<td>FC1 bias</td>
-<td style="text-align: right;"><code>120</code></td>
-<td style="text-align: right;">120</td>
-<td style="text-align: right;">480 B</td>
-</tr>
-<tr>
-<td>FC2 weights</td>
-<td style="text-align: right;"><code>120 × 84</code></td>
-<td style="text-align: right;">10,080</td>
-<td style="text-align: right;">40.3 KB</td>
-</tr>
-<tr>
-<td>FC2 bias</td>
-<td style="text-align: right;"><code>84</code></td>
-<td style="text-align: right;">84</td>
-<td style="text-align: right;">336 B</td>
-</tr>
-<tr>
-<td>FC3 weights</td>
-<td style="text-align: right;"><code>84 × 10</code></td>
-<td style="text-align: right;">840</td>
-<td style="text-align: right;">3.36 KB</td>
-</tr>
-<tr>
-<td>FC3 bias</td>
-<td style="text-align: right;"><code>10</code></td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">40 B</td>
-</tr>
-</tbody>
-</table>
-<p>The total parameter count is:</p>
-<pre><code class="language-text">61,706 float32 values
-</code></pre>
-<p>At 4 bytes per float:</p>
+<p>At 4 bytes per value:</p>
 <pre><code class="language-text">61,706 × 4 = 246,824 bytes ≈ 241 KB
 </code></pre>
-<p>This is only the model parameter size. It does not include:</p>
-<ul>
-<li>program code,</li>
-<li>the Noodle library,</li>
-<li>the SdFat library,</li>
-<li>serial communication code,</li>
-<li>stack,</li>
-<li>heap,</li>
-<li>or runtime buffers.</li>
-</ul>
-<p>Therefore, storing all weights as <code>const</code> flash arrays is not feasible on a typical STM32F103C8 Blue Pill. Even a 128 KB variant would not comfortably hold the full float32 model together with the firmware. The SD card solves this by acting as external parameter storage.</p>
+<p>This is only the parameter size. It does not include program code, the Noodle library, the SdFat library, serial communication code, stack, heap, or runtime buffers. Therefore, storing all parameters as <code>const</code> arrays in flash is not feasible on a typical STM32F103C8 Blue Pill. Even a 128 KB variant would not comfortably hold the full <code>float32</code> model together with the firmware.</p>
+<p>The SD card solves this by acting as external parameter storage.</p>
 <hr />
 <h2 id="storage-strategy">Storage Strategy</h2>
-<p>The main idea is to use <strong>hybrid memory placement</strong>. Large tensors that cannot fit in flash or SRAM are stored on the SD card. Small tensors that fit comfortably in SRAM are kept in RAM to avoid unnecessary file traffic. Noodle supports several execution patterns:</p>
-<table>
-<thead>
-<tr>
-<th>Pattern</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>RAM → RAM</td>
-<td>Fastest path, used when both input and output fit in SRAM</td>
-</tr>
-<tr>
-<td>RAM → file</td>
-<td>Input is in memory, output is written to SD card</td>
-</tr>
-<tr>
-<td>file → RAM</td>
-<td>Input is loaded from SD card, output is kept in memory</td>
-</tr>
-<tr>
-<td>file → file</td>
-<td>Both input and output are stored externally</td>
-</tr>
-</tbody>
-</table>
-<p>The important result from the Blue Pill experiment is that <strong>not every tensor should be stored as a file</strong>. The weights must stay on the SD card because they are too large, but small activation vectors should remain in RAM. The fully connected activation sizes are small:</p>
-<pre><code class="language-text">FC1 input  : 400 floats = 1600 B
-FC1 output : 120 floats = 480 B
-FC2 output : 84 floats  = 336 B
-FC3 output : 10 floats  = 40 B
+<p>The optimized Blue Pill implementation uses hybrid memory placement:</p>
+<pre><code class="language-text">Weights and biases  → SD card
+Activations         → SRAM
 </code></pre>
-<p>These are small enough for the 20 KB SRAM. Therefore, the optimized version keeps the fully connected activations in RAM, while still reading the fully connected weights from SD card files.</p>
+<p>This is possible because the activation tensors are much smaller than the parameter set.</p>
+<p>The largest activation buffers are:</p>
+<pre><code class="language-text">Input image      : 28 × 28       = 784 floats  = 3136 B
+Conv1 + Pool1    : 14 × 14 × 6   = 1176 floats = 4704 B
+Conv2 + Pool2    : 5 × 5 × 16    = 400 floats  = 1600 B
+Scratch plane    : 28 × 28       = 784 floats  = 3136 B
+RX buffer        : 784 bytes
+</code></pre>
+<p>The explicit runtime buffers require about:</p>
+<pre><code class="language-text">13.36 KB
+</code></pre>
+<p>This fits inside the 20 KB SRAM of the Blue Pill, while still leaving space for stack, heap metadata, SD/SPI objects, and local variables.</p>
+<p>The key point is that the full convolution outputs do not need to be materialized. Noodle applies internal pooling during convolution, so Conv1 directly produces the pooled <code>14 × 14 × 6</code> output instead of storing the larger unpooled <code>28 × 28 × 6</code> tensor.</p>
 <hr />
 <h2 id="layer-by-layer-data-flow">Layer-by-Layer Data Flow</h2>
-<p>The optimized Blue Pill implementation uses the following data placement.</p>
+<p>The SRAM-activation implementation uses the following placement:</p>
 <table>
 <thead>
 <tr>
@@ -775,95 +358,92 @@ FC3 output : 10 floats  = 40 B
 <tr>
 <td style="text-align: right;">1</td>
 <td>Conv1 + Pool</td>
-<td><code>GRID</code> in RAM</td>
-<td><code>out1.bin</code> on SD card</td>
-<td><code>w01.bin</code>, <code>b01.bin</code> on SD card</td>
-<td>First convolution starts from the received 28×28 image</td>
+<td><code>IMG</code> in SRAM</td>
+<td><code>ACT1</code> in SRAM</td>
+<td><code>w01.bin</code>, <code>b01.bin</code> on SD</td>
+<td>Produces <code>14 × 14 × 6</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">2</td>
 <td>Conv2 + Pool</td>
-<td><code>out1.bin</code> on SD card</td>
-<td><code>out2.bin</code> on SD card</td>
-<td><code>w02.bin</code>, <code>b02.bin</code> on SD card</td>
-<td>File-backed convolution stage</td>
+<td><code>ACT1</code> in SRAM</td>
+<td><code>ACT2</code> in SRAM</td>
+<td><code>w02.bin</code>, <code>b02.bin</code> on SD</td>
+<td>Produces <code>5 × 5 × 16</code></td>
 </tr>
 <tr>
 <td style="text-align: right;">3</td>
 <td>Flatten</td>
-<td><code>out2.bin</code> on SD card</td>
-<td><code>BUFFER1</code> in RAM</td>
+<td><code>ACT2</code> in SRAM</td>
+<td><code>IMG</code> in SRAM</td>
 <td>—</td>
-<td>Produces a 400-float vector</td>
+<td>Produces 400-float vector</td>
 </tr>
 <tr>
 <td style="text-align: right;">4</td>
 <td>FC1</td>
-<td><code>BUFFER1</code> in RAM</td>
-<td><code>BUFFER2</code> in RAM</td>
-<td><code>w03.bin</code>, <code>b03.bin</code> on SD card</td>
-<td>Weights remain on SD, activation output stays in RAM</td>
+<td><code>IMG</code> in SRAM</td>
+<td><code>ACT1</code> in SRAM</td>
+<td><code>w03.bin</code>, <code>b03.bin</code> on SD</td>
+<td>Produces 120-float vector</td>
 </tr>
 <tr>
 <td style="text-align: right;">5</td>
 <td>FC2</td>
-<td><code>BUFFER2</code> in RAM</td>
-<td><code>BUFFER1</code> in RAM</td>
-<td><code>w04.bin</code>, <code>b04.bin</code> on SD card</td>
-<td>Avoids file-backed activation input/output</td>
+<td><code>ACT1</code> in SRAM</td>
+<td><code>IMG</code> in SRAM</td>
+<td><code>w04.bin</code>, <code>b04.bin</code> on SD</td>
+<td>Produces 84-float vector</td>
 </tr>
 <tr>
 <td style="text-align: right;">6</td>
 <td>FC3 + Softmax</td>
-<td><code>BUFFER1</code> in RAM</td>
-<td><code>BUFFER2</code> in RAM</td>
-<td><code>w05.bin</code>, <code>b05.bin</code> on SD card</td>
-<td>Final 10-class output remains in RAM</td>
+<td><code>IMG</code> in SRAM</td>
+<td><code>ACT2</code> in SRAM</td>
+<td><code>w05.bin</code>, <code>b05.bin</code> on SD</td>
+<td>Produces 10-class output</td>
 </tr>
 </tbody>
 </table>
-<p>This placement is much faster than storing every fully connected activation as a file.</p>
+<p>The complete flow is:</p>
+<pre><code class="language-text">IMG
+  ↓ Conv1 + Pool
+ACT1
+  ↓ Conv2 + Pool
+ACT2
+  ↓ Flatten
+IMG
+  ↓ FC1
+ACT1
+  ↓ FC2
+IMG
+  ↓ FC3 + Softmax
+ACT2
+</code></pre>
+<p>This placement avoids writing intermediate activations such as <code>out1.bin</code> and <code>out2.bin</code> to the SD card. The SD card is used only for the model parameters.</p>
 <hr />
 <h2 id="noodle-implementation-sketch">Noodle Implementation Sketch</h2>
-<p>The optimized Noodle call sequence is:</p>
-<pre><code class="language-cpp">V = noodle_conv_float(GRID, 1, 6,
-                      &quot;out1.bin&quot;, 28,
+<p>The optimized call sequence is:</p>
+<pre><code class="language-cpp">// Conv activations stay in SRAM.
+// Conv weights are read from SD.
+V = noodle_conv_float(IMG, 1, 6,
+                      ACT1, 28,
                       cnn1, pool, NULL);
 
-V = noodle_conv_float(&quot;out1.bin&quot;, 6, 16,
-                      &quot;out2.bin&quot;, V,
+V = noodle_conv_float(ACT1, 6, 16,
+                      ACT2, V,
                       cnn2, pool, NULL);
 
-V = noodle_flat(&quot;out2.bin&quot;, BUFFER1, V, 16);
+// Flattened activation stays in SRAM.
+V = noodle_flat(ACT2, IMG, V, 16);
 
-// FC activations stay in RAM.
-// FC weights are still read from SD card.
-
-V = noodle_fcn(BUFFER1, V, 120,
-               BUFFER2, fcn1, NULL);
-
-V = noodle_fcn(BUFFER2, V, 84,
-               BUFFER1, fcn2, NULL);
-
-V = noodle_fcn(BUFFER1, V, 10,
-               BUFFER2, fcn3, NULL);
+// FC activations stay in SRAM.
+// FC weights are read from SD.
+V = noodle_fcn(IMG, V, 120, ACT1, fcn1, NULL);
+V = noodle_fcn(ACT1, V, 84, IMG, fcn2, NULL);
+V = noodle_fcn(IMG, V, 10, ACT2, fcn3, NULL);
 </code></pre>
-<p>The complete flow is:</p>
-<pre><code class="language-text">GRID
-  ↓ Conv1 + Pool
-out1.bin
-  ↓ Conv2 + Pool
-out2.bin
-  ↓ Flatten
-BUFFER1
-  ↓ FC1
-BUFFER2
-  ↓ FC2
-BUFFER1
-  ↓ FC3 + Softmax
-BUFFER2
-</code></pre>
-<p>The important change is that <code>out3.bin</code> and <code>out4.bin</code> are no longer used for the fully connected activations. Those vectors are small enough to stay in SRAM.</p>
+<p>This version keeps the activations entirely in SRAM while streaming the large weights from SD card files.</p>
 <hr />
 <h2 id="sd-card-interface">SD Card Interface</h2>
 <p>The Blue Pill inference node uses an SD card connected through SPI2:</p>
@@ -874,7 +454,7 @@ SD CS    → PB12
 SD 3V3   → 3.3V
 SD GND   → GND
 </code></pre>
-<p>In the tested PlatformIO STM32duino setup, the SD card is initialized with an explicit SPI2 object:</p>
+<p>In the tested PlatformIO STM32duino setup, the SD card is initialized as an explicit SPI2 object:</p>
 <pre><code class="language-cpp">static const uint8_t SD_CS = PB12;
 
 SPIClass SPI_SD(PB15, PB14, PB13, PB12);  // MOSI, MISO, SCK, SS
@@ -884,30 +464,10 @@ if (!noodle_fs_init(SD_CS, SPI_SD, 12)) {
   while (true) delay(1000);
 }
 </code></pre>
-<p>The tested setup was stable at <strong>12 MHz SPI</strong>. Increasing the SPI clock from 8 MHz to 12 MHz reduced inference time significantly, indicating that the SD-backed path is strongly affected by SPI transfer speed. However, 18 MHz was not stable with the tested wiring/module, so 12 MHz was used for the reported result.</p>
+<p>The tested setup was stable at 12 MHz SPI. Higher SPI speeds may depend on wiring quality and the SD module.</p>
 <hr />
 <h2 id="benchmark-result">Benchmark Result</h2>
-<p>Two memory-placement strategies were tested.</p>
-<h3 id="fully-file-backed-fc-activations">Fully file-backed FC activations</h3>
-<p>In the first version, the fully connected activations were also written to and read from SD card files:</p>
-<pre><code class="language-cpp">V = noodle_fcn(BUFFER1, V, 120, &quot;out3.bin&quot;, fcn1, NULL);
-V = noodle_fcn(&quot;out3.bin&quot;, V, 84, &quot;out4.bin&quot;, fcn2, NULL);
-V = noodle_fcn(&quot;out4.bin&quot;, V, 10, BUFFER2, fcn3, NULL);
-</code></pre>
-<p>This worked, but it was slow:</p>
-<pre><code class="language-text">Mean inference time ≈ 39.7 s
-</code></pre>
-<p>The dominant layer was <code>FC2</code>, which took about 33 s. This showed that file-backed activation handling inside the fully connected layers created excessive SD traffic.</p>
-<h3 id="ram-backed-fc-activations">RAM-backed FC activations</h3>
-<p>In the optimized version, only the large weights remain on SD card. The small FC activation vectors stay in RAM:</p>
-<pre><code class="language-cpp">V = noodle_fcn(BUFFER1, V, 120, BUFFER2, fcn1, NULL);
-V = noodle_fcn(BUFFER2, V, 84, BUFFER1, fcn2, NULL);
-V = noodle_fcn(BUFFER1, V, 10, BUFFER2, fcn3, NULL);
-</code></pre>
-<p>This reduced inference time to approximately:</p>
-<pre><code class="language-text">Mean inference time ≈ 3.47 s
-</code></pre>
-<p>Representative layer timings were:</p>
+<p>The SRAM-activation version produced the following representative layer timings:</p>
 <table>
 <thead>
 <tr>
@@ -918,63 +478,68 @@ V = noodle_fcn(BUFFER1, V, 10, BUFFER2, fcn3, NULL);
 <tbody>
 <tr>
 <td>Conv1 + Pool</td>
-<td style="text-align: right;">≈ 0.424 s</td>
+<td style="text-align: right;">0.3530 s</td>
 </tr>
 <tr>
 <td>Conv2 + Pool</td>
-<td style="text-align: right;">≈ 1.47 s</td>
+<td style="text-align: right;">0.8165 s</td>
 </tr>
 <tr>
 <td>Flatten</td>
-<td style="text-align: right;">≈ 0.015 s</td>
+<td style="text-align: right;">0.0001 s</td>
 </tr>
 <tr>
 <td>FC1</td>
-<td style="text-align: right;">≈ 1.08 s</td>
+<td style="text-align: right;">1.0686 s</td>
 </tr>
 <tr>
 <td>FC2</td>
-<td style="text-align: right;">≈ 0.43 s</td>
+<td style="text-align: right;">0.4267 s</td>
 </tr>
 <tr>
 <td>FC3 + Softmax</td>
-<td style="text-align: right;">≈ 0.056 s</td>
+<td style="text-align: right;">0.0558 s</td>
 </tr>
 <tr>
 <td>Total</td>
-<td style="text-align: right;">≈ 3.47 s</td>
+<td style="text-align: right;">2.7212 s</td>
 </tr>
 </tbody>
 </table>
-<p>This is about an <strong>11× speedup</strong> compared with the fully file-backed FC activation version.</p>
+<p>This result shows that eliminating SD-backed intermediate activations greatly reduces latency. The remaining cost is dominated by the FC layers, especially FC1, because the large FC weight matrices are still streamed from SD.</p>
 <hr />
 <h2 id="why-this-matters">Why This Matters</h2>
 <p>This example demonstrates the central idea behind Noodle:</p>
 <pre><code class="language-text">Large tensors that do not fit on-chip should be stored externally.
 Small tensors that fit in SRAM should stay in SRAM.
 </code></pre>
-<p>For this Blue Pill example:</p>
+<p>For the Blue Pill LeNet-5 example:</p>
 <pre><code class="language-text">Weights and biases → SD card
-Convolution outputs → SD card
-Flattened vector and FC activations → RAM
-Final softmax output → RAM
+Activations        → SRAM
+Final output       → SRAM
 </code></pre>
-<p>The SD card makes it possible to run a full float32 LeNet-style model whose parameters alone require about 241 KB. The Blue Pill cannot store those parameters as <code>const</code> arrays in flash, and it cannot load them fully into SRAM. However, by streaming weights from SD and carefully keeping only selected activations in RAM, Noodle can still execute the model.</p>
-<p>This is different from a conventional in-memory inference engine. In TensorFlow Lite Micro, the model is normally stored as a memory-addressable flatbuffer, often compiled into flash as a C array, and the tensor arena must fit in SRAM. That works well when the quantized model and arena fit on-chip. In contrast, this Noodle example targets the case where the model parameters exceed the internal flash capacity of the microcontroller.</p>
+<p>The SD card makes it possible to run a full <code>float32</code> LeNet-5 model whose parameters require about 241 KB. The Blue Pill cannot store those parameters in internal flash and cannot load them fully into SRAM. However, by streaming weights from SD while keeping activations in RAM, Noodle can still execute the model.</p>
+<p>This differs from a conventional in-memory inference engine. In TensorFlow Lite Micro, the model is normally stored as a memory-addressable flat buffer, often compiled into flash as a C array, and the tensor arena must fit in SRAM. That approach works well when the quantized model and tensor arena fit on-chip. In contrast, this Noodle example targets the case where the <code>float32</code> model parameters exceed the internal flash capacity of the microcontroller.</p>
+<hr />
 <h2 id="why-not-just-quantize">Why Not Just Quantize?</h2>
-<p>Quantization is an important and often necessary optimization for TinyML deployment. If the model can be quantized to <code>int8</code> and the resulting model plus tensor arena fits into on-chip flash and SRAM, then a conventional in-memory inference engine such as TFLite Micro is usually the better choice for speed. Quantization would reduce the parameter set from about 241 KB to about 61 KB. So on a nominal <strong>64 KB flash STM32F103C8</strong>, even <code>int8</code> LeNet may still be tight or impractical as a fully compiled-in model. On a 128 KB board, <code>int8</code> becomes more realistic.</p>
-<p>However, this example explores a different constraint: running a <code>float32</code> LeNet-style model whose parameter set alone is larger than the internal flash of the target MCU. In this situation, the SD card is not used to compete with quantization, but to provide external parameter storage. Noodle makes the memory placement explicit: large weights are streamed from SD, while small activation vectors are kept in RAM. Thus, quantization and SD-backed execution are complementary. Quantization reduces tensor size; Noodle controls tensor placement.</p>
+<p>Quantization is important for TinyML deployment. If the model can be quantized to <code>int8</code> and the resulting model plus tensor arena fits into on-chip flash and SRAM, then a conventional in-memory inference engine such as TFLite Micro is usually the better choice for speed.</p>
+<p>However, this example explores a different constraint: running a <code>float32</code> LeNet-5 model whose parameter set alone is larger than the internal flash of the target MCU. In this case, the SD card is not used to compete with quantization. It is used to provide external parameter storage.</p>
+<p>Noodle and quantization are complementary:</p>
+<pre><code class="language-text">Quantization reduces tensor size.
+Noodle controls where tensors live.
+</code></pre>
+<p>A quantized Noodle backend could further reduce SD traffic and SRAM usage in future work, while preserving the same memory-placement idea.</p>
 <hr />
 <h2 id="summary">Summary</h2>
-<p>This example demonstrates SD-card-backed LeNet-style inference on an STM32F103 Blue Pill.</p>
+<p>This example demonstrates SD-backed LeNet-5 inference on an STM32F103 Blue Pill.</p>
 <p>The main findings are:</p>
 <ul>
-<li>the complete float32 parameter set is about 241 KB,</li>
+<li>the complete <code>float32</code> parameter set is about 241 KB,</li>
 <li>this is too large for the internal flash of a typical Blue Pill,</li>
 <li>SD card storage allows the full model weights to be used,</li>
-<li>fully file-backed activation placement is correct but slow,</li>
-<li>keeping small FC activations in RAM reduces inference time from about 39.7 s to about 3.47 s,</li>
-<li>and the final design uses SD for large weights while preserving SRAM for small, high-reuse activations.</li>
+<li>all intermediate activations can fit in SRAM when internal pooling is used,</li>
+<li>keeping activations in SRAM reduces SD traffic significantly,</li>
+<li>and the measured inference time is about 2.72 s.</li>
 </ul>
 <p>In short, this example shows that Noodle can run a model that exceeds the on-chip memory capacity of the microcontroller by explicitly controlling where each tensor lives.</p>
 

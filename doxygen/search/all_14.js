@@ -1,12 +1,8 @@
 var searchData=
 [
-  ['t_0',['T',['../structPool.html#af1194dd9b19245d3ff0e7f0a1991aadc',1,'Pool']]],
-  ['temp_5fbuff1_1',['temp_buff1',['../noodle_8cpp.html#ab6ff5fc28357e769819fc740f7900ff2',1,'noodle.cpp']]],
-  ['temp_5fbuff2_2',['temp_buff2',['../noodle_8cpp.html#ae50746191631b2901a876e4cd69183ec',1,'noodle.cpp']]],
-  ['temporary_20buffers_3',['Temporary Buffers',['../group__noodle__api.html#autotoc_md6',1,'Temporary Buffers'],['../group__noodle__api.html#autotoc_md22',1,'Temporary Buffers'],['../noodle_8h.html#noodle_temp_buffers',1,'Temporary Buffers']]],
-  ['tensor_20and_20parameter_20layouts_4',['Tensor And Parameter Layouts',['../group__noodle__api.html#autotoc_md5',1,'Tensor And Parameter Layouts'],['../group__noodle__api.html#autotoc_md21',1,'Tensor And Parameter Layouts']]],
-  ['tensor_20layout_20and_20text_20files_5',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
-  ['text_20files_6',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
-  ['tflite_20micro_20mental_20models_7',['Noodle And TFLite Micro Mental Models',['../group__noodle__api.html#autotoc_md19',1,'']]],
-  ['time_20configuration_8',['Time Configuration',['../group__noodle__api.html#autotoc_md4',1,'Compile-Time Configuration'],['../group__noodle__api.html#autotoc_md20',1,'Compile-Time Configuration']]]
+  ['s_0',['S',['../structConv.html#a0abad0da1a24d1df13b48ef82962741d',1,'Conv::S'],['../structConvFile.html#a0dd166ca60c1ef5d00a21d3cb48ba7b8',1,'ConvFile::S'],['../structConvMem.html#aace4dd633d9db8153390a3c7332c4899',1,'ConvMem::S'],['../structConvProgmem.html#a72b0c11d63f273991e7c8f7763b93ea8',1,'ConvProgmem::S']]],
+  ['select_20a_20filesystem_20backend_1',['1. Select A Filesystem Backend',['../index.html#autotoc_md10',1,'']]],
+  ['source_20layout_2',['Public Include And Refactored Source Layout',['../index.html#autotoc_md3',1,'']]],
+  ['start_3',['Quick Start',['../index.html#autotoc_md9',1,'']]],
+  ['streaming_20first_20memory_20model_4',['Streaming-First Memory Model',['../index.html#autotoc_md2',1,'']]]
 ];

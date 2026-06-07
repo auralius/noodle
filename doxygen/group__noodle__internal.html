@@ -128,27 +128,29 @@ Memory Utilities</h2></td></tr>
 <tr class="memdesc:ga902815632d6fcc18e720696671455e70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fill a float buffer with zeros.  <br /></td></tr>
 <tr class="memitem:ga914806cc09ef8e194c13c4d90b09413a" id="r_ga914806cc09ef8e194c13c4d90b09413a"><td class="memItemLeft" align="right" valign="top">float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga914806cc09ef8e194c13c4d90b09413a">noodle_slice</a> (float *flat, size_t W, size_t z)</td></tr>
 <tr class="memdesc:ga914806cc09ef8e194c13c4d90b09413a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a channel plane from a packed <span class="tt">[Z][W][W]</span> tensor.  <br /></td></tr>
-<tr class="memitem:ga003f3cbc2a26dbb746f87a49982e6fee" id="r_ga003f3cbc2a26dbb746f87a49982e6fee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga003f3cbc2a26dbb746f87a49982e6fee">noodle_array_to_file</a> (float *array, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
+<tr class="memitem:ga003f3cbc2a26dbb746f87a49982e6fee" id="r_ga003f3cbc2a26dbb746f87a49982e6fee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga003f3cbc2a26dbb746f87a49982e6fee">noodle_array_to_file</a> (float *array, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
 <tr class="memdesc:ga003f3cbc2a26dbb746f87a49982e6fee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a float array to an already-open text file.  <br /></td></tr>
-<tr class="memitem:gab547644cbbfbdf2fbbed04567043a8e9" id="r_gab547644cbbfbdf2fbbed04567043a8e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#gab547644cbbfbdf2fbbed04567043a8e9">noodle_grid_to_file</a> (<a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *grid, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
+<tr class="memitem:gab547644cbbfbdf2fbbed04567043a8e9" id="r_gab547644cbbfbdf2fbbed04567043a8e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#gab547644cbbfbdf2fbbed04567043a8e9">noodle_grid_to_file</a> (<a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *grid, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
 <tr class="memdesc:gab547644cbbfbdf2fbbed04567043a8e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an <span class="tt">n x n</span> byte grid to an already-open text file.  <br /></td></tr>
-<tr class="memitem:ga9e8949021924758a7de780a41b65fc7e" id="r_ga9e8949021924758a7de780a41b65fc7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga9e8949021924758a7de780a41b65fc7e">noodle_grid_to_file</a> (float *grid, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
+<tr class="memitem:ga9e8949021924758a7de780a41b65fc7e" id="r_ga9e8949021924758a7de780a41b65fc7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga9e8949021924758a7de780a41b65fc7e">noodle_grid_to_file</a> (float *grid, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>, uint16_t n)</td></tr>
 <tr class="memdesc:ga9e8949021924758a7de780a41b65fc7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an <span class="tt">n x n</span> float grid to an already-open text file.  <br /></td></tr>
-<tr class="memitem:gad68dd39d7efde78eaf7090a56bb74eca" id="r_gad68dd39d7efde78eaf7090a56bb74eca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#gad68dd39d7efde78eaf7090a56bb74eca">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, float *buffer, uint16_t K)</td></tr>
+<tr class="memitem:gad68dd39d7efde78eaf7090a56bb74eca" id="r_gad68dd39d7efde78eaf7090a56bb74eca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#gad68dd39d7efde78eaf7090a56bb74eca">noodle_grid_from_file</a> (NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>, float *buffer, uint16_t K)</td></tr>
 <tr class="memdesc:gad68dd39d7efde78eaf7090a56bb74eca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a <span class="tt">K x K</span> grid into a float buffer from an already-open file.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-member-group" class="groupheader"><a id="member-group" name="member-group"></a>
 Internal Pooling Helpers</h2></td></tr>
 <tr class="memitem:ga17b0a86521c5421467673b70b9ae763d" id="r_ga17b0a86521c5421467673b70b9ae763d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga17b0a86521c5421467673b70b9ae763d">noodle_do_pooling</a> (const float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn)</td></tr>
 <tr class="memdesc:ga17b0a86521c5421467673b70b9ae763d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply valid 2D pooling and write the result to a file.  <br /></td></tr>
-<tr class="memitem:ga10c48a831d9241a0bbdb3eeb20c2525f" id="r_ga10c48a831d9241a0bbdb3eeb20c2525f"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga10c48a831d9241a0bbdb3eeb20c2525f">noodle_do_pooling</a> (const float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>)</td></tr>
+<tr class="memitem:ga10c48a831d9241a0bbdb3eeb20c2525f" id="r_ga10c48a831d9241a0bbdb3eeb20c2525f"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga10c48a831d9241a0bbdb3eeb20c2525f">noodle_do_pooling</a> (const float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>)</td></tr>
 <tr class="memdesc:ga10c48a831d9241a0bbdb3eeb20c2525f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply valid 2D pooling and write the result to an open file.  <br /></td></tr>
 <tr class="memitem:gab67cf5c201ab40e5045b3933aa5d0fad" id="r_gab67cf5c201ab40e5045b3933aa5d0fad"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab67cf5c201ab40e5045b3933aa5d0fad">noodle_do_pooling</a> (const float *input, uint16_t W, uint16_t K, uint16_t S, float *output)</td></tr>
 <tr class="memdesc:gab67cf5c201ab40e5045b3933aa5d0fad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply valid 2D pooling and write the result to memory.  <br /></td></tr>
 <tr class="memitem:ga83cd3b5018e214d0ff2e23e5eb61c864" id="r_ga83cd3b5018e214d0ff2e23e5eb61c864"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga83cd3b5018e214d0ff2e23e5eb61c864">noodle_do_pooling1d</a> (float *input, uint16_t W, uint16_t K, uint16_t S, const char *fn)</td></tr>
 <tr class="memdesc:ga83cd3b5018e214d0ff2e23e5eb61c864"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply valid 1D max pooling and write the result to a file.  <br /></td></tr>
-<tr class="memitem:ga47880f31893ecd1f5fc6cabfdcec59ed" id="r_ga47880f31893ecd1f5fc6cabfdcec59ed"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga47880f31893ecd1f5fc6cabfdcec59ed">noodle_do_pooling1d</a> (float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &amp;<a class="el" href="noodle_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>)</td></tr>
+<tr class="memitem:ga47880f31893ecd1f5fc6cabfdcec59ed" id="r_ga47880f31893ecd1f5fc6cabfdcec59ed"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga47880f31893ecd1f5fc6cabfdcec59ed">noodle_do_pooling1d</a> (float *input, uint16_t W, uint16_t K, uint16_t S, NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512">fo</a>)</td></tr>
 <tr class="memdesc:ga47880f31893ecd1f5fc6cabfdcec59ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply valid 1D max pooling and write the result to an open file.  <br /></td></tr>
+<tr class="memitem:ga403e07bff2264788e437651257f82990" id="r_ga403e07bff2264788e437651257f82990"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga403e07bff2264788e437651257f82990">noodle_do_pooling1d</a> (const float *input, uint16_t W, uint16_t K, uint16_t S, float *output)</td></tr>
+<tr class="memdesc:ga403e07bff2264788e437651257f82990"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply valid 1D pooling and write the result to memory.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-member-group" class="groupheader"><a id="member-group" name="member-group"></a>
 Internal Convolution Helpers</h2></td></tr>
@@ -162,17 +164,10 @@ Internal Convolution Helpers</h2></td></tr>
 <tr class="memdesc:gaa1bf96ab4662c8273fcc051d991f6292"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add bias to a square map in place and apply ReLU.  <br /></td></tr>
 <tr class="memitem:gac680c9dba87f61a426f622266df2a99d" id="r_gac680c9dba87f61a426f622266df2a99d"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac680c9dba87f61a426f622266df2a99d">noodle_do_bias_act</a> (float *output, float bias, uint16_t n, <a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a> act)</td></tr>
 <tr class="memdesc:gac680c9dba87f61a426f622266df2a99d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add bias to a square map in place and apply an activation.  <br /></td></tr>
-<tr class="memitem:ga53d9c6b07f729bd054f4fe35296c4054" id="r_ga53d9c6b07f729bd054f4fe35296c4054"><td class="memItemLeft" align="right" valign="top">static float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga53d9c6b07f729bd054f4fe35296c4054">noodle_get_padded_x</a> (<a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1) __attribute__((always_inline))</td></tr>
-<tr class="memdesc:ga53d9c6b07f729bd054f4fe35296c4054"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a byte grid sample with zero padding.  <br /></td></tr>
-<tr class="memitem:ga5a69226775ceac69e5254a238a14fc78" id="r_ga5a69226775ceac69e5254a238a14fc78"><td class="memItemLeft" align="right" valign="top">static float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5a69226775ceac69e5254a238a14fc78">noodle_get_padded_x</a> (float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1) __attribute__((always_inline))</td></tr>
-<tr class="memdesc:ga5a69226775ceac69e5254a238a14fc78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a float grid sample with zero padding.  <br /></td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-member-group" class="groupheader"><a id="member-group" name="member-group"></a>
-2D Depth-wise Convolution</h2></td></tr>
-<tr><td class="ititle" colspan="2"><p>Temp-buffer requirements are listed per overload. Buffer 2 is used as the pre-pooling accumulation plane for depthwise convolution. </p>
-</td></tr>
-<tr class="memitem:ga952a655f5b7774828abe96900b58aec4" id="r_ga952a655f5b7774828abe96900b58aec4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga952a655f5b7774828abe96900b58aec4">noodle_unpack_bn_params</a> (const float *bn_params, uint16_t C, const float **gamma, const float **beta, const float **mean, const float **var)</td></tr>
-<tr class="memdesc:ga952a655f5b7774828abe96900b58aec4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Split packed batch-normalization parameters into per-field pointers.  <br /></td></tr>
+<tr class="memitem:ga3513bfdd53984ef7f74eb5b6c2c2b956" id="r_ga3513bfdd53984ef7f74eb5b6c2c2b956"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga3513bfdd53984ef7f74eb5b6c2c2b956">noodle_get_padded_x</a> (<a class="el" href="noodle_8h.html#a0c8186d9b9b7880309c27230bbb5e69d">byte</a> *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1)</td></tr>
+<tr class="memdesc:ga3513bfdd53984ef7f74eb5b6c2c2b956"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a byte grid sample with zero padding.  <br /></td></tr>
+<tr class="memitem:ga57e67afa514ded883ad50e9a14ce76ed" id="r_ga57e67afa514ded883ad50e9a14ce76ed"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga57e67afa514ded883ad50e9a14ce76ed">noodle_get_padded_x</a> (float *grid, int16_t i, int16_t j, int16_t W, int16_t P0, int16_t P1)</td></tr>
+<tr class="memdesc:ga57e67afa514ded883ad50e9a14ce76ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a float grid sample with zero padding.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-member-group" class="groupheader"><a id="member-group" name="member-group"></a>
 2D Transpose Convolution</h2></td></tr>
@@ -181,6 +176,8 @@ Internal Convolution Helpers</h2></td></tr>
 </td></tr>
 <tr class="memitem:gab850f9407c7f05686dc383da37daad63" id="r_gab850f9407c7f05686dc383da37daad63"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#gab850f9407c7f05686dc383da37daad63">noodle_do_conv_transpose</a> (float *input, const float *kernel, uint16_t K, uint16_t W, float *output, uint16_t P, uint16_t S, uint16_t OP=0)</td></tr>
 <tr class="memdesc:gab850f9407c7f05686dc383da37daad63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accumulate one 2D transpose-convolution input plane into an output plane.  <br /></td></tr>
+<tr class="memitem:ga6d4b6f5152dab294edae9f589802a5da" id="r_ga6d4b6f5152dab294edae9f589802a5da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga6d4b6f5152dab294edae9f589802a5da">noodle_copy_kernel_progmem</a> (const float *w, uint32_t base, uint16_t K, float *kernel)</td></tr>
+<tr class="memdesc:ga6d4b6f5152dab294edae9f589802a5da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy one square convolution kernel from PROGMEM into RAM.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <p>Helper routines used by Noodle implementations. These are documented for maintainers, but application code normally should not call them directly. </p>
@@ -215,6 +212,49 @@ Internal Convolution Helpers</h2></td></tr>
     <tr><td class="paramname">array</td><td>Source array with <code class="param">n</code> values. </td></tr>
     <tr><td class="paramname">fo</td><td>Open output file handle. The handle remains open. </td></tr>
     <tr><td class="paramname">n</td><td>Number of values to write. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ga6d4b6f5152dab294edae9f589802a5da" name="ga6d4b6f5152dab294edae9f589802a5da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6d4b6f5152dab294edae9f589802a5da">&#9670;&#160;</a></span>noodle_copy_kernel_progmem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void noodle_copy_kernel_progmem </td>
+          <td>(</td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>w</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>base</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>K</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>kernel</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Copy one square convolution kernel from PROGMEM into RAM. </p>
+<p>Copies <span class="tt">K * K</span> consecutive floats starting at <code class="param">base</code> from <code class="param">w</code> into the row-major destination buffer <code class="param">kernel</code>. On AVR, values are read through <span class="tt"><a class="el" href="noodle_8h.html#aa340390a22150ee34a137d6b1fcad3ca">noodle_pgm_float()</a></span>; on other targets the source pointer is read normally.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">w</td><td>PROGMEM-backed packed weight array. </td></tr>
+    <tr><td class="paramname">base</td><td>Index of the first kernel value in <code class="param">w</code>. </td></tr>
+    <tr><td class="paramname">K</td><td>Kernel width and height. </td></tr>
+    <tr><td class="paramname">kernel</td><td>Destination buffer with room for <span class="tt">K * K</span> floats. </td></tr>
   </table>
   </dd>
 </dl>
@@ -728,8 +768,58 @@ Internal Convolution Helpers</h2></td></tr>
 
 </div>
 </div>
+<a id="ga403e07bff2264788e437651257f82990" name="ga403e07bff2264788e437651257f82990"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga403e07bff2264788e437651257f82990">&#9670;&#160;</a></span>noodle_do_pooling1d() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t noodle_do_pooling1d </td>
+          <td>(</td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>input</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>K</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>S</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>output</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Apply valid 1D pooling and write the result to memory. </p>
+<p><span class="tt">K &lt;= 1</span> is treated as identity pooling and copies <code class="param">input</code> unchanged. If <code class="param">S</code> is <span class="tt">0</span>, the pooling stride defaults to <code class="param">K</code>. This helper computes mean pooling when <span class="tt"><a class="el" href="noodle__config_8h.html#a0128fdde5fcaf1ea63c21ccc56628845">NOODLE_POOL_MODE</a> == <a class="el" href="noodle__config_8h.html#a86f97e6409186eb3a8902cb43c45891c">NOODLE_POOL_MEAN</a></span>; otherwise it computes max pooling.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">input</td><td>Input vector with <code class="param">W</code> floats. </td></tr>
+    <tr><td class="paramname">W</td><td>Input length. </td></tr>
+    <tr><td class="paramname">K</td><td>Pooling window size. </td></tr>
+    <tr><td class="paramname">S</td><td>Pooling stride, or <span class="tt">0</span> to use <code class="param">K</code>. </td></tr>
+    <tr><td class="paramname">output</td><td>Destination buffer with room for the pooled vector. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output length, or <code class="param">W</code> for identity/no pooling. </dd></dl>
+
+</div>
+</div>
 <a id="ga83cd3b5018e214d0ff2e23e5eb61c864" name="ga83cd3b5018e214d0ff2e23e5eb61c864"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga83cd3b5018e214d0ff2e23e5eb61c864">&#9670;&#160;</a></span>noodle_do_pooling1d() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga83cd3b5018e214d0ff2e23e5eb61c864">&#9670;&#160;</a></span>noodle_do_pooling1d() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -778,7 +868,7 @@ Internal Convolution Helpers</h2></td></tr>
 </div>
 </div>
 <a id="ga47880f31893ecd1f5fc6cabfdcec59ed" name="ga47880f31893ecd1f5fc6cabfdcec59ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga47880f31893ecd1f5fc6cabfdcec59ed">&#9670;&#160;</a></span>noodle_do_pooling1d() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ga47880f31893ecd1f5fc6cabfdcec59ed">&#9670;&#160;</a></span>noodle_do_pooling1d() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -826,14 +916,11 @@ Internal Convolution Helpers</h2></td></tr>
 
 </div>
 </div>
-<a id="ga53d9c6b07f729bd054f4fe35296c4054" name="ga53d9c6b07f729bd054f4fe35296c4054"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga53d9c6b07f729bd054f4fe35296c4054">&#9670;&#160;</a></span>noodle_get_padded_x() <span class="overload">[1/2]</span></h2>
+<a id="ga3513bfdd53984ef7f74eb5b6c2c2b956" name="ga3513bfdd53984ef7f74eb5b6c2c2b956"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3513bfdd53984ef7f74eb5b6c2c2b956">&#9670;&#160;</a></span>noodle_get_padded_x() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">float noodle_get_padded_x </td>
@@ -866,11 +953,6 @@ Internal Convolution Helpers</h2></td></tr>
           <td class="paramtype">int16_t</td>          <td class="paramname"><span class="paramname"><em>P1</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Read a byte grid sample with zero padding. </p>
@@ -889,14 +971,11 @@ Internal Convolution Helpers</h2></td></tr>
 
 </div>
 </div>
-<a id="ga5a69226775ceac69e5254a238a14fc78" name="ga5a69226775ceac69e5254a238a14fc78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5a69226775ceac69e5254a238a14fc78">&#9670;&#160;</a></span>noodle_get_padded_x() <span class="overload">[2/2]</span></h2>
+<a id="ga57e67afa514ded883ad50e9a14ce76ed" name="ga57e67afa514ded883ad50e9a14ce76ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga57e67afa514ded883ad50e9a14ce76ed">&#9670;&#160;</a></span>noodle_get_padded_x() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">float noodle_get_padded_x </td>
@@ -929,11 +1008,6 @@ Internal Convolution Helpers</h2></td></tr>
           <td class="paramtype">int16_t</td>          <td class="paramname"><span class="paramname"><em>P1</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Read a float grid sample with zero padding. </p>
@@ -1147,9 +1221,6 @@ Internal Convolution Helpers</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">float * noodle_slice </td>
@@ -1167,11 +1238,6 @@ Internal Convolution Helpers</h2></td></tr>
           <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>z</em></span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Return a channel plane from a packed <span class="tt">[Z][W][W]</span> tensor. </p>
@@ -1184,61 +1250,6 @@ Internal Convolution Helpers</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to the first element of plane <code class="param">z</code>. No bounds checks are done. </dd></dl>
-
-</div>
-</div>
-<a id="ga952a655f5b7774828abe96900b58aec4" name="ga952a655f5b7774828abe96900b58aec4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga952a655f5b7774828abe96900b58aec4">&#9670;&#160;</a></span>noodle_unpack_bn_params()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void noodle_unpack_bn_params </td>
-          <td>(</td>
-          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bn_params</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>C</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>gamma</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>mean</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const float **</td>          <td class="paramname"><span class="paramname"><em>var</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Split packed batch-normalization parameters into per-field pointers. </p>
-<p><code class="param">bn_params</code> must be packed as <span class="tt">[gamma[C]][beta[C]][mean[C]][var[C]]</span>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">bn_params</td><td>Packed batch-normalization parameter array. </td></tr>
-    <tr><td class="paramname">C</td><td>Number of channels. </td></tr>
-    <tr><td class="paramname">gamma</td><td>Receives pointer to the gamma/scale values. </td></tr>
-    <tr><td class="paramname">beta</td><td>Receives pointer to the beta/offset values. </td></tr>
-    <tr><td class="paramname">mean</td><td>Receives pointer to the mean values. </td></tr>
-    <tr><td class="paramname">var</td><td>Receives pointer to the variance values. </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>

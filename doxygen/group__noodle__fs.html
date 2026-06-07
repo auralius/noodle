@@ -128,7 +128,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:gadf921fb8ac0e8ef8c1cd813727f6bb17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a file for writing using the selected backend.  <br /></td></tr>
 <tr class="memitem:ga5dbe4ec6d197b52e376b6eb666ddb6eb" id="r_ga5dbe4ec6d197b52e376b6eb666ddb6eb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5dbe4ec6d197b52e376b6eb666ddb6eb">noodle_fs_remove</a> (const char *path)</td></tr>
 <tr class="memdesc:ga5dbe4ec6d197b52e376b6eb666ddb6eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove a file using the selected backend.  <br /></td></tr>
-<tr class="memitem:ga1a593eb3990e10577afd3528aa5848e2" id="r_ga1a593eb3990e10577afd3528aa5848e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga1a593eb3990e10577afd3528aa5848e2">noodle_rewind_file</a> (NDL_File &amp;<a class="el" href="noodle_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>)</td></tr>
+<tr class="memitem:ga1a593eb3990e10577afd3528aa5848e2" id="r_ga1a593eb3990e10577afd3528aa5848e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga1a593eb3990e10577afd3528aa5848e2">noodle_rewind_file</a> (NDL_File &amp;<a class="el" href="noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65">fi</a>)</td></tr>
 <tr class="memdesc:ga1a593eb3990e10577afd3528aa5848e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rewind a file handle to position 0.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
@@ -136,7 +136,7 @@ Functions</h2></td></tr>
 <p>Noodle reads and writes model tensors through a tiny common API so the same higher-level code can run on SdFat, SD_MMC, FFat, LittleFS, or with storage disabled. This header selects the backend-specific includes and exposes:</p>
 <ul>
 <li>NDL_File, the file-handle type used by the public API.</li>
-<li><span class="tt"><a class="el" href="noodle_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a></span>, the selected filesystem object or singleton for real backends.</li>
+<li><span class="tt"><a class="el" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a></span>, the selected filesystem object or singleton for real backends.</li>
 <li><a class="el" href="#gae2aa969aab31cda295d25d16a61fdb1d" title="Open a file for reading using the selected backend.">noodle_fs_open_read()</a>, <a class="el" href="#gadf921fb8ac0e8ef8c1cd813727f6bb17" title="Open a file for writing using the selected backend.">noodle_fs_open_write()</a>, <a class="el" href="#ga5dbe4ec6d197b52e376b6eb666ddb6eb" title="Remove a file using the selected backend.">noodle_fs_remove()</a>, and <a class="el" href="#ga1a593eb3990e10577afd3528aa5848e2" title="Rewind a file handle to position 0.">noodle_rewind_file()</a>.</li>
 </ul>
 <p>Define exactly one backend macro before this header is included:</p>

@@ -11,10 +11,6 @@
         <link rel="canonical" href="https://auralius.github.io/noodle/ecg-peak-detect/">
       
       
-        <link rel="prev" href="../ad-esp32/">
-      
-      
-        <link rel="next" href="../blood/">
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -22,7 +18,7 @@
     
     
       
-        <title>Peak Detection on ESP32 - Noodle - The Documentation</title>
+        <title>Ecg peak detect - Noodle - The Documentation</title>
       
     
     
@@ -101,7 +97,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Peak Detection on ESP32
+              Ecg peak detect
             
           </span>
         </div>
@@ -254,301 +250,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ad-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Anomali Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Peak Detection on ESP32
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    Peak Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#peak-detection-with-a-1d-convolutional-network-peaknet1d" class="md-nav__link">
-    <span class="md-ellipsis">
-      Peak Detection with a 1D Convolutional Network (PeakNet1D)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Peak Detection with a 1D Convolutional Network (PeakNet1D)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#esp32" class="md-nav__link">
-    <span class="md-ellipsis">
-      ESP32
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#1-input-representation" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Input representation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-output-representation" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Output representation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-layer-by-layer-intuition" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Layer-by-layer intuition
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-from-scores-to-peaks" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. From scores to peaks
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#arduino-uno-r4" class="md-nav__link">
-    <span class="md-ellipsis">
-      Arduino Uno R4
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../blood/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Blood-MNIST Classification on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../vww-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Visual Wake Word on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-pico/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on Pico
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-bluepill/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    SD-Card–Backed LeNet-5
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../fcn-uno/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Two-Layer FCN on UNO R3
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../mobile-lenet/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Mobile-LeNet
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -568,7 +269,7 @@
   
 
 
-  <h1>Peak Detection on ESP32</h1>
+  <h1>Ecg peak detect</h1>
 
 <h2 id="peak-detection-with-a-1d-convolutional-network-peaknet1d">Peak Detection with a 1D Convolutional Network (PeakNet1D)</h2>
 <h3 id="esp32">ESP32</h3>

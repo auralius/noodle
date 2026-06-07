@@ -11,10 +11,6 @@
         <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-pico/">
       
       
-        <link rel="prev" href="../lenet-5-esp32/">
-      
-      
-        <link rel="next" href="../lenet-5-bluepill/">
       
       
       <link rel="icon" href="../attachments/noodle.png">
@@ -22,7 +18,7 @@
     
     
       
-        <title>LeNet-5 on Pico - Noodle - The Documentation</title>
+        <title>LeNet-5 on Raspberry Pico - Noodle - The Documentation</title>
       
     
     
@@ -101,7 +97,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              LeNet-5 on Pico
+              LeNet-5 on Raspberry Pico
             
           </span>
         </div>
@@ -254,205 +250,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ad-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Anomali Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ecg-peak-detect/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Peak Detection on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../blood/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Blood-MNIST Classification on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../vww-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Visual Wake Word on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-esp32/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on ESP32
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  <span class="md-ellipsis">
-    LeNet-5 on Pico
-    
-  </span>
-  
-
-      </a>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../lenet-5-bluepill/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    SD-Card–Backed LeNet-5
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../fcn-uno/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Two-Layer FCN on UNO R3
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../mobile-lenet/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Mobile-LeNet
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -475,8 +272,8 @@
 <h1 id="lenet-5-on-raspberry-pico">LeNet-5 on Raspberry Pico</h1>
 <p>Repository: https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32 </p>
 <p>Select the <code>[env:rpi_pico]</code> environment. </p>
-<p>In the <code>test</code> folder, there is a Python script, named <code>mnist-sender.py</code>. This Python scripts reads a line from the <a href="https://drive.google.com/file/d/10fZ4Mr9-2oMtgNPC9zn2d6VBxjyGsiWU/view?usp=sharing">MNIST dataset</a> (<span class="arithmatex">\(28 \times 28=784\)</span> bytes) and streams the data to the Pico.</p>
-<p>Raspberry Pico does not support partitioning of its internal flash as in ESP32. Therefore, both CNN and FCN are implemented as variables. The layer-by-layer implementation is exactly identical as in ESP32.</p>
+<p>In the <code>test</code> folder, there is a Python script, named <code>mnist-sender.py</code>. This Python scripts reads a line from the <a href="https://drive.google.com/file/d/10fZ4Mr9-2oMtgNPC9zn2d6VBxjyGsiWU/view?usp=sharing">MNIST dataset</a> (<span class="arithmatex">\(28 \times 28=784\)</span> bytes) and streams the data to the Pico.
+Raspberry Pico uses RP2040 microcontroller which is powered by dual ARM Cortex-M0+ cores and <strong>lacks a hardware Floating Point Unit (FPU)</strong>. </p>
 <p><img alt="" src="../attachments/bench-pico.png" /></p>
 <p>The inference time stays consistently at ~1 second.</p>
 

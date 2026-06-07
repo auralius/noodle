@@ -1,8 +1,12 @@
 var searchData=
 [
-  ['weight_0',['weight',['../structConvMem.html#a6e20a7b6d24a7cda27f929579d339593',1,'ConvMem::weight'],['../structFCNMem.html#a94247a5c556c789574d9a5f7484bc859',1,'FCNMem::weight']]],
-  ['weight_5ffn_1',['weight_fn',['../structConv.html#a9080677ffe8d84ce042cf67230353cdd',1,'Conv::weight_fn'],['../structFCN.html#a3f013af5eed0452df084a3b1016b84ce',1,'FCN::weight_fn'],['../structFCNFile.html#a068939bf9b2edb60ea6c22faab4b5865',1,'FCNFile::weight_fn']]],
-  ['what_20noodle_20is_20and_20is_20not_2',['What Noodle Is And Is Not',['../group__noodle__api.html#autotoc_md0',1,'What Noodle Is And Is Not'],['../group__noodle__api.html#autotoc_md15',1,'What Noodle Is And Is Not']]],
-  ['workflow_3',['Workflow',['../group__noodle__api.html#autotoc_md11',1,'Export Workflow'],['../group__noodle__api.html#autotoc_md27',1,'Export Workflow']]],
-  ['working_20buffers_4',['Working Buffers',['../group__noodle__api.html#autotoc_md9',1,'2. Provide Working Buffers'],['../group__noodle__api.html#autotoc_md25',1,'2. Provide Working Buffers']]]
+  ['t_0',['T',['../structPool.html#af1194dd9b19245d3ff0e7f0a1991aadc',1,'Pool']]],
+  ['temp_5fbuff1_1',['temp_buff1',['../noodle__internal_8cpp.html#ab6ff5fc28357e769819fc740f7900ff2',1,'temp_buff1:&#160;noodle_internal.cpp'],['../noodle__internal_8h.html#ab6ff5fc28357e769819fc740f7900ff2',1,'temp_buff1:&#160;noodle_internal.cpp']]],
+  ['temp_5fbuff2_2',['temp_buff2',['../noodle__internal_8cpp.html#ae50746191631b2901a876e4cd69183ec',1,'temp_buff2:&#160;noodle_internal.cpp'],['../noodle__internal_8h.html#ae50746191631b2901a876e4cd69183ec',1,'temp_buff2:&#160;noodle_internal.cpp']]],
+  ['temporary_20buffers_3',['Temporary Buffers',['../index.html#autotoc_md8',1,'Temporary Buffers'],['../noodle_8h.html#noodle_temp_buffers',1,'Temporary Buffers']]],
+  ['tensor_20and_20parameter_20layouts_4',['Tensor And Parameter Layouts',['../index.html#autotoc_md7',1,'']]],
+  ['tensor_20layout_20and_20text_20files_5',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
+  ['text_20files_6',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
+  ['tflite_20micro_20mental_20models_7',['Noodle And TFLite Micro Mental Models',['../index.html#autotoc_md5',1,'']]],
+  ['time_20configuration_8',['Compile-Time Configuration',['../index.html#autotoc_md6',1,'']]]
 ];

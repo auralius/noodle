@@ -1,0 +1,577 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/temp-buffer-sizing/">
+      
+      
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Noodle Temporary Buffer Sizing - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#noodle-temporary-buffer-sizing" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Noodle Temporary Buffer Sizing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../doxygen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="noodle-temporary-buffer-sizing">Noodle Temporary Buffer Sizing</h1>
+<p>A distinctive feature of Noodle's convolution implementation is internal pooling. Instead of materializing the full unpooled convolution tensor, Noodle accumulates one output channel at a time, applies bias and activation, immediately performs pooling, and stores only the pooled output plane. </p>
+<p>Let <span class="arithmatex">\(C_\text{out}\)</span> denote the number of convolution output channels and let <span class="arithmatex">\(V_\text{conv}\)</span> denote the spatial width of one pre-pooling convolution output plane. A conventional implementation may require a temporary unpooled tensor of <span class="arithmatex">\(C_\text{out}V_\text{conv}^2\)</span> elements, whereas Noodle requires only <span class="arithmatex">\(V_\text{conv}^2\)</span> temporary elements for the current output plane.</p>
+<p>This note explains how to choose the correct size for the temporary buffers passed to:</p>
+<pre><code class="language-cpp">noodle_setup_temp_buffers(BUFFER1, BUFFER2);
+</code></pre>
+<p>The main example is a LeNet-5-style MNIST model:</p>
+<pre><code class="language-text">Input: 28 x 28 x 1
+Conv1: 5 x 5, P = 2, S = 1, output channels = 6
+Pool1: 2 x 2, stride = 2
+Conv2: 5 x 5, P = 0, S = 1, output channels = 16
+Pool2: 2 x 2, stride = 2
+Flatten: 5 x 5 x 16 = 400
+FC1: 120
+FC2: 84
+FC3: 10
+</code></pre>
+<hr />
+<h2 id="1-the-important-distinction">1. The important distinction</h2>
+<p>Noodle temporary buffers are <strong>not the same as layer output buffers</strong>.</p>
+<p>There are two different memory needs:</p>
+<pre><code class="language-text">Temporary buffers:
+  scratch memory used internally while computing one layer
+
+Layer output buffers:
+  memory needed to store the result that will be consumed by the next layer
+</code></pre>
+<p>For convolution with internal pooling, Noodle does not need to store the full unpooled tensor for all output channels. It only needs a temporary <strong>single output plane</strong> before pooling.</p>
+<p>So for one convolution layer:</p>
+<pre><code class="language-text">BUFFER2 size = Vconv x Vconv floats
+</code></pre>
+<p>not:</p>
+<pre><code class="language-text">n_outputs x Vconv x Vconv floats
+</code></pre>
+<p>This is the key memory-saving point.</p>
+<hr />
+<h2 id="2-compute-convolution-spatial-size">2. Compute convolution spatial size</h2>
+<p>For normal Conv2D, the pre-pooling convolution width is:</p>
+<pre><code class="language-cpp">Vconv = (W - K + 2 * P) / S + 1;
+</code></pre>
+<p>where:</p>
+<pre><code class="language-text">W = input width
+K = kernel size
+P = padding
+S = stride
+</code></pre>
+<p>After pooling:</p>
+<pre><code class="language-cpp">Vout = (Vconv - M) / T + 1;
+</code></pre>
+<p>where:</p>
+<pre><code class="language-text">M = pooling window size
+T = pooling stride
+</code></pre>
+<p>For the usual 2 x 2 pooling with stride 2:</p>
+<pre><code class="language-cpp">Vout = Vconv / 2;
+</code></pre>
+<p>assuming <code>Vconv</code> is even.</p>
+<hr />
+<h2 id="3-lenet-5-example">3. LeNet-5 example</h2>
+<h3 id="conv1">Conv1</h3>
+<pre><code class="language-text">Input W = 28
+K = 5
+P = 2
+S = 1
+Output channels = 6
+Pool M = 2
+Pool T = 2
+</code></pre>
+<p>Pre-pooling convolution width:</p>
+<pre><code class="language-text">Vconv1 = (28 - 5 + 2*2) / 1 + 1
+       = 28
+</code></pre>
+<p>Pooled output width:</p>
+<pre><code class="language-text">Vout1 = (28 - 2) / 2 + 1
+      = 14
+</code></pre>
+<p>Temporary accumulator needed:</p>
+<pre><code class="language-text">BUFFER2 &gt;= 28 x 28 floats
+        &gt;= 784 floats
+        &gt;= 3136 bytes
+</code></pre>
+<p>Layer output storage needed:</p>
+<pre><code class="language-text">Conv1 output = 6 x 14 x 14 floats
+             = 1176 floats
+             = 4704 bytes
+</code></pre>
+<p>This is not a temporary buffer. It is the actual output tensor after pooling.</p>
+<hr />
+<h3 id="conv2">Conv2</h3>
+<pre><code class="language-text">Input W = 14
+K = 5
+P = 0
+S = 1
+Output channels = 16
+Pool M = 2
+Pool T = 2
+</code></pre>
+<p>Pre-pooling convolution width:</p>
+<pre><code class="language-text">Vconv2 = (14 - 5 + 2*0) / 1 + 1
+       = 10
+</code></pre>
+<p>Pooled output width:</p>
+<pre><code class="language-text">Vout2 = (10 - 2) / 2 + 1
+      = 5
+</code></pre>
+<p>Temporary accumulator needed:</p>
+<pre><code class="language-text">BUFFER2 &gt;= 10 x 10 floats
+        &gt;= 100 floats
+        &gt;= 400 bytes
+</code></pre>
+<p>Layer output storage needed:</p>
+<pre><code class="language-text">Conv2 output = 16 x 5 x 5 floats
+             = 400 floats
+             = 1600 bytes
+</code></pre>
+<hr />
+<h2 id="4-choose-the-global-temporary-size">4. Choose the global temporary size</h2>
+<p>Because the same temporary buffers are reused across layers, choose the maximum requirement across all convolution layers.</p>
+<p>For this LeNet-5 example:</p>
+<pre><code class="language-text">Conv1 BUFFER2 requirement = 28 x 28 = 784 floats
+Conv2 BUFFER2 requirement = 10 x 10 = 100 floats
+</code></pre>
+<p>Therefore:</p>
+<pre><code class="language-text">BUFFER2 must hold at least 784 floats.
+</code></pre>
+<p>In bytes:</p>
+<pre><code class="language-text">784 x sizeof(float) = 784 x 4 = 3136 bytes
+</code></pre>
+<p>So this is correct:</p>
+<pre><code class="language-cpp">static const int IMG_SIZE = 28 * 28;
+
+float *BUFFER1 = (float *)malloc(IMG_SIZE * sizeof(float));
+float *BUFFER2 = (float *)malloc(IMG_SIZE * sizeof(float));
+
+noodle_setup_temp_buffers(BUFFER1, BUFFER2);
+</code></pre>
+<p>Here both buffers are 784 floats, which is enough for this model.</p>
+<hr />
+<h2 id="5-what-buffer1-is-for">5. What BUFFER1 is for</h2>
+<p><code>BUFFER1</code> is used as an input scratch buffer when Noodle streams an input tensor from a file.</p>
+<p>For file-input convolution, the rule is:</p>
+<pre><code class="language-text">BUFFER1 &gt;= W x W elements
+</code></pre>
+<p>For float file input:</p>
+<pre><code class="language-text">BUFFER1 &gt;= W x W floats
+</code></pre>
+<p>For byte file input:</p>
+<pre><code class="language-text">BUFFER1 &gt;= W x W bytes
+</code></pre>
+<p>For the LeNet-5 example, the maximum input width read by a convolution is:</p>
+<pre><code class="language-text">max W = 28
+</code></pre>
+<p>Therefore:</p>
+<pre><code class="language-text">BUFFER1 &gt;= 28 x 28 floats
+        &gt;= 784 floats
+        &gt;= 3136 bytes
+</code></pre>
+<p>If the input tensor is already in memory, some convolution overloads do not require <code>BUFFER1</code>. However, allocating and passing both buffers is usually simpler and safer.</p>
+<hr />
+<h2 id="6-layer-output-buffers-are-separate">6. Layer output buffers are separate</h2>
+<p>When using memory output, the destination buffer must be large enough for the pooled output tensor:</p>
+<pre><code class="language-text">output buffer &gt;= n_outputs x Vout x Vout floats
+</code></pre>
+<p>For LeNet-5:</p>
+<pre><code class="language-text">Conv1 output = 6 x 14 x 14 = 1176 floats
+Conv2 output = 16 x 5 x 5 = 400 floats
+Flatten output = 400 floats
+FC1 output = 120 floats
+FC2 output = 84 floats
+FC3 output = 10 floats
+</code></pre>
+<p>So for a memory-to-memory LeNet-5 implementation, the largest true activation tensor is Conv1 output:</p>
+<pre><code class="language-text">6 x 14 x 14 = 1176 floats = 4704 bytes
+</code></pre>
+<p>That is why a CYD-style memory example can use:</p>
+<pre><code class="language-cpp">BUFFER2 = malloc(28 * 28 * sizeof(float));       // temp accumulator
+BUFFER3 = malloc(14 * 14 * 6 * sizeof(float));   // Conv1 pooled output
+</code></pre>
+<p>The first one is temporary scratch. The second one is real layer output storage.</p>
+<hr />
+<h2 id="7-file-backed-version">7. File-backed version</h2>
+<p>For file-backed convolution outputs, the large layer output tensors can be written to SD/flash instead of SRAM.</p>
+<p>For example:</p>
+<pre><code class="language-cpp">V = noodle_conv_float(GRID, 1, 6,
+                      &quot;out1.bin&quot;, 28,
+                      cnn1, pool, NULL);
+
+V = noodle_conv_float(&quot;out1.bin&quot;, 6, 16,
+                      &quot;out2.bin&quot;, V,
+                      cnn2, pool, NULL);
+</code></pre>
+<p>In this style, SRAM only needs:</p>
+<pre><code class="language-text">Input image / working buffer: 28 x 28 floats
+BUFFER1:                  up to 28 x 28 floats
+BUFFER2:                  up to 28 x 28 floats
+FC buffers:               enough for flatten / dense outputs
+</code></pre>
+<p>The Conv1 output tensor, <code>6 x 14 x 14</code>, is stored in <code>out1.bin</code> instead of SRAM.</p>
+<hr />
+<h2 id="8-practical-sizing-checklist">8. Practical sizing checklist</h2>
+<p>For each Conv2D layer, write down:</p>
+<pre><code class="language-text">W, K, P, S, n_outputs, pool M, pool T
+</code></pre>
+<p>Then compute:</p>
+<pre><code class="language-text">Vconv = (W - K + 2P) / S + 1
+Vout  = (Vconv - M) / T + 1
+</code></pre>
+<p>Temporary buffer requirements:</p>
+<pre><code class="language-text">BUFFER1 &gt;= max(W x W) for file-input convolution
+BUFFER2 &gt;= max(Vconv x Vconv) for convolution accumulator
+</code></pre>
+<p>Output buffer requirement, only when output is stored in SRAM:</p>
+<pre><code class="language-text">output &gt;= n_outputs x Vout x Vout floats
+</code></pre>
+<p>For dense layers:</p>
+<pre><code class="language-text">input buffer  &gt;= n_inputs floats
+output buffer &gt;= n_outputs floats
+</code></pre>
+<p>The safest reusable SRAM buffers should be sized for the largest value that appears anywhere in the model.</p>
+<hr />
+<h2 id="9-final-answer-for-the-lenet-5-example">9. Final answer for the LeNet-5 example</h2>
+<p>For this model:</p>
+<pre><code class="language-text">Conv1 pre-pool size: 28 x 28
+Conv2 pre-pool size: 10 x 10
+Largest pre-pool plane: 28 x 28 = 784 floats
+</code></pre>
+<p>Therefore:</p>
+<pre><code class="language-cpp">BUFFER1 &gt;= 784 floats   // file input scratch, when needed
+BUFFER2 &gt;= 784 floats   // convolution accumulator / pre-pooling plane
+</code></pre>
+<p>In bytes:</p>
+<pre><code class="language-text">784 floats x 4 bytes = 3136 bytes per temporary buffer
+</code></pre>
+<p>So this is correct:</p>
+<pre><code class="language-cpp">static const int TEMP_SIZE = 28 * 28;
+
+float *BUFFER1 = (float *)malloc(TEMP_SIZE * sizeof(float));
+float *BUFFER2 = (float *)malloc(TEMP_SIZE * sizeof(float));
+
+noodle_setup_temp_buffers(BUFFER1, BUFFER2);
+</code></pre>
+<p>For a memory-output version, also allocate enough storage for the largest real activation tensor:</p>
+<pre><code class="language-text">largest activation = Conv1 pooled output
+                   = 6 x 14 x 14
+                   = 1176 floats
+                   = 4704 bytes
+</code></pre>
+<p>For a file-output version, this activation can live on SD/flash instead.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

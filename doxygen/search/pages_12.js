@@ -1,9 +1,7 @@
 var searchData=
 [
-  ['temporary_20buffers_0',['Temporary Buffers',['../group__noodle__api.html#autotoc_md6',1,'Temporary Buffers'],['../group__noodle__api.html#autotoc_md22',1,'Temporary Buffers'],['../noodle_8h.html#noodle_temp_buffers',1,'Temporary Buffers']]],
-  ['tensor_20and_20parameter_20layouts_1',['Tensor And Parameter Layouts',['../group__noodle__api.html#autotoc_md5',1,'Tensor And Parameter Layouts'],['../group__noodle__api.html#autotoc_md21',1,'Tensor And Parameter Layouts']]],
-  ['tensor_20layout_20and_20text_20files_2',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
-  ['text_20files_3',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
-  ['tflite_20micro_20mental_20models_4',['Noodle And TFLite Micro Mental Models',['../group__noodle__api.html#autotoc_md19',1,'']]],
-  ['time_20configuration_5',['Time Configuration',['../group__noodle__api.html#autotoc_md4',1,'Compile-Time Configuration'],['../group__noodle__api.html#autotoc_md20',1,'Compile-Time Configuration']]]
+  ['select_20a_20filesystem_20backend_0',['1. Select A Filesystem Backend',['../index.html#autotoc_md10',1,'']]],
+  ['source_20layout_1',['Public Include And Refactored Source Layout',['../index.html#autotoc_md3',1,'']]],
+  ['start_2',['Quick Start',['../index.html#autotoc_md9',1,'']]],
+  ['streaming_20first_20memory_20model_3',['Streaming-First Memory Model',['../index.html#autotoc_md2',1,'']]]
 ];

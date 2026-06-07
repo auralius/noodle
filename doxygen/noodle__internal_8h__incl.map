@@ -1,0 +1,21 @@
+<map id="noodle_internal.h" name="noodle_internal.h">
+<area shape="rect" id="Node000001" title="Private declarations shared by Noodle implementation files." alt="" coords="326,5,445,32"/>
+<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="181,80,251,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="354,34,261,76,259,71,358,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="239,229,303,256"/>
+<area shape="poly" id="edge9_Node000001_Node000003" title=" " alt="" coords="378,31,345,81,309,153,283,217,279,213,304,151,341,79,374,34"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="355,80,416,107"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="387,30,388,66,383,63,384,35"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="441,80,498,107"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="401,30,446,70,441,70,400,35"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="522,80,585,107"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="415,30,513,73,507,74,415,35"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="223,105,244,154,265,215,260,214,239,156,220,109"/>
+<area shape="rect" id="Node000004" href="$noodle__config_8h.html" title=" " alt="" coords="5,155,118,181"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="188,109,104,150,101,145,191,105"/>
+<area shape="rect" id="Node000005" href="$noodle__fs_8h.html" title=" " alt="" coords="141,155,230,181"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="213,105,199,142,195,139,209,109"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="201,179,247,219,242,219,199,184"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="146,229,214,256"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="186,180,184,215,180,212,183,184"/>
+</map>
