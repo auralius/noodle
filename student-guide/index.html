@@ -18,7 +18,7 @@
     
     
       
-        <title>Student Guide: Image Denoising with Noodle - Noodle - The Documentation</title>
+        <title>Image Denoising with Noodle - Noodle - The Documentation</title>
       
     
     
@@ -62,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#student-guide-image-denoising-with-noodle" class="md-skip">
+        <a href="#image-denoising-with-noodle" class="md-skip">
           Skip to content
         </a>
       
@@ -97,7 +97,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Student Guide: Image Denoising with Noodle
+              Image Denoising with Noodle
             
           </span>
         </div>
@@ -269,11 +269,11 @@
   
 
 
-<h1 id="student-guide-image-denoising-with-noodle">Student Guide: Image Denoising with Noodle</h1>
+<h1 id="image-denoising-with-noodle">Image Denoising with Noodle</h1>
 <p><img alt="" src="../attachments/denoising.gif" /></p>
 <p><a href="https://colab.research.google.com/drive/1pVGBpVBDf2cBI0AGZ3Hyuv-e-VnUBw0b?usp=sharing"><strong>COLAB NOTEBOOK</strong></a></p>
 <h2 id="1-goal">1. Goal</h2>
-<p>In this exercise, students deploy a small convolutional autoencoder on a microcontroller using <strong>Noodle</strong>. The system receives a noisy 28 × 28 grayscale image from a Python program, performs denoising inference on the microcontroller, and sends the reconstructed image back to the computer.</p>
+<p>In this exercise, we deploy a small convolutional autoencoder on a microcontroller using <strong>Noodle</strong>. The system receives a noisy 28 × 28 grayscale image from a Python program, performs denoising inference on the microcontroller, and sends the reconstructed image back to the computer.</p>
 <p>The complete workflow is:</p>
 <ol>
 <li>Train an autoencoder in Python/Keras.</li>
@@ -361,7 +361,7 @@ Y  : 1  × 28 × 28
 <hr />
 <h2 id="3-padding-same-and-valid-in-noodle">3. Padding: SAME and VALID in Noodle</h2>
 <p>Padding controls what happens near the border of an image or feature map during convolution.</p>
-<p>In Keras, students usually see:</p>
+<p>In Keras, we usually see:</p>
 <pre><code class="language-python">padding=&quot;same&quot;
 padding=&quot;valid&quot;
 </code></pre>
@@ -452,7 +452,7 @@ P = 1
 V = floor((28 - 3 + 2×1) / 1) + 1
   = 28
 </code></pre>
-<p>However, for stride 2, SAME padding is more subtle, especially when the input size is odd or when output-size rounding matters. Therefore, for Keras-style SAME behavior, students should use:</p>
+<p>However, for stride 2, SAME padding is more subtle, especially when the input size is odd or when output-size rounding matters. Therefore, for Keras-style SAME behavior, we should use:</p>
 <pre><code class="language-cpp">conv.P = 65535;
 </code></pre>
 <p>not manual guessing.</p>
@@ -529,7 +529,7 @@ D2.P = 65535;
 </tr>
 </tbody>
 </table>
-<p>For students, the practical rule is:</p>
+<p>The practical rule is:</p>
 <pre><code class="language-text">Use P = 65535 when the Keras model says padding=&quot;same&quot;.
 Use P = 0 when the Keras model says padding=&quot;valid&quot;.
 Use P = n only when you intentionally want explicit n-pixel padding.
@@ -557,7 +557,7 @@ Use P = n only when you intentionally want explicit n-pixel padding.
 <p>The <code>wXX.h</code> and <code>bXX.h</code> files are generated after training and exporting the model.</p>
 <h3 id="important-note-about-older-maincpp-examples">Important note about older <code>main.cpp</code> examples</h3>
 <p>Some older Noodle examples allocate one permanent tensor for every layer output, such as <code>X</code>, <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, and <code>Y</code>. Some older examples also do not allocate and register the Noodle temporary buffer.</p>
-<p>For this guide, students should use the safer version:</p>
+<p>For this guide, we use the safer version:</p>
 <pre><code class="language-text">BUF_A + BUF_B = ping-pong tensor storage
 TEMP2         = Noodle Conv2D scratch storage
 </code></pre>
@@ -602,7 +602,7 @@ denoised image from Keras
 <hr />
 <h2 id="6-step-2-export-weights-for-noodle">6. Step 2 — Export Weights for Noodle</h2>
 <p>For this autoencoder, use <code>exporter_model()</code>, not only <code>model.get_weights()</code>.</p>
-<p>This is important because <code>Conv2D</code> and <code>Conv2DTranspose</code> are both 4D tensors, but their Keras layouts are different. The layer-aware exporter correctly handles both.</p>
+<p>This is important because <code>Conv2D</code> and <code>Conv2DTranspose</code> are both 4D tensors, but the Keras layouts are different. The layer-aware exporter correctly handles both.</p>
 <p>Example:</p>
 <pre><code class="language-python">from model_exporter import exporter_model
 
@@ -666,7 +666,7 @@ noodle_sigmoid(Y, IMG_SIZE);
 </code></pre>
 <p>This matches the Keras decoder output activation.</p>
 <h2 id="9-step-5-preparing-memory-variables-with-ping-pong-buffers">9. Step 5 — Preparing Memory Variables with Ping-Pong Buffers</h2>
-<p>For the first student version, use <strong>memory-to-memory inference</strong>. This means all tensors are stored in RAM, not on an SD card or external file.</p>
+<p>For the first version, use <strong>memory-to-memory inference</strong>. This means all tensors are stored in RAM, not on an SD card or external file.</p>
 <p>However, we do <strong>not</strong> need to allocate one permanent buffer for every layer output.</p>
 <p>The naive view is:</p>
 <pre><code class="language-text">X  → enc1 → Z1
@@ -687,7 +687,7 @@ BUF_B → layer → BUF_A
 BUF_A → layer → BUF_B
 BUF_B → layer → BUF_A
 </code></pre>
-<p>This is the recommended memory-to-memory version for students.</p>
+<p>This is the recommended memory-to-memory version for this experiment.</p>
 <hr />
 <h3 id="91-tensor-sizes">9.1 Tensor sizes</h3>
 <p>The autoencoder uses the following tensor shapes:</p>
@@ -762,7 +762,7 @@ total = 9408 floats
 </code></pre>
 <hr />
 <h3 id="92-declare-model-dimensions">9.2 Declare model dimensions</h3>
-<p>Declare the tensor dimensions clearly. This helps students connect the C++ firmware to the Keras model summary.</p>
+<p>Declare the tensor dimensions clearly. This helps us connect the C++ firmware to the Keras model summary.</p>
 <pre><code class="language-cpp">static constexpr uint16_t W_IN  = 28;
 static constexpr uint16_t C_IN  = 1;
 
@@ -810,7 +810,7 @@ static float *BUF_B = nullptr;
 }
 </code></pre>
 <p>Then allocate the two ping-pong buffers and the Noodle temporary buffer.</p>
-<p>For this student guide, use the beginner-safe <code>TEMP2</code> size:</p>
+<p>For this guide, use the beginner-safe <code>TEMP2</code> size:</p>
 <pre><code class="language-text">TEMP2 = 28 × 28 floats
 </code></pre>
 <p>This is larger than the exact minimum, but easier to explain.</p>
@@ -985,7 +985,7 @@ BUF_A contains Y
 <pre><code class="language-text">BUF_A and BUF_B hold tensors between layers.
 TEMP2 is scratch paper used while one Conv2D layer is being computed.
 </code></pre>
-<p>So students should not treat <code>TEMP2</code> as another layer output buffer. It is only temporary workspace.</p>
+<p>So we should not treat <code>TEMP2</code> as another layer output buffer. It is only temporary workspace.</p>
 <p>A slightly more technical version is:</p>
 <pre><code class="language-text">Ping-pong buffers store data that must survive until the next layer.
 TEMP2 stores temporary values that are only needed while the current operator is running.
@@ -999,7 +999,7 @@ TX_BYTES       = serial output bytes
 <p>The next section explains <code>TEMP2</code>.</p>
 <hr />
 <h3 id="912-memory-preparation-checklist">9.12 Memory preparation checklist</h3>
-<p>Before running inference, students should check:</p>
+<p>Before running inference, we should check:</p>
 <table>
 <thead>
 <tr>
@@ -1055,10 +1055,10 @@ TX_BYTES       = serial output bytes
 </tbody>
 </table>
 <p>For this beginner guide, the goal is not yet to use SD card storage. The goal is to understand how tensors move through memory.</p>
-<p>After students understand this memory-to-memory ping-pong version, they can move to the more advanced Noodle style where activations, parameters, or both are stored externally.</p>
+<p>After we understand this memory-to-memory ping-pong version, we can then move to the more advanced Noodle style where activations, parameters, or both are stored externally.</p>
 <hr />
 <h2 id="10-step-6-temporary-buffers">10. Step 6 — Temporary Buffers</h2>
-<p>Noodle uses temporary buffers as reusable scratch memory. These buffers are not model weights and they are not permanent layer outputs. They are only working space used inside some operators.</p>
+<p>Noodle uses temporary buffers as reusable scratch memory. These buffers are not model weights and these buffers are not permanent layer outputs. These buffers are only working space used inside some operators.</p>
 <p>In this guide, think of <code>TEMP2</code> as <strong>scratch paper</strong>: it is used briefly during Conv2D and then reused. It does not store a named layer output such as <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, or <code>Y</code>.</p>
 <p>For this image denoising case, the important rule is:</p>
 <pre><code class="language-text">Conv2D needs temp_buff2.
@@ -1098,8 +1098,8 @@ enc2 temp_buff2 = 7 × 7 = 49 floats
                = 196 × 4 bytes
                = 784 bytes
 </code></pre>
-<h3 id="102-recommended-student-version">10.2 Recommended student version</h3>
-<p>For clarity, students can allocate a slightly larger scratch buffer:</p>
+<h3 id="102-recommended-we-version">10.2 Recommended we version</h3>
+<p>For clarity, we can allocate a slightly larger scratch buffer:</p>
 <pre><code class="language-cpp">static constexpr uint16_t TEMP2_FLOATS = IMG_W * IMG_W;
 static float *TEMP2 = nullptr;
 </code></pre>
@@ -1108,13 +1108,13 @@ static float *TEMP2 = nullptr;
 TEMP2 memory = 784 × 4 = 3136 bytes
 </code></pre>
 <p>This is larger than necessary, but easy to understand because it matches one full image plane.</p>
-<p>In the final student code, <code>TEMP2</code> is allocated together with <code>BUF_A</code> and <code>BUF_B</code> inside <code>alloc_buffers()</code>.</p>
+<p>In the final we code, <code>TEMP2</code> is allocated together with <code>BUF_A</code> and <code>BUF_B</code> inside <code>alloc_buffers()</code>.</p>
 <p>The critical line is:</p>
 <pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP2);
 </code></pre>
 <p>This line registers the scratch buffer with Noodle before any <code>noodle_conv_float()</code> call runs.</p>
 <h3 id="103-more-memory-efficient-version">10.3 More memory-efficient version</h3>
-<p>After students understand the concept, they can use the exact minimum:</p>
+<p>After we understand the concept, we can use the exact minimum:</p>
 <pre><code class="language-cpp">static constexpr uint16_t TEMP2_FLOATS = 14 * 14;
 static float *TEMP2 = nullptr;
 </code></pre>
@@ -1131,7 +1131,7 @@ noodle_setup_temp_buffers(TEMP2);
 <pre><code class="language-text">X, Z1, Z2, Z3, Y
 </code></pre>
 <p>So the current memory-to-memory Conv2D path only needs <code>temp_buff2</code>.</p>
-<p>If later students move activations to SD card, then <code>temp_buff1</code> becomes necessary. In that case, size it for the largest input plane:</p>
+<p>If we later move activations to SD card, then <code>temp_buff1</code> becomes necessary. In that case, size it for the largest input plane:</p>
 <pre><code class="language-text">max temp_buff1 = 28 × 28 floats
                = 784 floats
                = 3136 bytes
@@ -1140,7 +1140,7 @@ noodle_setup_temp_buffers(TEMP2);
 <pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP1, TEMP2);
 </code></pre>
 <h3 id="105-temporary-buffer-checklist">10.5 Temporary buffer checklist</h3>
-<p>Before running inference, students should answer:</p>
+<p>Before running inference, we should answer:</p>
 <table>
 <thead>
 <tr>
@@ -1179,7 +1179,7 @@ noodle_setup_temp_buffers(TEMP2);
 </tr>
 <tr>
 <td>Are <code>BUF_A</code> and <code>BUF_B</code> the same as <code>TEMP2</code>?</td>
-<td>No, they are layer tensor buffers</td>
+<td>No, these are layer tensor buffers</td>
 </tr>
 </tbody>
 </table>
@@ -1299,8 +1299,8 @@ noodle_setup_temp_buffers(TEMP2);
 <li>The training noise level is similar to the test noise level.</li>
 </ol>
 <hr />
-<h2 id="15-student-checklist">15. Student Checklist</h2>
-<p>Before submitting the experiment, students should show:</p>
+<h2 id="15-experiment-checklist">15. Experiment Checklist</h2>
+<p>Before reporting the experiment, we should include:</p>
 <ul>
 <li>Keras model summary.</li>
 <li>Training and validation loss plot.</li>
@@ -1312,8 +1312,8 @@ noodle_setup_temp_buffers(TEMP2);
 </ul>
 <hr />
 <h2 id="16-final-benchmark-running-the-same-autoencoder-with-tflite-micro">16. Final Benchmark: Running the Same Autoencoder with TFLite Micro</h2>
-<p>After students successfully run the image denoising model with Noodle, they can benchmark the same model using <strong>TensorFlow Lite Micro</strong>.</p>
-<p>The goal is not to replace Noodle. The goal is to compare two embedded inference styles:</p>
+<p>After we successfully run the image denoising model with Noodle, we can benchmark the same model using <strong>TensorFlow Lite Micro</strong>.</p>
+<p>The goal is to compare two embedded inference styles:</p>
 <table>
 <thead>
 <tr>
@@ -1332,7 +1332,7 @@ noodle_setup_temp_buffers(TEMP2);
 </tr>
 </tbody>
 </table>
-<p>This benchmark helps students understand the trade-off between <strong>manual control</strong> and <strong>framework automation</strong>.</p>
+<p>This benchmark highlights the trade-off between <strong>manual control</strong> and <strong>framework automation</strong>.</p>
 <hr />
 <h3 id="161-export-the-keras-model-to-tflite">16.1 Export the Keras model to <code>.tflite</code></h3>
 <p>After training the autoencoder, convert it to a float TFLite model:</p>
@@ -1395,7 +1395,7 @@ with open(&quot;model_data.h&quot;, &quot;w&quot;) as f:
 <p>So the same Python host script used for Noodle can also be used for TFLite Micro.</p>
 <hr />
 <h3 id="164-tensor-arena">16.4 Tensor arena</h3>
-<p>TFLite Micro does not ask students to manually allocate <code>BUF_A</code>, <code>BUF_B</code>, and <code>TEMP2</code>.</p>
+<p>TFLite Micro does not require us to manually allocate <code>BUF_A</code>, <code>BUF_B</code>, and <code>TEMP2</code>.</p>
 <p>Instead, it uses one large memory region called the <strong>tensor arena</strong>.</p>
 <p>A simple explanation is:</p>
 <pre><code class="language-text">Noodle:
@@ -1405,7 +1405,7 @@ with open(&quot;model_data.h&quot;, &quot;w&quot;) as f:
 TFLite Micro:
   tensor_arena  = framework-managed storage for tensors and scratch memory
 </code></pre>
-<p>So for TFLite Micro, students allocate:</p>
+<p>So for TFLite Micro, we allocate:</p>
 <pre><code class="language-cpp">constexpr size_t TENSOR_ARENA_SIZE = 512 * 1024;
 static uint8_t *tensor_arena = nullptr;
 </code></pre>
@@ -1420,11 +1420,11 @@ TRANSPOSE_CONV
 LOGISTIC
 </code></pre>
 <p>Depending on the converter version, ReLU may be fused into Conv2D/TransposeConv. If it is not fused, the model may also need a standalone ReLU operator.</p>
-<p>For the beginner benchmark, the provided ESP32 code uses <code>AllOpsResolver</code> to avoid missing-operator problems.</p>
-<p>After the benchmark works, students can replace <code>AllOpsResolver</code> with a smaller <code>MicroMutableOpResolver</code> to reduce flash usage.</p>
+<p>For the benchmark, the provided ESP32 code uses <code>AllOpsResolver</code> to avoid missing-operator problems.</p>
+<p>After the benchmark works, we can replace <code>AllOpsResolver</code> with a smaller <code>MicroMutableOpResolver</code> to reduce flash usage.</p>
 <hr />
 <h3 id="166-benchmark-comparison-table">16.6 Benchmark comparison table</h3>
-<p>Students should record:</p>
+<p>We should record:</p>
 <table>
 <thead>
 <tr>
@@ -1480,8 +1480,8 @@ LOGISTIC
 <p>Noodle makes the memory movement visible.</p>
 <p>TFLite Micro hides most memory movement inside the interpreter.</p>
 <hr />
-<h2 id="17-main-learning-points">17. Main Learning Points</h2>
-<p>After completing this exercise, students should understand that:</p>
+<h2 id="17-main-points">17. Main Points</h2>
+<p>After completing this exercise, we should understand that:</p>
 <ol>
 <li>A convolutional autoencoder can perform image denoising.</li>
 <li>Noodle can run convolution and transposed convolution on a microcontroller.</li>
