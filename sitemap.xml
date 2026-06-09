@@ -2,46 +2,54 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://auralius.github.io/noodle/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/ad-esp32/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
+    </url>
+    <url>
+         <loc>https://auralius.github.io/noodle/benchmark/</loc>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/blood/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/ecg-peak-detect/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/fcn-uno/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/lenet-5-bluepill/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/lenet-5-esp32/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/lenet-5-pico/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/mobile-lenet/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
+    </url>
+    <url>
+         <loc>https://auralius.github.io/noodle/student-guide/</loc>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/temp-buffer-sizing/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
     <url>
          <loc>https://auralius.github.io/noodle/vww-esp32/</loc>
-         <lastmod>2026-06-07</lastmod>
+         <lastmod>2026-06-09</lastmod>
     </url>
 </urlset>

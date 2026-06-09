@@ -1,0 +1,1549 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/student-guide/">
+      
+      
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Student Guide: Image Denoising with Noodle - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#student-guide-image-denoising-with-noodle" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Student Guide: Image Denoising with Noodle
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../doxygen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="student-guide-image-denoising-with-noodle">Student Guide: Image Denoising with Noodle</h1>
+<p><img alt="" src="../attachments/denoising.gif" /></p>
+<h2 id="1-goal">1. Goal</h2>
+<p>In this exercise, students deploy a small convolutional autoencoder on a microcontroller using <strong>Noodle</strong>. The system receives a noisy 28 × 28 grayscale image from a Python program, performs denoising inference on the microcontroller, and sends the reconstructed image back to the computer.</p>
+<p>The complete workflow is:</p>
+<ol>
+<li>Train an autoencoder in Python/Keras.</li>
+<li>Export the trained weights into Noodle-compatible C header files.</li>
+<li>Compile and upload the Arduino/ESP32 firmware.</li>
+<li>Send a noisy image over serial.</li>
+<li>Receive and visualize the denoised output.</li>
+</ol>
+<hr />
+<h2 id="2-model-used-in-this-case">2. Model Used in This Case</h2>
+<p>The example autoencoder uses this structure:</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Layer</th>
+<th style="text-align: right;">Channels</th>
+<th style="text-align: right;">Kernel</th>
+<th style="text-align: right;">Stride</th>
+<th>Padding</th>
+<th>Activation</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td>Image</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-</td>
+<td style="text-align: right;">-</td>
+<td>-</td>
+<td>-</td>
+<td>28 × 28 × 1</td>
+</tr>
+<tr>
+<td>Encoder 1</td>
+<td>Conv2D</td>
+<td style="text-align: right;">1 → 16</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>ReLU</td>
+<td>14 × 14 × 16</td>
+</tr>
+<tr>
+<td>Encoder 2</td>
+<td>Conv2D</td>
+<td style="text-align: right;">16 → 32</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>ReLU</td>
+<td>7 × 7 × 32</td>
+</tr>
+<tr>
+<td>Decoder 1</td>
+<td>Conv2DTranspose</td>
+<td style="text-align: right;">32 → 16</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>ReLU</td>
+<td>14 × 14 × 16</td>
+</tr>
+<tr>
+<td>Decoder 2</td>
+<td>Conv2DTranspose</td>
+<td style="text-align: right;">16 → 1</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>Sigmoid</td>
+<td>28 × 28 × 1</td>
+</tr>
+</tbody>
+</table>
+<p>In the microcontroller firmware, Noodle stores tensors in CHW layout:</p>
+<pre><code class="language-text">X  : 1  × 28 × 28
+Z1 : 16 × 14 × 14
+Z2 : 32 × 7  × 7
+Z3 : 16 × 14 × 14
+Y  : 1  × 28 × 28
+</code></pre>
+<hr />
+<h2 id="3-padding-same-and-valid-in-noodle">3. Padding: SAME and VALID in Noodle</h2>
+<p>Padding controls what happens near the border of an image or feature map during convolution.</p>
+<p>In Keras, students usually see:</p>
+<pre><code class="language-python">padding=&quot;same&quot;
+padding=&quot;valid&quot;
+</code></pre>
+<p>In Noodle, padding is controlled by the <code>P</code> field inside the <code>ConvMem</code> structure:</p>
+<pre><code class="language-cpp">ConvMem E1;
+E1.K = 3;
+E1.P = 65535;
+E1.S = 2;
+E1.OP = 0;
+</code></pre>
+<p>For this guide, the important convention is:</p>
+<pre><code class="language-text">P = 65535  means SAME padding
+P = 0      means VALID padding
+P = n      means explicit padding of n pixels
+</code></pre>
+<hr />
+<h3 id="31-valid-padding">3.1 VALID padding</h3>
+<p>VALID padding means <strong>no zero padding</strong> is added around the input.</p>
+<p>The convolution kernel is only applied where it fully fits inside the input.</p>
+<p>For normal Conv2D, the output width is:</p>
+<pre><code class="language-text">V = floor((W - K + 2P) / S) + 1
+</code></pre>
+<p>For VALID padding:</p>
+<pre><code class="language-text">P = 0
+</code></pre>
+<p>so:</p>
+<pre><code class="language-text">V = floor((W - K) / S) + 1
+</code></pre>
+<p>Example:</p>
+<pre><code class="language-text">Input width W = 28
+Kernel K = 3
+Stride S = 1
+Padding P = 0
+
+Output width = floor((28 - 3) / 1) + 1
+             = 26
+</code></pre>
+<p>So a 28 × 28 input becomes 26 × 26.</p>
+<p>In Noodle:</p>
+<pre><code class="language-cpp">conv.P = 0;
+</code></pre>
+<p>means VALID padding.</p>
+<hr />
+<h3 id="32-same-padding">3.2 SAME padding</h3>
+<p>SAME padding means Noodle adds virtual zero padding around the input so that the output width follows the common deep-learning behavior.</p>
+<p>For stride 1, SAME usually keeps the spatial size:</p>
+<pre><code class="language-text">28 × 28 → 28 × 28
+</code></pre>
+<p>For stride 2, SAME reduces the size approximately by half:</p>
+<pre><code class="language-text">28 × 28 → 14 × 14
+14 × 14 → 7 × 7
+</code></pre>
+<p>This is what the image denoising autoencoder uses:</p>
+<pre><code class="language-text">enc1: 28 × 28, stride 2, SAME → 14 × 14
+enc2: 14 × 14, stride 2, SAME → 7 × 7
+</code></pre>
+<p>In Noodle, use:</p>
+<pre><code class="language-cpp">conv.P = 65535;
+</code></pre>
+<p>to request SAME padding.</p>
+<p>Why <code>65535</code>?</p>
+<p>Because <code>P</code> is stored as an unsigned 16-bit value. The value <code>65535</code> is used as a special marker, not as a real padding size. It tells Noodle:</p>
+<pre><code class="language-text">compute SAME padding automatically
+</code></pre>
+<p>So this:</p>
+<pre><code class="language-cpp">E1.K = 3;
+E1.P = 65535;
+E1.S = 2;
+</code></pre>
+<p>means:</p>
+<pre><code class="language-text">3 × 3 convolution
+SAME padding
+stride 2
+</code></pre>
+<hr />
+<h3 id="33-explicit-padding">3.3 Explicit padding</h3>
+<p>Noodle can also use an explicit padding value.</p>
+<p>Example:</p>
+<pre><code class="language-cpp">conv.P = 1;
+</code></pre>
+<p>means one zero-padding pixel is added around the input.</p>
+<p>For a 3 × 3 kernel with stride 1, this behaves like SAME padding:</p>
+<pre><code class="language-text">W = 28
+K = 3
+S = 1
+P = 1
+
+V = floor((28 - 3 + 2×1) / 1) + 1
+  = 28
+</code></pre>
+<p>However, for stride 2, SAME padding is more subtle, especially when the input size is odd or when output-size rounding matters. Therefore, for Keras-style SAME behavior, students should use:</p>
+<pre><code class="language-cpp">conv.P = 65535;
+</code></pre>
+<p>not manual guessing.</p>
+<hr />
+<h3 id="34-padding-in-conv2dtranspose">3.4 Padding in Conv2DTranspose</h3>
+<p>The decoder uses Conv2DTranspose:</p>
+<pre><code class="language-cpp">D1.OP = 1;
+D2.OP = 1;
+</code></pre>
+<p>and also uses:</p>
+<pre><code class="language-cpp">D1.P = 65535;
+D2.P = 65535;
+</code></pre>
+<p>For this denoising model, that means the transposed convolution should mirror the encoder shape:</p>
+<pre><code class="language-text">dec1: 7 × 7,  stride 2, SAME → 14 × 14
+dec2: 14 × 14, stride 2, SAME → 28 × 28
+</code></pre>
+<p>So the full spatial flow is:</p>
+<pre><code class="language-text">28 → 14 → 7 → 14 → 28
+</code></pre>
+<p>This is why <code>W_final</code> should be 28:</p>
+<pre><code class="language-cpp">if (W_final != W_OUT) {
+  Serial.printf(&quot;ERR_BAD_W %u\n&quot;, W_final);
+}
+</code></pre>
+<p>If the padding settings are wrong, the final width may not return to 28.</p>
+<hr />
+<h3 id="35-padding-used-in-this-image-denoising-example">3.5 Padding used in this image denoising example</h3>
+<p>All four layers use SAME padding:</p>
+<pre><code class="language-cpp">E1.P = 65535;
+E2.P = 65535;
+D1.P = 65535;
+D2.P = 65535;
+</code></pre>
+<p>The intended shape sequence is:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Operation</th>
+<th>Padding</th>
+<th style="text-align: right;">Input width</th>
+<th style="text-align: right;">Output width</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>E1</code></td>
+<td>Conv2D</td>
+<td>SAME</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td><code>E2</code></td>
+<td>Conv2D</td>
+<td>SAME</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr>
+<td><code>D1</code></td>
+<td>Conv2DTranspose</td>
+<td>SAME</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td><code>D2</code></td>
+<td>Conv2DTranspose</td>
+<td>SAME</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">28</td>
+</tr>
+</tbody>
+</table>
+<p>For students, the practical rule is:</p>
+<pre><code class="language-text">Use P = 65535 when the Keras model says padding=&quot;same&quot;.
+Use P = 0 when the Keras model says padding=&quot;valid&quot;.
+Use P = n only when you intentionally want explicit n-pixel padding.
+</code></pre>
+<hr />
+<h2 id="4-required-files">4. Required Files</h2>
+<p>Place these files in one project folder:</p>
+<pre><code class="language-text">project/
+├── main.cpp
+├── noodle.h
+├── noodle.cpp
+├── noodle_serial.h
+├── noodle_serial.cpp
+├── model_exporter.py
+├── Auto_Encoder.ipynb
+├── w01.h
+├── b01.h
+├── w02.h
+├── b02.h
+├── w03.h
+├── b03.h
+├── w04.h
+└── b04.h
+</code></pre>
+<p>The <code>wXX.h</code> and <code>bXX.h</code> files are generated after training and exporting the model.</p>
+<h3 id="important-note-about-older-maincpp-examples">Important note about older <code>main.cpp</code> examples</h3>
+<p>Some older Noodle examples allocate one permanent tensor for every layer output, such as <code>X</code>, <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, and <code>Y</code>. Some older examples also do not allocate and register the Noodle temporary buffer.</p>
+<p>For this guide, students should use the safer version:</p>
+<pre><code class="language-text">BUF_A + BUF_B = ping-pong tensor storage
+TEMP2         = Noodle Conv2D scratch storage
+</code></pre>
+<p>Do not copy an old <code>main.cpp</code> directly unless it has been updated to allocate:</p>
+<pre><code class="language-cpp">BUF_A
+BUF_B
+TEMP2
+</code></pre>
+<p>and call:</p>
+<pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP2);
+</code></pre>
+<p>Without <code>TEMP2</code>, the memory-to-memory Conv2D path may return <code>0</code>, and the firmware may later print:</p>
+<pre><code class="language-text">ERR_BAD_W 0
+</code></pre>
+<hr />
+<h2 id="5-step-1-train-the-autoencoder">5. Step 1 — Train the Autoencoder</h2>
+<p>Open <code>Auto_Encoder.ipynb</code>.</p>
+<p>The training notebook should:</p>
+<ol>
+<li>Load grayscale image data, for example MNIST.</li>
+<li>Normalize images to the range <code>[0, 1]</code>.</li>
+<li>Add artificial noise to the clean images.</li>
+<li>Train the autoencoder to map:</li>
+</ol>
+<pre><code class="language-text">noisy image → clean image
+</code></pre>
+<p>Example training objective:</p>
+<pre><code class="language-python">model.fit(
+    x_train_noisy,
+    x_train_clean,
+    validation_data=(x_test_noisy, x_test_clean),
+    epochs=...,
+    batch_size=...
+)
+</code></pre>
+<p>After training, test the model in Python first. Compare:</p>
+<pre><code class="language-text">clean image
+noisy image
+denoised image from Keras
+</code></pre>
+<p>Only continue to Noodle deployment after the Keras model gives reasonable denoising results.</p>
+<hr />
+<h2 id="6-step-2-export-weights-for-noodle">6. Step 2 — Export Weights for Noodle</h2>
+<p>For this autoencoder, use <code>exporter_model()</code>, not only <code>model.get_weights()</code>.</p>
+<p>This is important because <code>Conv2D</code> and <code>Conv2DTranspose</code> are both 4D tensors, but their Keras layouts are different. The layer-aware exporter correctly handles both.</p>
+<p>Example:</p>
+<pre><code class="language-python">from model_exporter import exporter_model
+
+exporter_model(model, &quot;exported_weights&quot;)
+</code></pre>
+<p>The exporter will generate files similar to:</p>
+<pre><code class="language-text">exported_weights/
+├── w01.h
+├── b01.h
+├── w02.h
+├── b02.h
+├── w03.h
+├── b03.h
+├── w04.h
+└── b04.h
+</code></pre>
+<p>Copy these files into the Arduino/PlatformIO project folder.</p>
+<hr />
+<h2 id="7-step-3-prepare-the-microcontroller-project">7. Step 3 — Prepare the Microcontroller Project</h2>
+<p>The firmware must include:</p>
+<pre><code class="language-cpp">#include &quot;noodle.h&quot;
+#include &quot;noodle_serial.h&quot;
+
+#include &quot;w01.h&quot;
+#include &quot;b01.h&quot;
+#include &quot;w02.h&quot;
+#include &quot;b02.h&quot;
+#include &quot;w03.h&quot;
+#include &quot;b03.h&quot;
+#include &quot;w04.h&quot;
+#include &quot;b04.h&quot;
+</code></pre>
+<p>The image size is fixed to 28 × 28:</p>
+<pre><code class="language-cpp">static constexpr uint16_t IMG_W = 28;
+static constexpr uint16_t IMG_H = 28;
+static constexpr uint16_t IMG_SIZE = IMG_W * IMG_H;
+</code></pre>
+<p>The firmware receives <code>IMG_SIZE = 784</code> bytes from Python, converts the bytes to float values in <code>[0, 1]</code>, runs Noodle inference, converts the output back to bytes, and sends the denoised image back.</p>
+<hr />
+<h2 id="8-step-4-understand-the-noodle-forward-pass">8. Step 4 — Understand the Noodle Forward Pass</h2>
+<p>The autoencoder forward pass has four layers:</p>
+<pre><code class="language-cpp">W = noodle_conv_float(X,  C_IN, C1, Z1, W, E1, no_pool, NULL);
+W = noodle_conv_float(Z1, C1, C2, Z2, W, E2, no_pool, NULL);
+
+W = noodle_conv_transpose_float(Z2, C2, C3, Z3, W, D1, NULL);
+W = noodle_conv_transpose_float(Z3, C3, C_OUT, Y, W, D2, NULL);
+
+noodle_sigmoid(Y, IMG_SIZE);
+</code></pre>
+<p>The encoder uses normal convolution:</p>
+<pre><code class="language-cpp">E1.OP = 0;
+E2.OP = 0;
+</code></pre>
+<p>The decoder uses transposed convolution:</p>
+<pre><code class="language-cpp">D1.OP = 1;
+D2.OP = 1;
+</code></pre>
+<p>The last layer uses <code>ACT_NONE</code> in the <code>ConvMem</code> structure, then applies sigmoid manually:</p>
+<pre><code class="language-cpp">D2.act = ACT_NONE;
+noodle_sigmoid(Y, IMG_SIZE);
+</code></pre>
+<p>This matches the Keras decoder output activation.</p>
+<h2 id="9-step-5-preparing-memory-variables-with-ping-pong-buffers">9. Step 5 — Preparing Memory Variables with Ping-Pong Buffers</h2>
+<p>For the first student version, use <strong>memory-to-memory inference</strong>. This means all tensors are stored in RAM, not on an SD card or external file.</p>
+<p>However, we do <strong>not</strong> need to allocate one permanent buffer for every layer output.</p>
+<p>The naive view is:</p>
+<pre><code class="language-text">X  → enc1 → Z1
+Z1 → enc2 → Z2
+Z2 → dec1 → Z3
+Z3 → dec2 → Y
+</code></pre>
+<p>This suggests five buffers:</p>
+<pre><code class="language-text">X, Z1, Z2, Z3, Y
+</code></pre>
+<p>But during straight-line inference, only two tensors are needed at a time:</p>
+<pre><code class="language-text">current input tensor
+next output tensor
+</code></pre>
+<p>So we can use <strong>ping-pong buffers</strong>:</p>
+<pre><code class="language-text">BUF_A → layer → BUF_B
+BUF_B → layer → BUF_A
+BUF_A → layer → BUF_B
+BUF_B → layer → BUF_A
+</code></pre>
+<p>This is the recommended memory-to-memory version for students.</p>
+<hr />
+<h3 id="91-tensor-sizes">9.1 Tensor sizes</h3>
+<p>The autoencoder uses the following tensor shapes:</p>
+<table>
+<thead>
+<tr>
+<th>Tensor</th>
+<th>Meaning</th>
+<th style="text-align: right;">Shape</th>
+<th style="text-align: right;">Number of floats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X</code></td>
+<td>input image</td>
+<td style="text-align: right;">1 × 28 × 28</td>
+<td style="text-align: right;">784</td>
+</tr>
+<tr>
+<td><code>Z1</code></td>
+<td>output of encoder 1</td>
+<td style="text-align: right;">16 × 14 × 14</td>
+<td style="text-align: right;">3136</td>
+</tr>
+<tr>
+<td><code>Z2</code></td>
+<td>output of encoder 2</td>
+<td style="text-align: right;">32 × 7 × 7</td>
+<td style="text-align: right;">1568</td>
+</tr>
+<tr>
+<td><code>Z3</code></td>
+<td>output of decoder 1</td>
+<td style="text-align: right;">16 × 14 × 14</td>
+<td style="text-align: right;">3136</td>
+</tr>
+<tr>
+<td><code>Y</code></td>
+<td>final denoised image</td>
+<td style="text-align: right;">1 × 28 × 28</td>
+<td style="text-align: right;">784</td>
+</tr>
+</tbody>
+</table>
+<p>The largest tensor is:</p>
+<pre><code class="language-text">16 × 14 × 14 = 3136 floats
+</code></pre>
+<p>Therefore, each ping-pong buffer must be able to store at least 3136 floats.</p>
+<pre><code class="language-text">BUF_A = 3136 floats
+BUF_B = 3136 floats
+</code></pre>
+<p>Memory requirement:</p>
+<pre><code class="language-text">2 × 3136 floats × 4 bytes = 25088 bytes
+                         ≈ 24.5 KB
+</code></pre>
+<p>This is smaller than allocating all five tensors permanently:</p>
+<pre><code class="language-text">X  = 1  × 28 × 28 = 784 floats
+Z1 = 16 × 14 × 14 = 3136 floats
+Z2 = 32 × 7  × 7  = 1568 floats
+Z3 = 16 × 14 × 14 = 3136 floats
+Y  = 1  × 28 × 28 = 784 floats
+
+total = 9408 floats
+      = 9408 × 4 bytes
+      = 37632 bytes
+      ≈ 36.75 KB
+</code></pre>
+<p>So the ping-pong version saves:</p>
+<pre><code class="language-text">37632 - 25088 = 12544 bytes
+              ≈ 12.25 KB
+</code></pre>
+<hr />
+<h3 id="92-declare-model-dimensions">9.2 Declare model dimensions</h3>
+<p>Declare the tensor dimensions clearly. This helps students connect the C++ firmware to the Keras model summary.</p>
+<pre><code class="language-cpp">static constexpr uint16_t W_IN  = 28;
+static constexpr uint16_t C_IN  = 1;
+
+static constexpr uint16_t W1    = 14;
+static constexpr uint16_t C1    = 16;
+
+static constexpr uint16_t W2    = 7;
+static constexpr uint16_t C2    = 32;
+
+static constexpr uint16_t W3    = 14;
+static constexpr uint16_t C3    = 16;
+
+static constexpr uint16_t W_OUT = 28;
+static constexpr uint16_t C_OUT = 1;
+</code></pre>
+<p>The important rule is:</p>
+<pre><code class="language-text">number of floats = C × W × W
+</code></pre>
+<p>For this example, all feature maps are square.</p>
+<hr />
+<h3 id="93-declare-ping-pong-buffers">9.3 Declare ping-pong buffers</h3>
+<p>Instead of declaring five tensor pointers:</p>
+<pre><code class="language-cpp">static float *X  = nullptr;
+static float *Z1 = nullptr;
+static float *Z2 = nullptr;
+static float *Z3 = nullptr;
+static float *Y  = nullptr;
+</code></pre>
+<p>declare only two large working buffers:</p>
+<pre><code class="language-cpp">static constexpr size_t PINGPONG_FLOATS = 16 * 14 * 14;
+
+static float *BUF_A = nullptr;
+static float *BUF_B = nullptr;
+</code></pre>
+<p>These two buffers will take turns storing the current layer input and the next layer output.</p>
+<hr />
+<h3 id="94-allocate-ping-pong-memory-and-noodle-temporary-memory">9.4 Allocate ping-pong memory and Noodle temporary memory</h3>
+<p>Use one helper function so the code works on ESP32 boards with or without PSRAM:</p>
+<pre><code class="language-cpp">static float *alloc_float_buffer(size_t n) {
+#if defined(ARDUINO_ARCH_ESP32)
+  float *p = (float *)ps_malloc(n * sizeof(float));
+  if (p) return p;
+#endif
+  return (float *)malloc(n * sizeof(float));
+}
+</code></pre>
+<p>Then allocate the two ping-pong buffers and the Noodle temporary buffer.</p>
+<p>For this student guide, use the beginner-safe <code>TEMP2</code> size:</p>
+<pre><code class="language-text">TEMP2 = 28 × 28 floats
+</code></pre>
+<p>This is larger than the exact minimum, but easier to explain.</p>
+<pre><code class="language-cpp">static constexpr size_t PINGPONG_FLOATS = 16 * 14 * 14;
+static constexpr size_t TEMP2_FLOATS    = 28 * 28;
+
+static float *BUF_A = nullptr;
+static float *BUF_B = nullptr;
+static float *TEMP2 = nullptr;
+
+static void alloc_buffers() {
+  BUF_A = alloc_float_buffer(PINGPONG_FLOATS);
+  BUF_B = alloc_float_buffer(PINGPONG_FLOATS);
+  TEMP2 = alloc_float_buffer(TEMP2_FLOATS);
+
+  if (!BUF_A || !BUF_B || !TEMP2) {
+    Serial.println(F(&quot;ERROR allocation failed&quot;));
+    while (true) delay(1000);
+  }
+
+  // Required before using memory-to-memory Conv2D.
+  noodle_setup_temp_buffers(TEMP2);
+
+  Serial.println(F(&quot;Ping-pong and temp buffers allocated&quot;));
+}
+</code></pre>
+<p>This is the main memory preparation step.</p>
+<p>The important idea is:</p>
+<pre><code class="language-text">BUF_A and BUF_B are for layer tensors.
+TEMP2 is for internal Conv2D accumulation.
+</code></pre>
+<hr />
+<h3 id="95-input-and-output-byte-buffers">9.5 Input and output byte buffers</h3>
+<p>The serial protocol sends images as bytes, not floats. Therefore, the firmware also needs byte buffers:</p>
+<pre><code class="language-cpp">static uint8_t RX_BYTES[IMG_SIZE];
+static uint8_t TX_BYTES[IMG_SIZE];
+</code></pre>
+<p><code>RX_BYTES</code> stores the incoming noisy image from Python.</p>
+<p><code>TX_BYTES</code> stores the outgoing denoised image sent back to Python.</p>
+<p>The conversion is:</p>
+<pre><code class="language-text">Python uint8 image → RX_BYTES → BUF_A as float [0,1]
+final output float → TX_BYTES → Python uint8 image
+</code></pre>
+<hr />
+<h3 id="96-convert-input-bytes-to-floats">9.6 Convert input bytes to floats</h3>
+<p>Before inference, convert the received image to floating-point values in <code>BUF_A</code>:</p>
+<pre><code class="language-cpp">static void bytes_to_float_image_0_1(const uint8_t *src, float *dst, size_t n) {
+  const float inv = 1.0f / 255.0f;
+  for (size_t i = 0; i &lt; n; i++) {
+    dst[i] = (float)src[i] * inv;
+  }
+}
+</code></pre>
+<p>This matches the Python/Keras normalization.</p>
+<hr />
+<h3 id="97-convert-output-floats-to-bytes">9.7 Convert output floats to bytes</h3>
+<p>After inference, convert the denoised image back to <code>uint8_t</code>:</p>
+<pre><code class="language-cpp">static void float_image_to_bytes_0_255(const float *src, uint8_t *dst, size_t n) {
+  for (size_t i = 0; i &lt; n; i++) {
+    float v = src[i];
+
+    if (v &lt; 0.0f) v = 0.0f;
+    if (v &gt; 1.0f) v = 1.0f;
+
+    int q = (int)(255.0f * v + 0.5f);
+
+    if (q &lt; 0) q = 0;
+    if (q &gt; 255) q = 255;
+
+    dst[i] = (uint8_t)q;
+  }
+}
+</code></pre>
+<p>This makes the result easy to plot in Python.</p>
+<hr />
+<h3 id="98-ping-pong-layer-mapping">9.8 Ping-pong layer mapping</h3>
+<p>The forward pass becomes:</p>
+<pre><code class="language-cpp">static uint16_t run_autoencoder_forward_pingpong() {
+  ConvMem E1;
+  E1.K = 3; E1.P = 65535; E1.S = 2; E1.OP = 0;
+  E1.weight = w01; E1.bias = b01; E1.act = ACT_RELU;
+
+  ConvMem E2;
+  E2.K = 3; E2.P = 65535; E2.S = 2; E2.OP = 0;
+  E2.weight = w02; E2.bias = b02; E2.act = ACT_RELU;
+
+  ConvMem D1;
+  D1.K = 3; D1.P = 65535; D1.S = 2; D1.OP = 1;
+  D1.weight = w03; D1.bias = b03; D1.act = ACT_RELU;
+
+  ConvMem D2;
+  D2.K = 3; D2.P = 65535; D2.S = 2; D2.OP = 1;
+  D2.weight = w04; D2.bias = b04;
+  D2.act = ACT_NONE;
+
+  Pool no_pool;
+  no_pool.M = 1;
+  no_pool.T = 1;
+
+  float *A = BUF_A;
+  float *B = BUF_B;
+
+  uint16_t W = W_IN;
+
+  // X is in A, Z1 will be in B.
+  W = noodle_conv_float(A, C_IN, C1, B, W, E1, no_pool, NULL);
+
+  // Z1 is in B, Z2 will be in A.
+  W = noodle_conv_float(B, C1, C2, A, W, E2, no_pool, NULL);
+
+  // Z2 is in A, Z3 will be in B.
+  W = noodle_conv_transpose_float(A, C2, C3, B, W, D1, NULL);
+
+  // Z3 is in B, Y will be in A.
+  W = noodle_conv_transpose_float(B, C3, C_OUT, A, W, D2, NULL);
+
+  // Final sigmoid is applied to Y, which is now in A.
+  noodle_sigmoid(A, IMG_SIZE);
+
+  return W;
+}
+</code></pre>
+<p>The layer flow is:</p>
+<pre><code class="language-text">BUF_A contains X
+BUF_B contains Z1
+BUF_A contains Z2
+BUF_B contains Z3
+BUF_A contains Y
+</code></pre>
+<p>So after inference, the final output image is in <code>BUF_A</code>.</p>
+<hr />
+<h3 id="99-processing-one-image">9.9 Processing one image</h3>
+<p>The complete image-processing step becomes:</p>
+<pre><code class="language-cpp">static void process_one_image() {
+  // RX_BYTES → BUF_A
+  bytes_to_float_image_0_1(RX_BYTES, BUF_A, IMG_SIZE);
+
+  uint32_t t0 = micros();
+  uint16_t W_final = run_autoencoder_forward_pingpong();
+  uint32_t dt = micros() - t0;
+
+  if (W_final != W_OUT) {
+    Serial.printf(&quot;ERR_BAD_W %u\n&quot;, W_final);
+    NoodleSerial::print_ready();
+    return;
+  }
+
+  // BUF_A contains the final denoised output.
+  float_image_to_bytes_0_255(BUF_A, TX_BYTES, IMG_SIZE);
+
+  NoodleSerial::send_output_image(TX_BYTES, IMG_SIZE, dt);
+}
+</code></pre>
+<hr />
+<h3 id="910-why-ping-pong-works-here">9.10 Why ping-pong works here</h3>
+<p>Ping-pong buffering works because this autoencoder is a <strong>straight-line network</strong>:</p>
+<pre><code class="language-text">layer 1 → layer 2 → layer 3 → layer 4
+</code></pre>
+<p>Each layer only needs the output of the previous layer.</p>
+<p>After <code>Z1</code> has been used to compute <code>Z2</code>, we no longer need <code>Z1</code>.</p>
+<p>After <code>Z2</code> has been used to compute <code>Z3</code>, we no longer need <code>Z2</code>.</p>
+<p>This would not be enough for all networks. Models with skip connections, residual connections, concatenation, or branches may need to keep older tensors alive for longer.</p>
+<p>For this denoising autoencoder, ping-pong buffering is safe.</p>
+<hr />
+<h3 id="911-important-ping-pong-buffers-are-not-temporary-buffers">9.11 Important: ping-pong buffers are not temporary buffers</h3>
+<p>The ping-pong buffers store layer tensors:</p>
+<pre><code class="language-text">X, Z1, Z2, Z3, Y
+</code></pre>
+<p>Noodle temporary buffers store internal operator scratch memory.</p>
+<p>These are different concepts.</p>
+<p>A simple way to remember it is:</p>
+<pre><code class="language-text">BUF_A and BUF_B hold tensors between layers.
+TEMP2 is scratch paper used while one Conv2D layer is being computed.
+</code></pre>
+<p>So students should not treat <code>TEMP2</code> as another layer output buffer. It is only temporary workspace.</p>
+<p>A slightly more technical version is:</p>
+<pre><code class="language-text">Ping-pong buffers store data that must survive until the next layer.
+TEMP2 stores temporary values that are only needed while the current operator is running.
+</code></pre>
+<p>So the complete memory idea is:</p>
+<pre><code class="language-text">BUF_A / BUF_B  = layer tensor storage
+TEMP2          = internal Conv2D scratch storage
+RX_BYTES       = serial input bytes
+TX_BYTES       = serial output bytes
+</code></pre>
+<p>The next section explains <code>TEMP2</code>.</p>
+<hr />
+<h3 id="912-memory-preparation-checklist">9.12 Memory preparation checklist</h3>
+<p>Before running inference, students should check:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Expected value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input image size</td>
+<td>28 × 28</td>
+</tr>
+<tr>
+<td>Input byte count</td>
+<td>784 bytes</td>
+</tr>
+<tr>
+<td>Largest activation tensor</td>
+<td>16 × 14 × 14</td>
+</tr>
+<tr>
+<td>Ping-pong buffer size</td>
+<td>3136 floats each</td>
+</tr>
+<tr>
+<td>Number of ping-pong buffers</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Ping-pong tensor memory</td>
+<td>25088 bytes</td>
+</tr>
+<tr>
+<td>Input byte buffer</td>
+<td>784 bytes</td>
+</tr>
+<tr>
+<td>Output byte buffer</td>
+<td>784 bytes</td>
+</tr>
+<tr>
+<td>Input normalization</td>
+<td>divide by 255</td>
+</tr>
+<tr>
+<td>Output conversion</td>
+<td>clip to <code>[0,1]</code>, multiply by 255</td>
+</tr>
+<tr>
+<td>Final output location</td>
+<td><code>BUF_A</code></td>
+</tr>
+</tbody>
+</table>
+<p>For this beginner guide, the goal is not yet to use SD card storage. The goal is to understand how tensors move through memory.</p>
+<p>After students understand this memory-to-memory ping-pong version, they can move to the more advanced Noodle style where activations, parameters, or both are stored externally.</p>
+<hr />
+<h2 id="10-step-6-temporary-buffers">10. Step 6 — Temporary Buffers</h2>
+<p>Noodle uses temporary buffers as reusable scratch memory. These buffers are not model weights and they are not permanent layer outputs. They are only working space used inside some operators.</p>
+<p>In this guide, think of <code>TEMP2</code> as <strong>scratch paper</strong>: it is used briefly during Conv2D and then reused. It does not store a named layer output such as <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, or <code>Y</code>.</p>
+<p>For this image denoising case, the important rule is:</p>
+<pre><code class="language-text">Conv2D needs temp_buff2.
+Conv2DTranspose in this memory-to-memory case does not need temp_buff1/temp_buff2.
+</code></pre>
+<p>The current firmware uses memory-to-memory convolution:</p>
+<pre><code class="language-cpp">W = noodle_conv_float(X,  C_IN, C1, Z1, W, E1, no_pool, NULL);
+W = noodle_conv_float(Z1, C1, C2, Z2, W, E2, no_pool, NULL);
+</code></pre>
+<p>Even though both input and output tensors are already in memory, <code>noodle_conv_float()</code> still uses <code>temp_buff2</code> as an accumulation buffer for one output channel plane.</p>
+<h3 id="101-what-does-temp_buff2-store">10.1 What does <code>temp_buff2</code> store?</h3>
+<p>During Conv2D, Noodle does not immediately write the final output tensor. For each output channel, it first accumulates:</p>
+<pre><code class="language-text">input channel 0 contribution
++ input channel 1 contribution
++ ...
++ input channel N contribution
+</code></pre>
+<p>into one temporary output plane.</p>
+<p>After accumulation, Noodle applies:</p>
+<pre><code class="language-text">bias → activation → pooling
+</code></pre>
+<p>Then the result is copied into the real output tensor.</p>
+<p>So <code>temp_buff2</code> must be large enough to hold one pre-pooling output plane:</p>
+<pre><code class="language-text">temp_buff2 size = Vconv × Vconv floats
+</code></pre>
+<p>where <code>Vconv</code> is the Conv2D output width before pooling.</p>
+<p>For SAME-style stride-2 convolution in this example:</p>
+<pre><code class="language-text">enc1: input 28×28, stride 2 → output 14×14
+enc2: input 14×14, stride 2 → output 7×7
+</code></pre>
+<p>Therefore:</p>
+<pre><code class="language-text">enc1 temp_buff2 = 14 × 14 = 196 floats
+enc2 temp_buff2 = 7 × 7 = 49 floats
+</code></pre>
+<p>The largest requirement is:</p>
+<pre><code class="language-text">max temp_buff2 = 196 floats
+               = 196 × 4 bytes
+               = 784 bytes
+</code></pre>
+<h3 id="102-recommended-student-version">10.2 Recommended student version</h3>
+<p>For clarity, students can allocate a slightly larger scratch buffer:</p>
+<pre><code class="language-cpp">static constexpr uint16_t TEMP2_FLOATS = IMG_W * IMG_W;
+static float *TEMP2 = nullptr;
+</code></pre>
+<p>This gives:</p>
+<pre><code class="language-text">TEMP2_FLOATS = 28 × 28 = 784 floats
+TEMP2 memory = 784 × 4 = 3136 bytes
+</code></pre>
+<p>This is larger than necessary, but easy to understand because it matches one full image plane.</p>
+<p>In the final student code, <code>TEMP2</code> is allocated together with <code>BUF_A</code> and <code>BUF_B</code> inside <code>alloc_buffers()</code>.</p>
+<p>The critical line is:</p>
+<pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP2);
+</code></pre>
+<p>This line registers the scratch buffer with Noodle before any <code>noodle_conv_float()</code> call runs.</p>
+<h3 id="103-more-memory-efficient-version">10.3 More memory-efficient version</h3>
+<p>After students understand the concept, they can use the exact minimum:</p>
+<pre><code class="language-cpp">static constexpr uint16_t TEMP2_FLOATS = 14 * 14;
+static float *TEMP2 = nullptr;
+</code></pre>
+<p>Then:</p>
+<pre><code class="language-cpp">TEMP2 = alloc_float_buffer(TEMP2_FLOATS);
+noodle_setup_temp_buffers(TEMP2);
+</code></pre>
+<p>This only uses:</p>
+<pre><code class="language-text">196 floats × 4 bytes = 784 bytes
+</code></pre>
+<h3 id="104-do-we-need-temp_buff1">10.4 Do we need <code>temp_buff1</code>?</h3>
+<p>For this exact firmware, no.</p>
+<p><code>temp_buff1</code> is mainly needed when Noodle must stream input planes from a file or other external storage. In this denoising firmware, the input and intermediate tensors are already in memory:</p>
+<pre><code class="language-text">X, Z1, Z2, Z3, Y
+</code></pre>
+<p>So the current memory-to-memory Conv2D path only needs <code>temp_buff2</code>.</p>
+<p>If later students move activations to SD card, then <code>temp_buff1</code> becomes necessary. In that case, size it for the largest input plane:</p>
+<pre><code class="language-text">max temp_buff1 = 28 × 28 floats
+               = 784 floats
+               = 3136 bytes
+</code></pre>
+<p>and register both buffers:</p>
+<pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP1, TEMP2);
+</code></pre>
+<h3 id="105-temporary-buffer-checklist">10.5 Temporary buffer checklist</h3>
+<p>Before running inference, students should answer:</p>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Answer for this denoising case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Are we using Conv2D?</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Does Conv2D need <code>temp_buff2</code>?</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Largest Conv2D pre-pooling plane?</td>
+<td>14 × 14</td>
+</tr>
+<tr>
+<td>Minimum <code>temp_buff2</code> size?</td>
+<td>196 floats</td>
+</tr>
+<tr>
+<td>Beginner-safe <code>temp_buff2</code> size?</td>
+<td>784 floats</td>
+</tr>
+<tr>
+<td>Do we need <code>temp_buff1</code>?</td>
+<td>No, not for memory-to-memory tensors</td>
+</tr>
+<tr>
+<td>Do Conv2DTranspose layers need shared temp buffers here?</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Are <code>BUF_A</code> and <code>BUF_B</code> the same as <code>TEMP2</code>?</td>
+<td>No, they are layer tensor buffers</td>
+</tr>
+</tbody>
+</table>
+<p>A missing temp buffer usually causes <code>noodle_conv_float()</code> to return <code>0</code>, which then leads to a wrong layer width and finally:</p>
+<pre><code class="language-text">ERR_BAD_W 0
+</code></pre>
+<hr />
+<hr />
+<h2 id="11-step-7-serial-protocol">11. Step 7 — Serial Protocol</h2>
+<p>The microcontroller and Python communicate using a simple serial protocol.</p>
+<h3 id="microcontroller-startup">Microcontroller startup</h3>
+<p>After boot and buffer allocation, the microcontroller prints:</p>
+<pre><code class="language-text">READY
+</code></pre>
+<h3 id="python-sends-one-image">Python sends one image</h3>
+<p>Python sends the ASCII header:</p>
+<pre><code class="language-text">IMG
+</code></pre>
+<p>Then the microcontroller replies:</p>
+<pre><code class="language-text">RDYIMG
+</code></pre>
+<p>Python sends the image bytes in chunks. The current chunk size is 64 bytes.</p>
+<p>After each received chunk, the microcontroller replies:</p>
+<pre><code class="language-text">ACK
+</code></pre>
+<h3 id="microcontroller-sends-the-denoised-image">Microcontroller sends the denoised image</h3>
+<p>After inference, the microcontroller sends:</p>
+<pre><code class="language-text">OUT &lt;inference_time_us&gt;
+</code></pre>
+<p>Then it sends 784 output bytes.</p>
+<p>Finally, it prints:</p>
+<pre><code class="language-text">READY
+</code></pre>
+<p>This means the microcontroller is ready for the next image.</p>
+<hr />
+<h2 id="12-step-8-python-host-test">12. Step 8 — Python Host Test</h2>
+<p>The Python host should:</p>
+<ol>
+<li>Open the serial port.</li>
+<li>Wait until it receives <code>READY</code>.</li>
+<li>Select one noisy 28 × 28 image.</li>
+<li>Convert it to <code>uint8</code>:</li>
+</ol>
+<pre><code class="language-python">img_u8 = np.clip(noisy_img * 255, 0, 255).astype(np.uint8)
+</code></pre>
+<ol>
+<li>Send the header:</li>
+</ol>
+<pre><code class="language-python">ser.write(b&quot;IMG&quot;)
+</code></pre>
+<ol>
+<li>Wait for <code>RDYIMG</code>.</li>
+<li>Send the 784 image bytes in 64-byte chunks.</li>
+<li>Wait for <code>ACK</code> after every chunk.</li>
+<li>Wait for the <code>OUT &lt;time_us&gt;</code> line.</li>
+<li>Read 784 output bytes.</li>
+<li>Reshape the result:</li>
+</ol>
+<pre><code class="language-python">out = np.frombuffer(raw, dtype=np.uint8).reshape(28, 28)
+</code></pre>
+<ol>
+<li>Plot the result:</li>
+</ol>
+<pre><code class="language-text">clean image | noisy image | Noodle denoised image
+</code></pre>
+<hr />
+<h2 id="13-step-9-expected-output">13. Step 9 — Expected Output</h2>
+<p>A successful serial log should look like this:</p>
+<pre><code class="language-text">BOOT OK
+Buffers allocated
+READY
+RDYIMG
+ACK
+ACK
+...
+OUT 123456
+READY
+</code></pre>
+<p>The exact inference time depends on the board.</p>
+<hr />
+<h2 id="14-common-problems">14. Common Problems</h2>
+<h3 id="problem-python-never-receives-ready">Problem: Python never receives <code>READY</code></h3>
+<p>Reset the board or reopen the serial port. The firmware prints <code>READY</code> repeatedly if no valid <code>IMG</code> header is received, so the protocol should recover automatically.</p>
+<h3 id="problem-err_timeout">Problem: <code>ERR_TIMEOUT</code></h3>
+<p>Python did not send the image bytes fast enough or the serial port was interrupted. Check the baud rate and make sure the host sends exactly 784 bytes.</p>
+<h3 id="problem-err_bad_w">Problem: <code>ERR_BAD_W</code></h3>
+<p>The final output width is not 28. Check that the model architecture in Keras matches the constants in <code>main.cpp</code>.</p>
+<p>Also check that the padding mode matches the Keras model. For this denoising autoencoder, all four layers should use SAME padding:</p>
+<pre><code class="language-cpp">E1.P = 65535;
+E2.P = 65535;
+D1.P = 65535;
+D2.P = 65535;
+</code></pre>
+<p>If one layer accidentally uses <code>P = 0</code>, the width sequence may no longer be:</p>
+<pre><code class="language-text">28 → 14 → 7 → 14 → 28
+</code></pre>
+<p>Also check that <code>TEMP2</code> was allocated and registered:</p>
+<pre><code class="language-cpp">TEMP2 = alloc_float_buffer(TEMP2_FLOATS);
+noodle_setup_temp_buffers(TEMP2);
+</code></pre>
+<p>If <code>TEMP2</code> is missing, the Conv2D path may fail and return width <code>0</code>.</p>
+<h3 id="problem-output-image-is-black-or-white">Problem: Output image is black or white</h3>
+<p>Check these items:</p>
+<ol>
+<li>Input normalization must be <code>[0, 1]</code> during training.</li>
+<li>Python must send <code>uint8</code> values from 0 to 255.</li>
+<li>Firmware must divide by 255 before inference.</li>
+<li>Firmware must apply sigmoid after the final decoder layer.</li>
+<li>Output must be clipped to <code>[0, 1]</code> before converting back to bytes.</li>
+</ol>
+<h3 id="problem-output-shape-is-correct-but-image-quality-is-poor">Problem: Output shape is correct but image quality is poor</h3>
+<p>Check that:</p>
+<ol>
+<li>The exported <code>wXX.h</code> and <code>bXX.h</code> files came from the latest trained model.</li>
+<li>The layer order in the firmware matches the Keras model.</li>
+<li><code>Conv2DTranspose</code> weights were exported with <code>exporter_model()</code>.</li>
+<li>The training noise level is similar to the test noise level.</li>
+</ol>
+<hr />
+<h2 id="15-student-checklist">15. Student Checklist</h2>
+<p>Before submitting the experiment, students should show:</p>
+<ul>
+<li>Keras model summary.</li>
+<li>Training and validation loss plot.</li>
+<li>Example clean/noisy/denoised images from Keras.</li>
+<li>Screenshot or copy of successful serial log.</li>
+<li>Example clean/noisy/Noodle-denoised images.</li>
+<li>Inference time reported by <code>OUT &lt;time_us&gt;</code>.</li>
+<li>Short explanation of the Noodle layer mapping.</li>
+</ul>
+<hr />
+<h2 id="16-final-benchmark-running-the-same-autoencoder-with-tflite-micro">16. Final Benchmark: Running the Same Autoencoder with TFLite Micro</h2>
+<p>After students successfully run the image denoising model with Noodle, they can benchmark the same model using <strong>TensorFlow Lite Micro</strong>.</p>
+<p>The goal is not to replace Noodle. The goal is to compare two embedded inference styles:</p>
+<table>
+<thead>
+<tr>
+<th>Framework</th>
+<th>Main idea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Noodle</td>
+<td>Explicit layer-by-layer inference with visible memory planning</td>
+</tr>
+<tr>
+<td>TFLite Micro</td>
+<td>Interpreter-based inference using a <code>.tflite</code> model and tensor arena</td>
+</tr>
+</tbody>
+</table>
+<p>This benchmark helps students understand the trade-off between <strong>manual control</strong> and <strong>framework automation</strong>.</p>
+<hr />
+<h3 id="161-export-the-keras-model-to-tflite">16.1 Export the Keras model to <code>.tflite</code></h3>
+<p>After training the autoencoder, convert it to a float TFLite model:</p>
+<pre><code class="language-python">import tensorflow as tf
+import os
+
+save_dir = &quot;/content/drive/MyDrive/NOODLE/autoencoder&quot;
+
+converter = tf.lite.TFLiteConverter.from_keras_model(autoencoder)
+
+# Keep this benchmark simple first: use float32, not int8.
+tflite_model = converter.convert()
+
+tflite_path = os.path.join(save_dir, &quot;mnist_denoising_autoencoder_float.tflite&quot;)
+with open(tflite_path, &quot;wb&quot;) as f:
+    f.write(tflite_model)
+
+print(&quot;Saved:&quot;, tflite_path)
+print(&quot;TFLite size:&quot;, len(tflite_model), &quot;bytes&quot;)
+</code></pre>
+<p>For the first benchmark, use float32 TFLite. Quantized int8 TFLite can be added later after the float version works.</p>
+<hr />
+<h3 id="162-convert-tflite-to-a-c-header">16.2 Convert <code>.tflite</code> to a C header</h3>
+<p>The ESP32 Arduino sketch needs the model as a C array.</p>
+<p>In Linux or Google Colab, use:</p>
+<pre><code class="language-bash">xxd -i mnist_denoising_autoencoder_float.tflite &gt; model_data.h
+</code></pre>
+<p>Then edit the generated header names, or use this Python version to generate cleaner names:</p>
+<pre><code class="language-python">from pathlib import Path
+
+tflite_path = Path(&quot;mnist_denoising_autoencoder_float.tflite&quot;)
+data = tflite_path.read_bytes()
+
+with open(&quot;model_data.h&quot;, &quot;w&quot;) as f:
+    f.write(&quot;#pragma once\n\n&quot;)
+    f.write(&quot;#include &lt;stdint.h&gt;\n\n&quot;)
+    f.write(f&quot;const unsigned int g_model_len = {len(data)};\n&quot;)
+    f.write(&quot;const unsigned char g_model[] = {\n&quot;)
+
+    for i in range(0, len(data), 12):
+        row = data[i:i+12]
+        f.write(&quot;  &quot; + &quot;, &quot;.join(f&quot;0x{b:02x}&quot; for b in row) + &quot;,\n&quot;)
+
+    f.write(&quot;};\n&quot;)
+</code></pre>
+<p>Copy <code>model_data.h</code> into the ESP32 Arduino project folder.</p>
+<hr />
+<h3 id="163-esp32-tflite-micro-project-files">16.3 ESP32 TFLite Micro project files</h3>
+<p>The TFLite Micro benchmark project should contain:</p>
+<pre><code class="language-text">esp32_tflm_denoising/
+├── main_tflm_denoising_benchmark.cpp
+├── model_data.h
+├── noodle_serial.h
+└── noodle_serial.cpp
+</code></pre>
+<p>This benchmark intentionally reuses <code>noodle_serial.h</code> and <code>noodle_serial.cpp</code>.</p>
+<p>That means the serial protocol remains the same:</p>
+<pre><code class="language-text">READY → IMG → RDYIMG → ACK → OUT &lt;time_us&gt; → output image bytes
+</code></pre>
+<p>So the same Python host script used for Noodle can also be used for TFLite Micro.</p>
+<hr />
+<h3 id="164-tensor-arena">16.4 Tensor arena</h3>
+<p>TFLite Micro does not ask students to manually allocate <code>BUF_A</code>, <code>BUF_B</code>, and <code>TEMP2</code>.</p>
+<p>Instead, it uses one large memory region called the <strong>tensor arena</strong>.</p>
+<p>A simple explanation is:</p>
+<pre><code class="language-text">Noodle:
+  BUF_A / BUF_B = layer tensor storage
+  TEMP2         = operator scratch storage
+
+TFLite Micro:
+  tensor_arena  = framework-managed storage for tensors and scratch memory
+</code></pre>
+<p>So for TFLite Micro, students allocate:</p>
+<pre><code class="language-cpp">constexpr size_t TENSOR_ARENA_SIZE = 512 * 1024;
+static uint8_t *tensor_arena = nullptr;
+</code></pre>
+<p>Then the interpreter decides how to use that arena internally.</p>
+<p>If allocation fails, increase available memory by using an ESP32 board with PSRAM.</p>
+<p>If <code>AllocateTensors()</code> fails, increase <code>TENSOR_ARENA_SIZE</code>.</p>
+<hr />
+<h3 id="165-required-tflite-micro-operators">16.5 Required TFLite Micro operators</h3>
+<p>This autoencoder usually needs these operators:</p>
+<pre><code class="language-text">CONV_2D
+TRANSPOSE_CONV
+LOGISTIC
+</code></pre>
+<p>Depending on the converter version, ReLU may be fused into Conv2D/TransposeConv. If it is not fused, the model may also need a standalone ReLU operator.</p>
+<p>For the beginner benchmark, the provided ESP32 code uses <code>AllOpsResolver</code> to avoid missing-operator problems.</p>
+<p>After the benchmark works, students can replace <code>AllOpsResolver</code> with a smaller <code>MicroMutableOpResolver</code> to reduce flash usage.</p>
+<hr />
+<h3 id="166-benchmark-comparison-table">16.6 Benchmark comparison table</h3>
+<p>Students should record:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align: right;">Noodle</th>
+<th style="text-align: right;">TFLite Micro</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model format</td>
+<td style="text-align: right;"><code>.h</code> weight arrays</td>
+<td style="text-align: right;"><code>.tflite</code> C array</td>
+</tr>
+<tr>
+<td>Input size</td>
+<td style="text-align: right;">784 bytes</td>
+<td style="text-align: right;">784 bytes</td>
+</tr>
+<tr>
+<td>Output size</td>
+<td style="text-align: right;">784 bytes</td>
+<td style="text-align: right;">784 bytes</td>
+</tr>
+<tr>
+<td>Inference time</td>
+<td style="text-align: right;"><code>OUT &lt;time_us&gt;</code></td>
+<td style="text-align: right;"><code>OUT &lt;time_us&gt;</code></td>
+</tr>
+<tr>
+<td>RAM strategy</td>
+<td style="text-align: right;">ping-pong + TEMP2</td>
+<td style="text-align: right;">tensor arena</td>
+</tr>
+<tr>
+<td>Memory control</td>
+<td style="text-align: right;">explicit</td>
+<td style="text-align: right;">framework-managed</td>
+</tr>
+<tr>
+<td>Ease of debugging layer shapes</td>
+<td style="text-align: right;">high</td>
+<td style="text-align: right;">lower</td>
+</tr>
+<tr>
+<td>Deployment convenience</td>
+<td style="text-align: right;">manual</td>
+<td style="text-align: right;">easier once model converts</td>
+</tr>
+</tbody>
+</table>
+<p>This comparison is useful because it shows the educational difference between Noodle and TFLite Micro.</p>
+<p>Noodle makes the memory movement visible.</p>
+<p>TFLite Micro hides most memory movement inside the interpreter.</p>
+<hr />
+<h2 id="17-main-learning-points">17. Main Learning Points</h2>
+<p>After completing this exercise, students should understand that:</p>
+<ol>
+<li>A convolutional autoencoder can perform image denoising.</li>
+<li>Noodle can run convolution and transposed convolution on a microcontroller.</li>
+<li>Keras tensor layout and Noodle tensor layout are different.</li>
+<li>Weight export is a critical deployment step.</li>
+<li>Serial communication is needed to move input and output images between Python and the microcontroller.</li>
+<li>Embedded inference is not only about model accuracy, but also memory, data layout, and communication protocol.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

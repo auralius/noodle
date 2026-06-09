@@ -1,0 +1,588 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/benchmark/">
+      
+      
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Benchmark Note: Noodle vs TensorFlow Lite Micro for Image Denoising on ESP32-S3 - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#benchmark-note-noodle-vs-tensorflow-lite-micro-for-image-denoising-on-esp32-s3" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Benchmark Note: Noodle vs TensorFlow Lite Micro for Image Denoising on ESP32-S3
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../doxygen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="benchmark-note-noodle-vs-tensorflow-lite-micro-for-image-denoising-on-esp32-s3">Benchmark Note: Noodle vs TensorFlow Lite Micro for Image Denoising on ESP32-S3</h1>
+<p><img alt="" src="../attachments/denoising.gif" /></p>
+<h2 id="1-benchmark-objective">1. Benchmark objective</h2>
+<p>This benchmark compares the proposed <strong>Noodle</strong> runtime against <strong>TensorFlow Lite Micro (TFLite Micro)</strong> for the same image denoising autoencoder deployed on an ESP32-S3 board. The goal is not to evaluate model accuracy alone, but to compare the runtime behavior of two embedded inference approaches:</p>
+<ol>
+<li><strong>Noodle</strong>, which executes the network using explicit operator calls and preallocated ping-pong buffers.</li>
+<li><strong>TFLite Micro</strong>, which executes the same model through a general interpreter and tensor arena.</li>
+</ol>
+<p>The comparison focuses on inference latency, reconstruction quality, and runtime memory behavior.</p>
+<h2 id="2-target-platform">2. Target platform</h2>
+<p>The benchmark was executed on an ESP32-S3 class board using the Arduino framework. The board was configured with PSRAM enabled. Images were transferred from the host computer to the microcontroller over serial, and the denoised output image was returned to the host using the same serial protocol for both runtimes.</p>
+<h2 id="3-model-under-test">3. Model under test</h2>
+<p>The evaluated model is a small convolutional denoising autoencoder for 28 × 28 grayscale images. The model receives a noisy image and reconstructs a denoised output image of the same spatial size.</p>
+<p>The network structure is:</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Operation</th>
+<th style="text-align: right;">Channels</th>
+<th style="text-align: right;">Kernel</th>
+<th style="text-align: right;">Stride</th>
+<th>Padding</th>
+<th>Activation</th>
+<th>Output size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td>Image</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-</td>
+<td style="text-align: right;">-</td>
+<td>-</td>
+<td>-</td>
+<td>28 × 28 × 1</td>
+</tr>
+<tr>
+<td>Encoder 1</td>
+<td>Conv2D</td>
+<td style="text-align: right;">1 → 16</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>ReLU</td>
+<td>14 × 14 × 16</td>
+</tr>
+<tr>
+<td>Encoder 2</td>
+<td>Conv2D</td>
+<td style="text-align: right;">16 → 32</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>ReLU</td>
+<td>7 × 7 × 32</td>
+</tr>
+<tr>
+<td>Decoder 1</td>
+<td>Conv2DTranspose</td>
+<td style="text-align: right;">32 → 16</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>ReLU</td>
+<td>14 × 14 × 16</td>
+</tr>
+<tr>
+<td>Decoder 2</td>
+<td>Conv2DTranspose</td>
+<td style="text-align: right;">16 → 1</td>
+<td style="text-align: right;">3 × 3</td>
+<td style="text-align: right;">2</td>
+<td>same</td>
+<td>Sigmoid</td>
+<td>28 × 28 × 1</td>
+</tr>
+</tbody>
+</table>
+<p>In the Noodle implementation, tensors are stored in channel-first format during inference. The network is executed using two ping-pong buffers and one temporary convolution scratch buffer.</p>
+<h2 id="4-runtime-implementations">4. Runtime implementations</h2>
+<h3 id="41-noodle-implementation">4.1 Noodle implementation</h3>
+<p>The Noodle implementation uses explicit memory planning. Two preallocated buffers are used for intermediate tensors:</p>
+<ul>
+<li><code>BUF_A</code></li>
+<li><code>BUF_B</code></li>
+</ul>
+<p>The inference flow is:</p>
+<pre><code class="language-text">BUF_A contains X
+BUF_B contains Z1
+BUF_A contains Z2
+BUF_B contains Z3
+BUF_A contains Y
+</code></pre>
+<p>The largest intermediate tensor is:</p>
+<pre><code class="language-text">16 × 14 × 14 = 3136 floats
+</code></pre>
+<p>Thus, each ping-pong buffer requires:</p>
+<pre><code class="language-text">3136 × 4 bytes = 12,544 bytes
+</code></pre>
+<p>A separate temporary buffer is used by the memory-to-memory Conv2D operator. In this benchmark, this buffer was allocated as:</p>
+<pre><code class="language-text">28 × 28 floats = 784 floats = 3,136 bytes
+</code></pre>
+<p>The Noodle runtime therefore uses explicit fixed buffers rather than a general tensor arena.</p>
+<h3 id="42-tensorflow-lite-micro-implementation">4.2 TensorFlow Lite Micro implementation</h3>
+<p>The TensorFlow Lite Micro implementation uses a <code>.tflite</code> model converted from the same autoencoder. The model is executed using a <code>MicroInterpreter</code> and a preallocated tensor arena.</p>
+<p>The model size was approximately:</p>
+<pre><code class="language-text">42,668 bytes ≈ 41.7 KiB
+</code></pre>
+<p>The tensor arena size used in the benchmark was:</p>
+<pre><code class="language-text">96 KiB
+</code></pre>
+<p>The implementation initially used <code>AllOpsResolver</code> to avoid missing-operator errors. This provides generality but also increases runtime and binary overhead compared with a minimal operator resolver.</p>
+<h2 id="5-measurement-method">5. Measurement method</h2>
+<p>For each runtime, the host transmitted 100 noisy test images to the ESP32-S3. For each image, the microcontroller returned:</p>
+<ol>
+<li>The inference time in microseconds.</li>
+<li>The denoised output image.</li>
+<li>Runtime memory measurements.</li>
+</ol>
+<p>The host then computed:</p>
+<ul>
+<li>mean noisy MSE,</li>
+<li>mean output MSE,</li>
+<li>MSE reduction,</li>
+<li>mean inference time.</li>
+</ul>
+<p>Runtime memory was measured before and after each inference. The purpose was to determine whether inference caused dynamic allocation, changing free memory, or memory leakage.</p>
+<p>The memory measurements showed constant values before and after inference for both runtimes. Therefore, both implementations exhibit fixed runtime memory behavior after setup.</p>
+<h2 id="6-benchmark-results">6. Benchmark results</h2>
+<h3 id="61-latency-and-reconstruction-quality">6.1 Latency and reconstruction quality</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align: right;">Noodle</th>
+<th style="text-align: right;">TFLite Micro</th>
+<th>Observation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mean inference time</td>
+<td style="text-align: right;">103,722.2 µs</td>
+<td style="text-align: right;">194,361.6 µs</td>
+<td>Noodle is faster</td>
+</tr>
+<tr>
+<td>Mean inference time</td>
+<td style="text-align: right;">103.72 ms</td>
+<td style="text-align: right;">194.36 ms</td>
+<td>Noodle saves 90.64 ms per image</td>
+</tr>
+<tr>
+<td>Throughput</td>
+<td style="text-align: right;">9.64 images/s</td>
+<td style="text-align: right;">5.14 images/s</td>
+<td>Noodle has higher throughput</td>
+</tr>
+<tr>
+<td>Mean output MSE</td>
+<td style="text-align: right;">0.003933</td>
+<td style="text-align: right;">0.004051</td>
+<td>Comparable reconstruction quality</td>
+</tr>
+<tr>
+<td>Mean MSE reduction</td>
+<td style="text-align: right;">88.07%</td>
+<td style="text-align: right;">87.66%</td>
+<td>Comparable denoising performance</td>
+</tr>
+</tbody>
+</table>
+<p>The Noodle implementation was approximately:</p>
+<pre><code class="language-text">194.36 / 103.72 ≈ 1.87× faster
+</code></pre>
+<p>than the TensorFlow Lite Micro implementation.</p>
+<h3 id="62-memory-usage">6.2 Memory usage</h3>
+<p>The measured PSRAM free values were:</p>
+<table>
+<thead>
+<tr>
+<th>Runtime</th>
+<th style="text-align: right;">PSRAM free</th>
+<th style="text-align: right;">Estimated PSRAM used</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Noodle</td>
+<td style="text-align: right;">16,745,760 B</td>
+<td style="text-align: right;">31,456 B</td>
+</tr>
+<tr>
+<td>TFLite Micro</td>
+<td style="text-align: right;">16,674,216 B</td>
+<td style="text-align: right;">103,000 B</td>
+</tr>
+</tbody>
+</table>
+<p>Assuming a total PSRAM size of 16,777,216 bytes, the estimated PSRAM usage is:</p>
+<pre><code class="language-text">Noodle PSRAM used = 16,777,216 - 16,745,760
+                  = 31,456 bytes
+                  ≈ 30.7 KiB
+</code></pre>
+<pre><code class="language-text">TFLite Micro PSRAM used = 16,777,216 - 16,674,216
+                         = 103,000 bytes
+                         ≈ 100.6 KiB
+</code></pre>
+<p>Thus, TFLite Micro used approximately:</p>
+<pre><code class="language-text">103,000 - 31,456 = 71,544 bytes ≈ 69.9 KiB
+</code></pre>
+<p>more PSRAM than Noodle in this benchmark.</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th style="text-align: right;">Noodle</th>
+<th style="text-align: right;">TFLite Micro</th>
+<th>Observation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Estimated PSRAM used</td>
+<td style="text-align: right;">31,456 B</td>
+<td style="text-align: right;">103,000 B</td>
+<td>Noodle uses less PSRAM</td>
+</tr>
+<tr>
+<td>Estimated PSRAM used</td>
+<td style="text-align: right;">30.7 KiB</td>
+<td style="text-align: right;">100.6 KiB</td>
+<td>TFLite Micro uses about 3.27× more PSRAM</td>
+</tr>
+<tr>
+<td>Additional PSRAM used by TFLite Micro</td>
+<td style="text-align: right;">-</td>
+<td style="text-align: right;">71,544 B</td>
+<td>About 69.9 KiB more</td>
+</tr>
+<tr>
+<td>Runtime allocation behavior</td>
+<td style="text-align: right;">Fixed</td>
+<td style="text-align: right;">Fixed</td>
+<td>Both show no per-inference memory growth</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-interpretation">7. Interpretation</h2>
+<p>Both runtimes show fixed memory usage during repeated inference. The free memory before inference and after inference remained unchanged, indicating that neither implementation performs per-image dynamic allocation or leaks memory during the measured inference loop.</p>
+<p>However, their setup-time memory footprints are different. Noodle uses explicitly allocated ping-pong buffers and a small temporary scratch buffer. TensorFlow Lite Micro uses a general interpreter and tensor arena, which provide model-level generality but require a larger preallocated memory region.</p>
+<p>The latency results show a similar trend. Noodle executes the model through direct operator calls and a static execution plan. TensorFlow Lite Micro executes the model through a general interpreter, which introduces additional runtime overhead. For this autoencoder workload, Noodle achieved comparable reconstruction quality while requiring less memory and lower inference time.</p>
+<h2 id="8-summary">8. Summary</h2>
+<p>For the same 28 × 28 image denoising autoencoder on ESP32-S3, Noodle achieved a mean inference time of 103.72 ms, compared with 194.36 ms for TensorFlow Lite Micro. This corresponds to a speedup of approximately 1.87×. Both runtimes achieved comparable reconstruction quality, with mean output MSE values of 0.003933 for Noodle and 0.004051 for TensorFlow Lite Micro. Memory measurements showed fixed runtime behavior for both implementations, with no change in free memory before and after inference. However, Noodle required substantially less PSRAM, using approximately 30.7 KiB compared with 100.6 KiB for TensorFlow Lite Micro. These results indicate that Noodle's explicit operator execution and static ping-pong memory plan reduce latency and memory footprint relative to a general interpreter-based runtime while maintaining comparable denoising performance.</p>
+<p><strong>The comparison with TensorFlow Lite Micro highlights the trade-off between a general interpreter-based deployment path and an explicitly planned runtime.</strong> TensorFlow Lite Micro provides broad model compatibility through an interpreter and tensor arena, but this generality introduces additional memory and execution overhead. In contrast, Noodle uses a model-specific execution schedule with explicit ping-pong buffers, allowing the inference path to avoid per-image dynamic allocation and reduce intermediate storage requirements. For the evaluated denoising autoencoder, this resulted in comparable reconstruction quality, a 1.87× reduction in inference latency, and a substantially smaller PSRAM footprint.</p>
+<h2 id="10-notes-and-limitations">10. Notes and limitations</h2>
+<p><strong>The benchmark should be interpreted as a runtime comparison for this specific model and platform.</strong> TensorFlow Lite Micro was used with a beginner-friendly operator resolver, which may include more operators than strictly necessary. A minimal resolver could reduce flash usage and possibly improve integration overhead, although the tensor arena requirement would still depend on the interpreter's memory planner and operator implementations. Conversely, Noodle's result benefits from a manually explicit execution schedule tailored to this model. <strong>Therefore, the comparison primarily demonstrates the benefit of explicit memory planning and direct operator execution for small embedded neural networks.</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
