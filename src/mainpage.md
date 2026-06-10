@@ -9,8 +9,8 @@ the peak memory footprint small and predictable.
 
 This documentation describes the public API, the refactored implementation
 layout, and the core invariants needed to use Noodle correctly and safely:
-data layouts, file formats, filesystem selection, parameter layout, and buffer
-requirements.
+data layouts, file formats, filesystem selection, parameter layout, buffer
+ownership, and scratch-buffer management.
 
 ## What Noodle Is And Is Not
 
@@ -70,6 +70,8 @@ Public files:
 
 - `noodle.h`: application-facing structs, layer calls, helpers, and Doxygen
   API documentation.
+- `noodle_buffer.h`: grow-only Noodle-owned float buffers used by buffer-based
+  convolution overloads.
 - `noodle_config.h`: compile-time backend, file-format, pooling, and scratch
   sizing macros.
 - `noodle_fs.h`: filesystem backend abstraction, path normalization, file
@@ -78,10 +80,13 @@ Public files:
 Implementation files:
 
 - `noodle_io.cpp`: filesystem initialization and scalar/tensor file I/O.
-- `noodle_memory.cpp`: buffer allocation, slicing, and temporary buffer setup.
+- `noodle_memory.cpp`: raw buffer helpers, slicing, and global convolution
+  scratch-buffer management.
+- `noodle_buffer.cpp`: grow-only `NoodleBuffer` allocation helpers.
 - `noodle_conv.cpp`: public Conv1D, Conv2D, Conv2DTranspose, and PROGMEM Conv2D
-  wrappers.
-- `noodle_dw.cpp`: public depthwise-convolution wrappers.
+  wrappers, including `NoodleBuffer` wrappers for 2D/transpose convolution.
+- `noodle_dw.cpp`: public depthwise-convolution wrappers, including
+  `NoodleBuffer` wrappers.
 - `noodle_fcn.cpp`: dense/fully connected overloads, including file-backed,
   memory-backed, and PROGMEM-backed parameter paths.
 - `noodle_shape.cpp`: flatten, reshape, global average pooling, and global max
@@ -89,7 +94,7 @@ Implementation files:
 - `noodle_math.cpp`: dot products, activations, max search, rank-specific batch
   normalization, and backward-compatible BN aliases.
 - `noodle_internal.h` and `noodle_internal.cpp`: private shared declarations,
-  temporary-buffer globals, low-level convolution/pooling kernels, shape
+  global scratch-buffer state, low-level convolution/pooling kernels, shape
   formulas, and implementation helpers.
 
 Application code should not include `noodle_internal.h`; it is only for Noodle's
@@ -237,27 +242,37 @@ Batch normalization is explicit about tensor rank:
 - `noodle_bn()` and `noodle_bn_relu()` remain as backward-compatible aliases for
   the old 2D channel-first behavior.
 
-## Temporary Buffers
+## Buffers And Scratch Space
 
-Some convolution overloads reuse caller-owned temporary buffers. Configure them
-with `noodle_setup_temp_buffers()` before calling the overloads that require
-scratch space.
+Noodle has two different buffer concepts:
 
-Common buffer roles:
+- Internal convolution scratch buffers are managed globally by Noodle.
+- Application tensor buffers are either caller-owned raw `float *` arrays or
+  Noodle-owned `NoodleBuffer` descriptors.
 
-- Buffer 1: input scratch for file-backed input planes or sequences.
-- Buffer 2: accumulation scratch for a pre-pooling output plane or sequence.
+Convolution and depthwise-convolution overloads now request their internal
+scratch space on demand. Noodle allocates the global scratch buffers when first
+needed, grows them when a larger layer requires more space, and reuses them for
+later calls. Call `noodle_temp_buffers_free()` when the application wants to
+release automatically allocated scratch memory.
 
-Common sizes:
+The legacy `noodle_setup_temp_buffers()` calls still exist for sketches that
+want to provide fixed external scratch buffers. When those pointers are
+installed, Noodle uses them as-is and does not resize or free them because their
+capacity is unknown. Make sure manually installed buffers are large enough for
+every layer that will use them.
 
-- 2D input scratch: `W * W` input values.
-- 2D accumulation scratch: `Vconv * Vconv` floats, where
-  `Vconv = noodle_compute_V(K, W, P, S)`.
-- 1D input scratch: `W` floats.
-- 1D accumulation scratch: `W` floats in the current 1D convolution overloads.
+Common internal scratch roles:
 
-Buffers are not owned by Noodle. The library stores raw pointers to them, so the
-buffers must remain valid for every call that uses them.
+- Temp 1: input scratch for file-backed input planes or sequences.
+- Temp 2: accumulation scratch for a pre-pooling output plane or sequence.
+
+For application tensors, raw-pointer overloads expect the caller to provide
+correctly sized input and output arrays. `NoodleBuffer` overloads are the
+grow-only alternative: initialize a descriptor with `noodle_buffer_init()`, pass
+it to supported convolution calls, and free it with `noodle_buffer_free()` when
+the tensor storage is no longer needed. A `NoodleBuffer` owns only memory
+allocated by Noodle and tracks capacity in float elements.
 
 ## Quick Start
 
@@ -292,25 +307,32 @@ if (!noodle_fs_init()) {
 }
 @endcode
 
-### 2. Provide Working Buffers
+### 2. Prepare Tensor Storage
 
-Noodle relies on a small number of reusable temporary buffers, typically two,
-that are shared across layer calls. This approach stabilizes peak memory usage,
-but it introduces several constraints:
-
-- Buffers must be allocated and sized appropriately.
-- Calls that share those buffers are not re-entrant.
-- Concurrent use from multiple threads is not supported without external
-  isolation.
-
-In RTOS-based systems, treat Noodle as a single-threaded worker unless separate
-pipelines and buffers are provided.
+Noodle allocates convolution scratch space automatically. For layer inputs and
+outputs, either provide raw arrays with enough room for the expected tensor
+shape, or use `NoodleBuffer` for grow-only Noodle-owned tensor storage.
 
 @code{.cpp}
-float *b1 = (float *)malloc(W * W * sizeof(float));
-float *b2 = (float *)malloc(Vconv * Vconv * sizeof(float));
-noodle_setup_temp_buffers(b1, b2);
+NoodleBuffer feat_a;
+NoodleBuffer feat_b;
+
+noodle_buffer_init(&feat_a);
+noodle_buffer_init(&feat_b);
+
+float *input = noodle_buffer_require(&feat_a, W * W);
+// Fill input with one packed [1][W][W] feature map.
+// Later, pass &feat_a and &feat_b to NoodleBuffer convolution overloads.
+
+// At shutdown or when the tensors are no longer needed:
+noodle_buffer_free(&feat_a);
+noodle_buffer_free(&feat_b);
+noodle_temp_buffers_free();
 @endcode
+
+The global scratch buffers and shared file handles mean Noodle calls are not
+re-entrant. In RTOS-based systems, treat a Noodle pipeline as a single-threaded
+worker unless you add external serialization.
 
 ### 3. Construct A Processing Pipeline
 
@@ -394,9 +416,8 @@ the matching refactored `.cpp` file; shared private pieces are declared in
 
 ## Limitations And Notes
 
-- Several helpers rely on shared file handles and shared temporary buffer
-  pointers. Treat the library as non-reentrant unless you add external
-  serialization.
+- Several helpers rely on shared file handles and shared global scratch buffers.
+  Treat the library as non-reentrant unless you add external serialization.
 - `noodle_internal.h` is private implementation surface and may change without
   preserving application-level compatibility.
 - Path normalization for slash-requiring filesystems uses a static buffer.

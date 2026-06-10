@@ -8,6 +8,7 @@ implementation into a small number of maintainable modules.
 | File | Purpose |
 |---|---|
 | `noodle.h` | Main public API. User sketches should include this. |
+| `noodle_buffer.h` | Public grow-only tensor buffer helper API. |
 | `noodle_config.h` | Compile-time configuration. |
 | `noodle_fs.h` | Filesystem backend abstraction/configuration. |
 
@@ -19,12 +20,12 @@ implementation into a small number of maintainable modules.
 | `noodle_internal.cpp` | Private shared globals and helper setup. |
 | `noodle_io.cpp` | File/storage I/O helpers. |
 | `noodle_math.cpp` | Reusable math primitives: dot product, max search, BN1D, BN2D, and BN+ReLU helpers. |
-| `noodle_conv.cpp` | Outer Conv1D, Conv2D, and ConvTranspose2D layer APIs only. |
-| `noodle_fcn.cpp` | Dense/FCN layers plus output activations. |
+| `noodle_conv.cpp` | Outer Conv1D, Conv2D, ConvTranspose2D, PROGMEM Conv2D, and NoodleBuffer Conv2D wrappers. |
+| `noodle_fcn.cpp` | Dense/FCN layers, including file-backed, memory-backed, and PROGMEM-backed parameter paths. |
 | `noodle_shape.cpp` | Flatten, reshape, global average pooling, and global max pooling. |
-| `noodle_dw.cpp` | Depthwise convolution. |
-| `noodle_memory.cpp` |  Memory access management helpers. |
-| `noodle.cpp` | Compatibility placeholder for build systems that expect the file. |
+| `noodle_dw.cpp` | Depthwise convolution and NoodleBuffer depthwise wrappers. |
+| `noodle_memory.cpp` | Raw buffer helpers, slicing, and global convolution scratch-buffer management. |
+| `noodle_buffer.cpp` | Grow-only NoodleBuffer allocation helpers. |
 
 ## User include
 
@@ -36,4 +37,3 @@ Existing examples should continue to use:
 
 Do not include `noodle_internal.h` from sketches. It is for the implementation
 files only.
-

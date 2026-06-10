@@ -1,6 +1,7 @@
 /**
  * @file noodle_shape.cpp
  * @brief Tensor-to-vector transforms: flatten, reshape, GAP, and GMP.
+ * @ingroup noodle_api
  */
 #include "noodle_internal.h"
 
@@ -92,4 +93,57 @@ uint16_t noodle_gmp(float *inout,
   }
 
   return C;
+}
+
+// ===== NoodleBuffer convenience wrappers =====
+
+
+
+uint16_t noodle_flat(const char *in_fn,
+                     NoodleBuffer *output,
+                     uint16_t V,
+                     uint16_t n_filters) {
+  if (!in_fn || !output) return 0;
+
+  const size_t n = (size_t)V * (size_t)V * (size_t)n_filters;
+  float *out = noodle_buffer_require(output, n);
+  if (!out) return 0;
+
+  return noodle_flat(in_fn, out, V, n_filters);
+}
+
+uint16_t noodle_flat(NoodleBuffer *input,
+                     NoodleBuffer *output,
+                     uint16_t V,
+                     uint16_t n_filters) {
+  if (!input || !input->data || !output) return 0;
+
+  const size_t n = (size_t)V * (size_t)V * (size_t)n_filters;
+  float *out = noodle_buffer_require(output, n);
+  if (!out) return 0;
+
+  return noodle_flat(input->data, out, V, n_filters);
+}
+
+uint16_t noodle_reshape(NoodleBuffer *src_hwc,
+                        NoodleBuffer *dst_chw,
+                        uint16_t W,
+                        uint16_t C) {
+  if (!src_hwc || !src_hwc->data || !dst_chw) return 0;
+
+  const size_t n = (size_t)W * (size_t)W * (size_t)C;
+  float *dst = noodle_buffer_require(dst_chw, n);
+  if (!dst) return 0;
+
+  return noodle_reshape(src_hwc->data, dst, W, C);
+}
+
+uint16_t noodle_gap(NoodleBuffer *inout, uint16_t C, uint16_t W) {
+  if (!inout || !inout->data) return 0;
+  return noodle_gap(inout->data, C, W);
+}
+
+uint16_t noodle_gmp(NoodleBuffer *inout, uint16_t C, uint16_t W) {
+  if (!inout || !inout->data) return 0;
+  return noodle_gmp(inout->data, C, W);
 }

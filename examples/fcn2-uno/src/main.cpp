@@ -3,6 +3,8 @@
  *   auralius.manurung@ieee.org
  * Lisa Kristiana -- ITENAS, Bandung
  *   lisa@itenas.ac.id
+ * 
+ * Last tested on Uno R3 with 2.4" TFT LCD shield on June 10, 2026.
  */
 #include <Arduino.h>
 #include <MCUFRIEND_kbv.h>
@@ -10,11 +12,13 @@
 #include "noodle.h"
 
 MCUFRIEND_kbv tft;
+
 // Typically there are 2 variant pin configurations for the touchscreen
-// const uint16_t XP = 6, XM = A2,YP = A1, YM = 7; // variant 1
+// const uint16_t XP = 6, XM = A2, YP = A1, YM = 7; // variant 1
 const uint16_t XP = 8, YP = A3, XM = A2, YM = 9; // variant 2
+
 // Touch screen boundaries, obtained by calibration
-const int TS_LEFT = 124, TS_RT = 912, TS_TOP = 898, TS_BOT = 81; // From touch calibration in Arduino IDE for MCUFRIEND_kbv shield, with 2.4" TFT
+const int TS_LEFT = 124, TS_RT = 912, TS_TOP = 898, TS_BOT = 81;
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 TSPoint tp;
 
@@ -35,8 +39,14 @@ byte ROI[8]; // xmin, ymin, xmax, ymax, width, length, center x, center y
 
 // The discretized drawing area: 16x16 grids, max value of each grid is 255
 byte GRID[16 * 16];
-float OUTPUT_BUFFER1[64] = {0};
-float OUTPUT_BUFFER2[10] = {0};
+
+// New Noodle smart buffers for FCN outputs.
+// The first FCN reads GRID directly and writes to A.
+// The second FCN reads A and writes to B.
+static NoodleBuffer A;
+static NoodleBuffer B;
+
+#define NORMALIZE_0_1
 
 // Grayscale colors in 17 steps: 0 to 16
 const uint16_t GREYS[] PROGMEM = {
@@ -64,25 +74,21 @@ static inline uint16_t grey(uint8_t i)
   return pgm_read_word(&GREYS[i]);
 }
 
-// Clear the grid data, set all to 0
 void reset_grid()
 {
   for (int16_t i = 0; i < 16; i++)
     for (int16_t j = 0; j < 16; j++)
       GRID[i * 16 + j] = 0;
 
-  // Reset ROI
   for (int16_t i = 0; i < 8; i++)
     ROI[i] = 0;
 
-  ROI[0] = 250; // xmin
-  ROI[1] = 250; // ymin
+  ROI[0] = 250;
+  ROI[1] = 250;
 }
 
-// Normalize the numbers in the grids such that they range from 0 to 255
 void normalize_grid()
 {
-  // find the maximum
   int16_t maxval = 0;
   for (int16_t i = 0; i < 16; i++)
     for (int16_t j = 0; j < 16; j++)
@@ -92,14 +98,11 @@ void normalize_grid()
   if (maxval == 0)
     return;
 
-  // normalize such that the maximum is 255.0
   for (int16_t i = 0; i < 16; i++)
     for (int16_t j = 0; j < 16; j++)
-      GRID[i * 16 + j] = round((float)GRID[i * 16 + j] / (float)maxval * 255.0); // round instead of floor!
+      GRID[i * 16 + j] = round((float)GRID[i * 16 + j] / (float)maxval * 255.0);
 }
 
-// Draw the grids in the screen
-// The fill-color or the gray-level of each grid is set based on its value
 void area_setup()
 {
   tft.fillRect(0, 0, 240, 320 - W8, TFT_BLACK);
@@ -107,7 +110,7 @@ void area_setup()
   for (int16_t i = 0; i < 16; i++)
     for (int16_t j = 0; j < 16; j++)
     {
-      uint8_t idx = GRID[j * 16 + i] >> 4; // same as /16 for uint8
+      uint8_t idx = GRID[j * 16 + i] >> 4;
       if (idx > 16)
         idx = 16;
       tft.fillRect(i * L16, j * L16, L16, L16, grey(idx));
@@ -120,35 +123,22 @@ void area_setup()
   tft.print(F("2-layer FCN UNO R3\n"));
 }
 
-// Track ROI, the specific area where the drawing occurs
 void track_roi(int16_t xpos, int16_t ypos)
 {
-  if (xpos - PENRADIUS < ROI[0])
-    ROI[0] = xpos - PENRADIUS;
-  if (xpos + PENRADIUS > ROI[2])
-    ROI[2] = xpos + PENRADIUS;
-  if (ypos - PENRADIUS < ROI[1])
-    ROI[1] = ypos - PENRADIUS;
-  if (ypos + PENRADIUS > ROI[3])
-    ROI[3] = ypos + PENRADIUS;
+  if (xpos - PENRADIUS < ROI[0]) ROI[0] = xpos - PENRADIUS;
+  if (xpos + PENRADIUS > ROI[2]) ROI[2] = xpos + PENRADIUS;
+  if (ypos - PENRADIUS < ROI[1]) ROI[1] = ypos - PENRADIUS;
+  if (ypos + PENRADIUS > ROI[3]) ROI[3] = ypos + PENRADIUS;
 
   ROI[4] = ROI[2] - ROI[0];
   ROI[5] = ROI[3] - ROI[1];
 
-  ROI[6] = ROI[0] + ROI[4] / 2; // center x
-  ROI[7] = ROI[1] + ROI[5] / 2; // center y
+  ROI[6] = ROI[0] + ROI[4] / 2;
+  ROI[7] = ROI[1] + ROI[5] / 2;
 }
 
-// Draw the ROI as a TFT_RED rectangle
-// void draw_roi() {
-//  tft.drawRect(ROI[0], ROI[1], ROI[4], ROI[5], TFT_RED);
-//  tft.drawCircle(ROI[6], ROI[7], 2, TFT_RED);
-//}
-
-// Draw the two button at the bottom of the screen
 void draw_buttons(const char *label1, const char *label2)
 {
-  // Add 2 buttons in the bottom: CLEAR and PREDICT
   tft.fillRect(0, 320 - W8, W2, W2, TFT_BLUE);
   tft.fillRect(W2, 320 - W8, W2, W2, TFT_RED);
   tft.setTextSize(2);
@@ -158,12 +148,8 @@ void draw_buttons(const char *label1, const char *label2)
   tft.print(label2);
 }
 
-// Arduino setup function
 void setup(void)
 {
-  // Serial.begin(115200);
-  // while ( !Serial ) delay(2);
-
   tft.reset();
   tft.begin(tft.readID());
 
@@ -172,6 +158,9 @@ void setup(void)
   tft.setCursor(0, 10);
   tft.setTextSize(1);
   tft.setTextColor(TFT_GREEN);
+
+  noodle_buffer_init(&A);
+  noodle_buffer_init(&B);
 
   if (!noodle_fs_init(SD_CS))
   {
@@ -193,37 +182,25 @@ void progress_hnd(float p)
     tft.fillRect(0, L + 1, p * 240.0, 3, TFT_BLUE);
 }
 
-void summarize(float et, float *output_buffer)
+void summarize(float et, NoodleBuffer *output)
 {
-  float *y = output_buffer; // reuse global memory
-  // tft.setTextSize(1);
   tft.setCursor(0, W16 * 10);
 
-  // Find the largest class
   uint16_t label = 0;
-  float max_y = 0;
+  float max_y = 0.0f;
 
-  for (uint16_t i = 0; i < 10; i++)
-  {
-    if (y[i] > max_y)
-    {
-      max_y = y[i];
-      label = i;
-    }
-  }
+  noodle_find_max(output, 10, max_y, label);
 
-  // Print the results
   for (uint16_t i = 0; i < 10; i++)
   {
     tft.print(i);
     tft.print(" : ");
-    tft.println(y[i], 4);
+    tft.println(output->data[i], 4);
   }
 
   tft.print(F("\n\nPrediction: "));
   tft.print(label);
 
-  // Display the elapsed time
   tft.print(F(", in "));
   tft.print(et, 2);
   tft.println(F(" s."));
@@ -231,51 +208,40 @@ void summarize(float et, float *output_buffer)
 
 void loop()
 {
-  int16_t xpos, ypos; // screen coordinates
-  tp = ts.getPoint(); // tp.x, tp.y are ADC values
+  int16_t xpos, ypos;
+  tp = ts.getPoint();
 
-  // if sharing pins, you'll need to fix the directions of the touchscreen pins
   pinMode(XM, OUTPUT);
   pinMode(YP, OUTPUT);
 
-  // we have some minimum pressure we consider 'valid'
   if (tp.z > MINPRESSURE && tp.z < MAXPRESSURE)
   {
-    /// Map to your current pixel orientation
     xpos = map(tp.x, TS_LEFT, TS_RT, 0, 240);
     ypos = map(tp.y, TS_BOT, TS_TOP, 0, 320);
 
-    // are we in drawing area ?
-    if (((ypos - PENRADIUS) > 0) && ((ypos + PENRADIUS) < L) && ((xpos - PENRADIUS) > 0) && ((xpos + PENRADIUS) < L))
+    if (((ypos - PENRADIUS) > 0) && ((ypos + PENRADIUS) < L) &&
+        ((xpos - PENRADIUS) > 0) && ((xpos + PENRADIUS) < L))
     {
       tft.fillCircle(xpos, ypos, PENRADIUS, TFT_BLUE);
       track_roi(xpos, ypos);
     }
 
-    // CLEAR?
     if ((ypos > 320 - W8) && (xpos < W2))
     {
       reset_grid();
       area_setup();
     }
 
-    // PREDICT?
     if ((ypos > 320 - W8) && (xpos > W2))
     {
-
-      // Clear GRID before rebuilding it
       for (uint16_t q = 0; q < 16 * 16; q++)
-      {
         GRID[q] = 0;
-      }
 
       int32_t sum_x = 0;
       int32_t sum_y = 0;
       int32_t count = 0;
 
-      // ----------------------------------------------------------
       // Pass 1: compute center of mass of blue pixels
-      // ----------------------------------------------------------
       for (byte i = 0; i < 16; i++)
       {
         for (byte j = 0; j < 16; j++)
@@ -309,22 +275,14 @@ void loop()
       int16_t cx = (int16_t)(sum_x / count);
       int16_t cy = (int16_t)(sum_y / count);
 
-      // ----------------------------------------------------------
-      // MNIST-style scale:
-      // MNIST digit content is roughly 20x20 inside 28x28.
-      // Our drawing frame is LxL, so target content is:
-      //   L * 20 / 28
-      // ----------------------------------------------------------
-      float denom = (float)ROI[5]; // match your old MNIST logic: height-based
+      float denom = (float)ROI[5];
       if (denom < 1.0f)
         denom = 1.0f;
 
       float target_content = (float)L * (20.0f / 28.0f);
       float s = target_content / denom;
 
-      // ----------------------------------------------------------
       // Pass 2: remap blue pixels around center of mass
-      // ----------------------------------------------------------
       for (byte i = 0; i < 16; i++)
       {
         for (byte j = 0; j < 16; j++)
@@ -350,9 +308,7 @@ void loop()
                   uint16_t idx = gy * 16 + gx;
 
                   if (GRID[idx] < 255)
-                  {
                     GRID[idx] = GRID[idx] + 1;
-                  }
                 }
               }
             }
@@ -379,7 +335,7 @@ void loop()
       FCN2.act = ACT_SOFTMAX;
 
       tft.println(F("NN #1 ..."));
-      uint16_t V = noodle_fcn(GRID, 256, 64, OUTPUT_BUFFER1, FCN1, progress_hnd);
+      uint16_t V = noodle_fcn(GRID, 256, 64, &A, FCN1, progress_hnd);
 
       if (V == 0)
       {
@@ -388,7 +344,7 @@ void loop()
       }
 
       tft.println(F("NN #2 ..."));
-      V = noodle_fcn(OUTPUT_BUFFER1, V, 10, OUTPUT_BUFFER2, FCN2, progress_hnd);
+      V = noodle_fcn(&A, V, 10, &B, FCN2, progress_hnd);
 
       if (V == 0)
       {
@@ -398,7 +354,7 @@ void loop()
 
       float et = (float)(micros() - st) * 1e-6;
 
-      summarize(et, OUTPUT_BUFFER2);
+      summarize(et, &B);
       reset_grid();
     }
   }

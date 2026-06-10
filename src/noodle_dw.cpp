@@ -1,6 +1,7 @@
 /**
  * @file noodle_dw.cpp
  * @brief Depthwise convolution operators.
+ * @ingroup noodle_api
  */
 #include "noodle_internal.h"
 
@@ -14,8 +15,8 @@ uint16_t noodle_dwconv_float(const char *in_fn,
                              const Pool &pool,
                              CBFPtr progress_cb)
 {
-  float *in_buffer  = (float *)temp_buff1;  // holds one W*W plane
-  float *out_buffer = (float *)temp_buff2;  // holds one Vconv*Vconv plane
+  float *in_buffer  = noodle_temp1_require((size_t)W * W);  // holds one W*W plane
+  float *out_buffer = noodle_temp2_require((size_t)W * W);  // holds one pre-pooling plane
   if (!in_buffer || !out_buffer) return 0;
 
   float progress = 0.0f;
@@ -76,7 +77,7 @@ uint16_t noodle_dwconv_float(float *input,
                              const Pool &pool,
                              CBFPtr progress_cb)
 {
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = noodle_temp2_require((size_t)W * W);
   if (!input || !output || !out_buffer) return 0;
 
   float progress = 0.0f;
@@ -134,7 +135,7 @@ uint16_t noodle_dwconv_float(float *input,
                              const Pool &pool,
                              CBFPtr progress_cb)
 {
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = noodle_temp2_require((size_t)W * W);
   if (!input || !output || !out_buffer || !conv.weight) return 0;
 
   float progress = 0.0f;
@@ -178,8 +179,8 @@ uint16_t noodle_dwconv_float(const char *in_fn,
                              const ConvProgmem &conv,
                              const Pool &pool,
                              CBFPtr progress_cb) {
-  float *in_buffer  = (float *)temp_buff1;
-  float *out_buffer = (float *)temp_buff2;
+  float *in_buffer  = noodle_temp1_require((size_t)W * W);
+  float *out_buffer = noodle_temp2_require((size_t)W * W);
 
   if (!in_fn || !out_fn || !in_buffer || !out_buffer || !conv.weight) return 0;
 
@@ -243,7 +244,7 @@ uint16_t noodle_dwconv_float(float *input,
                              const ConvProgmem &conv,
                              const Pool &pool,
                              CBFPtr progress_cb) {
-  float *out_buffer = (float *)temp_buff2;
+  float *out_buffer = noodle_temp2_require((size_t)W * W);
 
   if (!input || !output || !out_buffer || !conv.weight) return 0;
 
@@ -281,4 +282,88 @@ uint16_t noodle_dwconv_float(float *input,
   }
 
   return Vout;
+}
+// ===== NoodleBuffer smart tensor wrappers =====
+
+static uint16_t noodle_dw_pool_output_width_for_buffer(uint16_t Vconv, const Pool &pool) {
+  if (Vconv == 0 || pool.M == 0 || pool.T == 0 || Vconv < pool.M) return 0;
+  return (uint16_t)((Vconv - pool.M) / pool.T + 1);
+}
+
+static float *noodle_buffer_require_dwconv2d_output(NoodleBuffer *output,
+                                                    uint16_t n_channels,
+                                                    uint16_t W,
+                                                    uint16_t K,
+                                                    uint16_t P,
+                                                    uint16_t S,
+                                                    const Pool &pool,
+                                                    uint16_t *Wout) {
+  if (!output || !Wout) return NULL;
+
+  const uint16_t Vconv = noodle_compute_V(K, W, P, S);
+  if (Vconv == 0) return NULL;
+
+  const uint16_t Wo = noodle_dw_pool_output_width_for_buffer(Vconv, pool);
+  if (Wo == 0) return NULL;
+
+  const size_t required = (size_t)n_channels * (size_t)Wo * (size_t)Wo;
+  float *out = noodle_buffer_require(output, required);
+  if (!out) return NULL;
+
+  *Wout = Wo;
+  return out;
+}
+
+uint16_t noodle_dwconv_float(NoodleBuffer *input,
+                             uint16_t n_channels,
+                             NoodleBuffer *output,
+                             uint16_t W,
+                             const Conv &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb) {
+  if (!input || !input->data || !output) return 0;
+
+  uint16_t Wout = 0;
+  float *out = noodle_buffer_require_dwconv2d_output(output, n_channels, W,
+                                                     conv.K, conv.P, conv.S,
+                                                     pool, &Wout);
+  if (!out) return 0;
+
+  return noodle_dwconv_float(input->data, n_channels, out, W, conv, pool, progress_cb);
+}
+
+uint16_t noodle_dwconv_float(NoodleBuffer *input,
+                             uint16_t n_channels,
+                             NoodleBuffer *output,
+                             uint16_t W,
+                             const ConvMem &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb) {
+  if (!input || !input->data || !output) return 0;
+
+  uint16_t Wout = 0;
+  float *out = noodle_buffer_require_dwconv2d_output(output, n_channels, W,
+                                                     conv.K, conv.P, conv.S,
+                                                     pool, &Wout);
+  if (!out) return 0;
+
+  return noodle_dwconv_float(input->data, n_channels, out, W, conv, pool, progress_cb);
+}
+
+uint16_t noodle_dwconv_float(NoodleBuffer *input,
+                             uint16_t C,
+                             NoodleBuffer *output,
+                             uint16_t W,
+                             const ConvProgmem &conv,
+                             const Pool &pool,
+                             CBFPtr progress_cb) {
+  if (!input || !input->data || !output) return 0;
+
+  uint16_t Wout = 0;
+  float *out = noodle_buffer_require_dwconv2d_output(output, C, W,
+                                                     conv.K, conv.P, conv.S,
+                                                     pool, &Wout);
+  if (!out) return 0;
+
+  return noodle_dwconv_float(input->data, C, out, W, conv, pool, progress_cb);
 }

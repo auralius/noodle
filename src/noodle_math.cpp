@@ -1,6 +1,7 @@
 /**
  * @file noodle_math.cpp
  * @brief Reusable math and numeric helper primitives.
+ * @ingroup noodle_api
  */
 #include "noodle_internal.h"
 
@@ -277,4 +278,160 @@ uint16_t noodle_relu(float *input_output,
     input_output[i] = input_output[i] > 0.0f ? input_output[i] : 0.0f;
   }
   return n;
+}
+
+// ===== NoodleBuffer convenience wrappers =====
+
+void noodle_find_max(NoodleBuffer *input,
+                     uint16_t n,
+                     float &max_val,
+                     uint16_t &max_idx) {
+  if (!input || !input->data || n == 0) {
+    max_val = 0.0f;
+    max_idx = 0;
+    return;
+  }
+  noodle_find_max(input->data, n, max_val, max_idx);
+}
+
+uint16_t noodle_bn1d(NoodleBuffer *x,
+                     uint16_t N,
+                     const float *gamma,
+                     const float *beta,
+                     const float *mean,
+                     const float *var,
+                     float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn1d(x->data, N, gamma, beta, mean, var, eps);
+}
+
+uint16_t noodle_bn1d(NoodleBuffer *x,
+                     uint16_t N,
+                     const float *bn_params,
+                     float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn1d(x->data, N, bn_params, eps);
+}
+
+uint16_t noodle_bn1d_relu(NoodleBuffer *x,
+                          uint16_t N,
+                          const float *gamma,
+                          const float *beta,
+                          const float *mean,
+                          const float *var,
+                          float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn1d_relu(x->data, N, gamma, beta, mean, var, eps);
+}
+
+uint16_t noodle_bn1d_relu(NoodleBuffer *x,
+                          uint16_t N,
+                          const float *bn_params,
+                          float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn1d_relu(x->data, N, bn_params, eps);
+}
+
+uint16_t noodle_bn2d(NoodleBuffer *x,
+                     uint16_t C,
+                     uint16_t W,
+                     const float *gamma,
+                     const float *beta,
+                     const float *mean,
+                     const float *var,
+                     float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn2d(x->data, C, W, gamma, beta, mean, var, eps);
+}
+
+uint16_t noodle_bn2d(NoodleBuffer *x,
+                     uint16_t C,
+                     uint16_t W,
+                     const float *bn_params,
+                     float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn2d(x->data, C, W, bn_params, eps);
+}
+
+uint16_t noodle_bn2d_relu(NoodleBuffer *x,
+                          uint16_t C,
+                          uint16_t W,
+                          const float *gamma,
+                          const float *beta,
+                          const float *mean,
+                          const float *var,
+                          float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn2d_relu(x->data, C, W, gamma, beta, mean, var, eps);
+}
+
+uint16_t noodle_bn2d_relu(NoodleBuffer *x,
+                          uint16_t C,
+                          uint16_t W,
+                          const float *bn_params,
+                          float eps) {
+  if (!x || !x->data) return 0;
+  return noodle_bn2d_relu(x->data, C, W, bn_params, eps);
+}
+
+uint16_t noodle_bn(NoodleBuffer *x,
+                   uint16_t C,
+                   uint16_t W,
+                   const float *gamma,
+                   const float *beta,
+                   const float *mean,
+                   const float *var,
+                   float eps) {
+  return noodle_bn2d(x, C, W, gamma, beta, mean, var, eps);
+}
+
+uint16_t noodle_bn(NoodleBuffer *x,
+                   uint16_t C,
+                   uint16_t W,
+                   const float *bn_params,
+                   float eps) {
+  return noodle_bn2d(x, C, W, bn_params, eps);
+}
+
+uint16_t noodle_bn_relu(NoodleBuffer *x,
+                        uint16_t C,
+                        uint16_t W,
+                        const float *gamma,
+                        const float *beta,
+                        const float *mean,
+                        const float *var,
+                        float eps) {
+  return noodle_bn2d_relu(x, C, W, gamma, beta, mean, var, eps);
+}
+
+uint16_t noodle_bn_relu(NoodleBuffer *x,
+                        uint16_t C,
+                        uint16_t W,
+                        const float *bn_params,
+                        float eps) {
+  return noodle_bn2d_relu(x, C, W, bn_params, eps);
+}
+
+uint16_t noodle_soft_max(NoodleBuffer *input_output,
+                         uint16_t n) {
+  if (!input_output || !input_output->data) return 0;
+  return noodle_soft_max(input_output->data, n);
+}
+
+uint16_t noodle_sigmoid(NoodleBuffer *input_output,
+                        uint16_t n) {
+  if (!input_output || !input_output->data) return 0;
+  return noodle_sigmoid(input_output->data, n);
+}
+
+uint16_t noodle_logit(NoodleBuffer *input_output,
+                      uint16_t n) {
+  if (!input_output || !input_output->data) return 0;
+  return noodle_logit(input_output->data, n);
+}
+
+uint16_t noodle_relu(NoodleBuffer *input_output,
+                     uint16_t n) {
+  if (!input_output || !input_output->data) return 0;
+  return noodle_relu(input_output->data, n);
 }

@@ -1,3 +1,7 @@
+# MobileLenet with serial RX of raw 28x28 grayscale image. 
+# Last tested on ESP32 June 10, 2026
+# Auralius Manurung
+
 import time
 import numpy as np
 import pandas as pd
@@ -9,7 +13,7 @@ import matplotlib.pyplot as plt
 # =========================
 CSV_PATH    = "./mnist_train.csv"
 SERIAL_PORT = "/dev/ttyUSB0"    # Windows: "COM5"
-BAUD        = 9600
+BAUD        = 115200
 
 N_TIMES     = 100
 START_INDEX = 0

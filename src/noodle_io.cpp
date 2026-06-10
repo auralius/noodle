@@ -1,6 +1,7 @@
 /**
  * @file noodle_io.cpp
  * @brief Noodle file/storage I/O helpers.
+ * @ingroup noodle_api
  */
 #include "noodle_internal.h"
 
@@ -370,4 +371,3 @@ void noodle_grid_from_file(NDL_File &fi,
     }
   }
 }
-

@@ -140,9 +140,9 @@
      * @brief Selected filesystem object for the SdFat backend.
      * @ingroup noodle_fs
      *
-     * The object is declared here and defined in `noodle.cpp`.
+     * The object is declared here and defined in `noodle_internal.cpp`.
      */
-    extern SdFat NOODLE_FS;      // defined in noodle.cpp
+    extern SdFat NOODLE_FS;      // defined in noodle_internal.cpp
 
   #elif defined(NOODLE_USE_FFAT)
     #include <FFat.h>

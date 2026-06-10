@@ -1,3 +1,4 @@
+// Last tested on ESP32-CYD, June 10, 2026
 #include <Arduino.h>
 
 #include "noodle.h"
@@ -18,35 +19,40 @@ XPT2046_Touchscreen ts(XPT2046_CS, XPT2046_IRQ);
 
 // Touchscreen calibration
 constexpr float alpha_x = -0.000f;
-constexpr float beta_x = 0.091f;
+constexpr float beta_x  =  0.091f;
 constexpr float delta_x = -34.949f;
-constexpr float alpha_y = 0.066f;
-constexpr float beta_y = 0.000f;
+constexpr float alpha_y =  0.066f;
+constexpr float beta_y  =  0.000f;
 constexpr float delta_y = -17.333f;
 
 char INFO[8];
-const int IMG_SIZE = 28 * 28;
-float *GRID;
-float *BUFFER1;
-float *BUFFER2;
-float *BUFFER3;
 
-#define SCREEN_WIDTH 240
+#define SCREEN_WIDTH  240
 #define SCREEN_HEIGHT 320
 #define PENRADIUS 1
 
-static const int16_t L = 84;
+static const uint16_t IMG_W = 28;
+static const uint16_t IMG_H = 28;
+static const uint16_t IMG_SIZE = IMG_W * IMG_H;
+
+static const int16_t L   = 84;
 static const int16_t L28 = 84 / 28;
 
-static const int16_t W8 = 240 / 8;
+static const int16_t W8  = 240 / 8;
 static const int16_t W16 = 240 / 16;
-static const int16_t W2 = 240 / 2;
+static const int16_t W2  = 240 / 2;
 
 // Writing area
 byte ROI[8]; // xmin, ymin, xmax, ymax, width, length, center x, center y
 
+// Smart grow-only buffers.
+// A holds the input grid first.
+// B is the first output buffer.
+// Then we manually ping-pong A <-> B.
+static NoodleBuffer A;
+static NoodleBuffer B;
+
 // Grayscale colors in 17 steps: 0 to 16
-// 17 entries: 16 shades of grey + white
 static const uint16_t GREYS[17] = {
     0x0000, // black
     0x0841, // 1
@@ -69,6 +75,18 @@ static const uint16_t GREYS[17] = {
 
 //-----------------------------------------------------------------------------
 
+static inline void swap_buffers(NoodleBuffer *&in, NoodleBuffer *&out)
+{
+  NoodleBuffer *tmp = in;
+  in = out;
+  out = tmp;
+}
+
+static inline float *grid_data()
+{
+  return A.data;
+}
+
 void progress_hnd(float p)
 {
   if (p < 1)
@@ -80,8 +98,11 @@ void progress_hnd(float p)
 // Clear the grid data, set all to 0
 void reset_grid()
 {
-  for (int i = 0; i < 28 * 28; ++i)
-    GRID[i] = 0.0f;
+  float *grid = noodle_buffer_require(&A, IMG_SIZE);
+  if (!grid) return;
+
+  for (uint16_t i = 0; i < IMG_SIZE; ++i)
+    grid[i] = 0.0f;
 
   // Reset ROI
   for (int16_t i = 0; i < 8; i++)
@@ -91,42 +112,46 @@ void reset_grid()
   ROI[1] = 250; // ymin
 }
 
-// Normalize the numbers in the grids such that they range from 0 to 16
+// Normalize the numbers in the grids such that they range from 0 to 255
 void normalize_grid()
 {
-  // find the maximum
-  float maxval = 0.0f;
-  int16_t k = 0;
-  for (int16_t i = 0; i < 28; i++)
-    for (int16_t j = 0; j < 28; j++)
-    {
-      if (GRID[k] > maxval)
-        maxval = GRID[k];
-      k++;
-    }
+  float *grid = grid_data();
+  if (!grid) return;
 
-  // normalize such that the maximum is 255.0
-  maxval = 255.0f / maxval;
-  k = 0;
-  for (int16_t i = 0; i < 28; i++)
-    for (int16_t j = 0; j < 28; j++)
-    {
-      GRID[k] = ceil(GRID[k] * maxval); // round instead of floor!
-      if (GRID[k] > 255.0)
-        GRID[k] = 255.0;
-      k++;
-    }
+  float maxval = 0.0f;
+  for (uint16_t k = 0; k < IMG_SIZE; k++)
+    if (grid[k] > maxval)
+      maxval = grid[k];
+
+  if (maxval <= 0.0f)
+    return;
+
+  const float scale = 255.0f / maxval;
+
+  for (uint16_t k = 0; k < IMG_SIZE; k++)
+  {
+    grid[k] = ceil(grid[k] * scale);
+    if (grid[k] > 255.0f)
+      grid[k] = 255.0f;
+  }
 }
 
 // Draw the grids in the screen
 // The fill-color or the gray-level of each grid is set based on its value
 void area_setup()
 {
+  float *grid = grid_data();
+  if (!grid) return;
+
   tft.fillRect(0, 0, 240, 320 - W8, TFT_BLACK);
 
   for (int16_t i = 0; i < 28; i++)
     for (int16_t j = 0; j < 28; j++)
-      tft.fillRect(i * L28, j * L28, L28, L28, GREYS[(uint16_t)GRID[j * 28 + i] / 16]);
+    {
+      uint16_t idx = (uint16_t)grid[j * 28 + i] / 16;
+      if (idx > 16) idx = 16;
+      tft.fillRect(i * L28, j * L28, L28, L28, GREYS[idx]);
+    }
 
   tft.drawRect(0, 0, L, L, TFT_GREEN);
 }
@@ -160,7 +185,6 @@ void draw_roi()
 // Draw the two button at the bottom of the screen
 void draw_buttons(const char *label1, const char *label2)
 {
-  // Add 2 buttons in the bottom: CLEAR and PREDICT
   tft.fillRect(0, 320 - W8, W2, W2, TFT_BLUE);
   tft.fillRect(W2, 320 - W8, W2, W2, TFT_RED);
   tft.setTextSize(2);
@@ -170,36 +194,35 @@ void draw_buttons(const char *label1, const char *label2)
   tft.print(label2);
 }
 
-void alloc_buffers()
+void init_buffers()
 {
-  GRID    = (float *)malloc(28 * 28 * sizeof(float));
-  BUFFER1 = GRID;
-  BUFFER2 = (float *)malloc(28 * 28 * sizeof(float));       // temp accumulator
-  BUFFER3 = (float *)malloc(14 * 14 * 6 * sizeof(float));   // final Conv1 output
+  noodle_buffer_init(&A);
+  noodle_buffer_init(&B);
+
+  if (!noodle_buffer_require(&A, IMG_SIZE)) {
+    Serial.println("[ERR] A allocation failed");
+    tft.println("[ERR] A allocation failed");
+    while (1) delay(1000);
+  }
 }
 
-byte summarize(float et, float *buf)
+byte summarize(float et, NoodleBuffer *buf)
 {
-  float *y = buf; // reuse global memory
+  uint16_t label = 0;
+  float max_y = 0.0f;
 
-  // Find the largest class
-  byte label = 0;
-  float max_y = 0;
+  noodle_find_max(buf, 10, max_y, label);
 
   tft.print(F("--------------------------------------\n"));
   for (byte i = 0; i < 10; i++)
   {
+    const float p = buf->data[i];
+
     tft.print(i);
     tft.print(" |");
-    for (byte j = 0; j < (byte)round(y[i] * 10); j++)
+    for (byte j = 0; j < (byte)round(p * 10); j++)
       tft.print('-');
     tft.print('\n');
-
-    if (y[i] > max_y)
-    {
-      max_y = y[i];
-      label = i;
-    }
   }
 
   tft.print(F("-------------------------------------\nPrediction: "));
@@ -207,7 +230,7 @@ byte summarize(float et, float *buf)
   tft.printf(" (p = %.2f)", max_y);
   tft.printf(", in %.1f secs\n", et);
 
-  return label;
+  return (byte)label;
 }
 
 void predict()
@@ -234,46 +257,54 @@ void predict()
   pool.M = 2;
   pool.T = 2;
 
-  FCNMem fcn_mem1; // weights + biases are in memory
+  FCNMem fcn_mem1;
   fcn_mem1.weight = w03;
   fcn_mem1.bias = b03;
   fcn_mem1.act = ACT_RELU;
 
-  FCNMem fcn_mem2; // weights + biases are in memory
+  FCNMem fcn_mem2;
   fcn_mem2.weight = w04;
   fcn_mem2.bias = b04;
   fcn_mem2.act = ACT_RELU;
 
-  FCNMem fcn_mem3; // weights + biases are in memory
+  FCNMem fcn_mem3;
   fcn_mem3.weight = w05;
   fcn_mem3.bias = b05;
   fcn_mem3.act = ACT_SOFTMAX;
 
-  unsigned long st = micros(); // timer starts
-  uint16_t V;
+  unsigned long st = micros();
+
+  NoodleBuffer *in  = &A;
+  NoodleBuffer *out = &B;
 
   tft.println(F("Conv #1 ..."));
   Serial.println(F("Conv #1 ..."));
-  V = noodle_conv_float(BUFFER1, 1, 6, BUFFER3, 28, cnn1, pool, NULL);
+  uint16_t V = noodle_conv_float(in, 1, 6, out, 28, cnn1, pool, NULL);
+  swap_buffers(in, out);
 
   tft.println(F("Conv #2 ..."));
-  V = noodle_conv_float(BUFFER3, 6, 16, BUFFER1, V, cnn2, pool, NULL);
+  V = noodle_conv_float(in, 6, 16, out, V, cnn2, pool, NULL);
+  swap_buffers(in, out);
 
   tft.println(F("Flattening ..."));
-  V = noodle_flat(BUFFER1, BUFFER3, V, 16);
+  V = noodle_flat(in, out, V, 16);
+  swap_buffers(in, out);
 
   tft.println(F("Dense #1 ..."));
-  V = noodle_fcn(BUFFER3, V, 120, BUFFER1, fcn_mem1, NULL);
+  V = noodle_fcn(in, V, 120, out, fcn_mem1, NULL);
+  swap_buffers(in, out);
 
   tft.println(F("Dense #2 ..."));
-  V = noodle_fcn(BUFFER1, V, 84, BUFFER3, fcn_mem2, NULL);
+  V = noodle_fcn(in, V, 84, out, fcn_mem2, NULL);
+  swap_buffers(in, out);
 
   tft.println(F("Dense #3 ..."));
-  V = noodle_fcn(BUFFER3, V, 10, BUFFER1, fcn_mem3, NULL);
+  V = noodle_fcn(in, V, 10, out, fcn_mem3, NULL);
+  swap_buffers(in, out);
 
-  float et = (float)(micros() - st) * 1e-6; // timer stops
+  float et = (float)(micros() - st) * 1e-6;
 
-  byte res = summarize(et, BUFFER1);
+  summarize(et, in);
 }
 
 void setup()
@@ -289,6 +320,7 @@ void setup()
   ts.begin(touchscreenSPI);
   ts.setRotation(2);
   delay(3000);
+
   while (!noodle_fs_init())
   {
     delay(500);
@@ -298,18 +330,7 @@ void setup()
 
   Serial.println(F("FFAT OK!"));
 
-  alloc_buffers();
-
-  if (!GRID || !BUFFER2 || !BUFFER3) {
-    Serial.println("[ERR] malloc failed");
-    tft.println("[ERR] malloc failed");
-    while (1) delay(1000);
-  }
-
-  //noodle_setup_temp_buffers((void *)BUFFER2);
-  noodle_setup_temp_buffers(BUFFER1, BUFFER2);
-
-  //noodle_read_top_line("info.txt", INFO, 8);
+  init_buffers();
 
   reset_grid();
   area_setup();
@@ -319,12 +340,11 @@ void setup()
 void loop()
 {
   int16_t xpos, ypos;
-  // Checks if Touchscreen was touched, and prints X, Y and Pressure (Z) info on the TFT display and Serial Monitor
+
   if (ts.tirqTouched() && ts.touched())
   {
     TS_Point tp = ts.getPoint();
 
-    // Calibrate Touchscreen points with map function to the correct width and height
     xpos = alpha_y * tp.x + beta_y * tp.y + delta_y;
     if (xpos < 0)
       xpos = 0;
@@ -337,25 +357,27 @@ void loop()
     else if (ypos > SCREEN_HEIGHT)
       ypos = SCREEN_HEIGHT;
 
-    // are we in drawing area ?
-    if (((ypos - PENRADIUS) > 0) && ((ypos + PENRADIUS) < L) && ((xpos - PENRADIUS) > 0) && ((xpos + PENRADIUS) < L))
+    if (((ypos - PENRADIUS) > 0) &&
+        ((ypos + PENRADIUS) < L) &&
+        ((xpos - PENRADIUS) > 0) &&
+        ((xpos + PENRADIUS) < L))
     {
       tft.fillCircle(xpos, ypos, PENRADIUS, TFT_BLUE);
       track_roi(xpos, ypos);
     }
 
-    // CLEAR?
     if ((ypos > tft.height() - W8) && (xpos < W2))
     {
       reset_grid();
       area_setup();
     }
 
-    // PREDICT?
     if ((ypos > tft.height() - W8) && (xpos > W2))
     {
       draw_roi();
+
       int16_t sum[3] = {0, 0, 0};
+
       for (byte h = 0; h < 2; h++)
       {
         for (byte i = 0; i < 28; i++)
@@ -389,15 +411,19 @@ void loop()
                     int16_t y_ = s * (float)(y - cy) + (float)(L * 0.5f);
 
                     if ((x_ >= 0) && (x_ < L) && (y_ >= 0) && (y_ < L))
-                      GRID[y_ / L28 * 28 + (x_ / L28)] = GRID[y_ / L28 * 28 + (x_ / L28)] + 1;
+                    {
+                      float *grid = grid_data();
+                      if (grid) {
+                        const uint16_t idx = (y_ / L28) * 28 + (x_ / L28);
+                        grid[idx] = grid[idx] + 1.0f;
+                      }
+                    }
                   }
                 }
               }
             }
           }
         }
-        // if  (h == 0)
-        //   tft.drawCircle((int16_t)(sum[0] / sum[2]), (int16_t)(sum[1] / sum[2]), 3, TFT_GREEN);
       }
 
       normalize_grid();
@@ -407,4 +433,3 @@ void loop()
     }
   }
 }
-

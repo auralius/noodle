@@ -1,6 +1,7 @@
 /**
  * @file noodle_internal.cpp
  * @brief Private shared globals and helpers for Noodle implementation files.
+ * @ingroup noodle_api
  */
 #include "noodle_internal.h"
 
@@ -13,6 +14,8 @@ SdFat NOODLE_FS;  // define the SdFat object declared in noodle_fs.h
 NDL_File fw, fb, fo, fi;
 void *temp_buff1 = NULL;
 void *temp_buff2 = NULL;
+size_t temp_buff1_capacity = 0;
+size_t temp_buff2_capacity = 0;
 
 // ===== Convolution private helpers moved from noodle_conv.cpp =====
 

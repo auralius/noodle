@@ -1,6 +1,7 @@
 /**
  * @file noodle_fcn.cpp
  * @brief Fully connected layers.
+ * @ingroup noodle_api
  */
 #include "noodle_internal.h"
 
@@ -434,4 +435,95 @@ uint16_t noodle_fcn_progmem(const float *input,
 
   if (act == ACT_SOFTMAX) noodle_soft_max(output, n_outputs);
   return n_outputs;
+}
+
+
+// ===== NoodleBuffer smart tensor wrappers =====
+
+uint16_t noodle_fcn(NoodleBuffer *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    NoodleBuffer *output,
+                    const FCNMem &fcn,
+                    CBFPtr progress_cb) {
+  if (!input || !input->data || !output) return 0;
+  float *out = noodle_buffer_require(output, (size_t)n_outputs);
+  if (!out) return 0;
+  return noodle_fcn(input->data, n_inputs, n_outputs, out, fcn, progress_cb);
+}
+
+uint16_t noodle_fcn(NoodleBuffer *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    NoodleBuffer *output,
+                    const FCNFile &fcn,
+                    CBFPtr progress_cb) {
+  if (!input || !input->data || !output) return 0;
+  float *out = noodle_buffer_require(output, (size_t)n_outputs);
+  if (!out) return 0;
+  return noodle_fcn(input->data, n_inputs, n_outputs, out, fcn, progress_cb);
+}
+
+uint16_t noodle_fcn(NoodleBuffer *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    NoodleBuffer *output,
+                    const FCNProgmem &fcn,
+                    CBFPtr progress_cb) {
+  if (!input || !input->data || !output) return 0;
+  float *out = noodle_buffer_require(output, (size_t)n_outputs);
+  if (!out) return 0;
+  return noodle_fcn(input->data, n_inputs, n_outputs, out, fcn, progress_cb);
+}
+
+uint16_t noodle_fcn_progmem(NoodleBuffer *input,
+                            uint16_t n_inputs,
+                            uint16_t n_outputs,
+                            NoodleBuffer *output,
+                            const float *weight,
+                            const float *bias,
+                            Activation act,
+                            CBFPtr progress_cb) {
+  if (!input || !input->data || !output) return 0;
+  float *out = noodle_buffer_require(output, (size_t)n_outputs);
+  if (!out) return 0;
+  return noodle_fcn_progmem(input->data, n_inputs, n_outputs, out,
+                           weight, bias, act, progress_cb);
+}
+
+
+uint16_t noodle_fcn(const byte *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    NoodleBuffer *output,
+                    const FCNFile &fcn,
+                    CBFPtr progress_cb) {
+  if (!input || !output) return 0;
+  float *out = noodle_buffer_require(output, (size_t)n_outputs);
+  if (!out) return 0;
+  return noodle_fcn(input, n_inputs, n_outputs, out, fcn, progress_cb);
+}
+
+uint16_t noodle_fcn(const int8_t *input,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    NoodleBuffer *output,
+                    const FCNFile &fcn,
+                    CBFPtr progress_cb) {
+  if (!input || !output) return 0;
+  float *out = noodle_buffer_require(output, (size_t)n_outputs);
+  if (!out) return 0;
+  return noodle_fcn(input, n_inputs, n_outputs, out, fcn, progress_cb);
+}
+
+uint16_t noodle_fcn(const char *in_fn,
+                    uint16_t n_inputs,
+                    uint16_t n_outputs,
+                    NoodleBuffer *output,
+                    const FCNFile &fcn,
+                    CBFPtr progress_cb) {
+  if (!in_fn || !output) return 0;
+  float *out = noodle_buffer_require(output, (size_t)n_outputs);
+  if (!out) return 0;
+  return noodle_fcn(in_fn, n_inputs, n_outputs, out, fcn, progress_cb);
 }

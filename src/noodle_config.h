@@ -71,7 +71,13 @@
   #define NOODLE_FCN_BLOCK 128
 #endif
 
-// Define maksimum kernel size to avoid variable allocation!
 #ifndef NOODLE_MAX_K
-  #define NOODLE_MAX_K 5 
+  /**
+   * @brief Largest convolution kernel width copied into fixed stack scratch.
+   *
+   * Convolution and depthwise-convolution paths use stack arrays sized from this
+   * macro when copying one kernel at a time. Set it to the largest `K` used by
+   * the firmware.
+   */
+  #define NOODLE_MAX_K 5
 #endif
