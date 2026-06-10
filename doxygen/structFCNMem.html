@@ -106,7 +106,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Memory-backed fully-connected parameter bundle.  
+<p>Memory-backed fully connected parameter bundle.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="noodle_8h_source.html">noodle.h</a>&gt;</code></p>
@@ -116,13 +116,12 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a94247a5c556c789574d9a5f7484bc859" id="r_a94247a5c556c789574d9a5f7484bc859"><td class="memItemLeft" align="right" valign="top">const float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a94247a5c556c789574d9a5f7484bc859">weight</a> = nullptr</td></tr>
 <tr class="memdesc:a94247a5c556c789574d9a5f7484bc859"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to row-major <span class="tt">[O][I]</span> weights.  <br /></td></tr>
 <tr class="memitem:a9a92ac2c4182c33cbccf1e6f2c5bd0f5" id="r_a9a92ac2c4182c33cbccf1e6f2c5bd0f5"><td class="memItemLeft" align="right" valign="top">const float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9a92ac2c4182c33cbccf1e6f2c5bd0f5">bias</a> = nullptr</td></tr>
-<tr class="memdesc:a9a92ac2c4182c33cbccf1e6f2c5bd0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to output biases, or <span class="tt">nullptr</span> for zero bias.  <br /></td></tr>
+<tr class="memdesc:a9a92ac2c4182c33cbccf1e6f2c5bd0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to output biases, or nullptr.  <br /></td></tr>
 <tr class="memitem:a11831e2b576f5807825fb1be66cbe7d0" id="r_a11831e2b576f5807825fb1be66cbe7d0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a11831e2b576f5807825fb1be66cbe7d0">act</a> = <a class="el" href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></td></tr>
-<tr class="memdesc:a11831e2b576f5807825fb1be66cbe7d0"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output is computed.  <br /></td></tr>
+<tr class="memdesc:a11831e2b576f5807825fb1be66cbe7d0"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Memory-backed fully-connected parameter bundle. </p>
-<p><span class="tt"><a class="el" href="#a94247a5c556c789574d9a5f7484bc859" title="Pointer to row-major [O][I] weights.">weight</a></span> points to row-major <span class="tt">[O][I]</span> floats. <span class="tt"><a class="el" href="#a9a92ac2c4182c33cbccf1e6f2c5bd0f5" title="Pointer to output biases, or nullptr for zero bias.">bias</a></span> points to <code class="param">n_outputs</code> floats and may be <span class="tt">nullptr</span> for zero bias. </p>
+<div class="textblock"><p>Memory-backed fully connected parameter bundle. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a11831e2b576f5807825fb1be66cbe7d0" name="a11831e2b576f5807825fb1be66cbe7d0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a11831e2b576f5807825fb1be66cbe7d0">&#9670;&#160;</a></span>act</h2>
@@ -136,7 +135,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output is computed. </p>
+<p><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output. </p>
 
 </div>
 </div>
@@ -152,7 +151,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Pointer to output biases, or <span class="tt">nullptr</span> for zero bias. </p>
+<p>Pointer to output biases, or nullptr. </p>
 
 </div>
 </div>

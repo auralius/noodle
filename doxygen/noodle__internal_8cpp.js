@@ -1,16 +1,16 @@
 var noodle__internal_8cpp =
 [
-    [ "noodle_compute_V", "group__noodle__public.html#ga48f5a5419de4d80277903f2d3f4d62f1", null ],
-    [ "noodle_compute_V_and_P", "group__noodle__public.html#gab2083af82a5cdb9857189dcbf246a944", null ],
-    [ "noodle_compute_Vt", "group__noodle__public.html#ga427a7e92ee2e25e32739d2648f525f9c", null ],
-    [ "noodle_compute_Vt_and_P", "noodle__internal_8cpp.html#afc47321f0f830961bf47283c473dec0a", null ],
+    [ "noodle_compute_V", "group__noodle__internal.html#ga48f5a5419de4d80277903f2d3f4d62f1", null ],
+    [ "noodle_compute_V_and_P", "group__noodle__internal.html#gab2083af82a5cdb9857189dcbf246a944", null ],
+    [ "noodle_compute_Vt", "group__noodle__internal.html#gaf14678eda4dd1adb77ce672a7b0f0204", null ],
+    [ "noodle_compute_Vt_and_P", "group__noodle__internal.html#gafc47321f0f830961bf47283c473dec0a", null ],
     [ "noodle_copy_kernel_progmem", "group__noodle__internal.html#ga6d4b6f5152dab294edae9f589802a5da", null ],
     [ "noodle_do_bias", "group__noodle__internal.html#gaa1bf96ab4662c8273fcc051d991f6292", null ],
     [ "noodle_do_bias_act", "group__noodle__internal.html#gac680c9dba87f61a426f622266df2a99d", null ],
     [ "noodle_do_conv", "group__noodle__internal.html#ga89cad6d9c5ad04c49d07a2dd5c09ff91", null ],
     [ "noodle_do_conv", "group__noodle__internal.html#gafb710356a13f02fed364b41a085760ca", null ],
     [ "noodle_do_conv1d", "group__noodle__internal.html#ga9206a75f1ba3a8384cd1f739ed0dafbe", null ],
-    [ "noodle_do_conv_transpose", "group__noodle__internal.html#gab850f9407c7f05686dc383da37daad63", null ],
+    [ "noodle_do_conv_transpose", "group__noodle__internal.html#gaf933394c5fa05e9f18f986c933a0a6a0", null ],
     [ "noodle_do_pooling", "group__noodle__internal.html#ga17b0a86521c5421467673b70b9ae763d", null ],
     [ "noodle_do_pooling", "group__noodle__internal.html#gab67cf5c201ab40e5045b3933aa5d0fad", null ],
     [ "noodle_do_pooling", "group__noodle__internal.html#ga10c48a831d9241a0bbdb3eeb20c2525f", null ],
@@ -20,12 +20,14 @@ var noodle__internal_8cpp =
     [ "noodle_get_padded_x", "group__noodle__internal.html#ga3513bfdd53984ef7f74eb5b6c2c2b956", null ],
     [ "noodle_get_padded_x", "group__noodle__internal.html#ga57e67afa514ded883ad50e9a14ce76ed", null ],
     [ "noodle_reset_buffer", "group__noodle__internal.html#ga902815632d6fcc18e720696671455e70", null ],
-    [ "noodle_valid_max_pool", "group__noodle__public.html#ga04b75a2500d967f8c17c52040c995b6c", null ],
+    [ "noodle_valid_max_pool", "group__noodle__internal.html#ga04b75a2500d967f8c17c52040c995b6c", null ],
     [ "fb", "noodle__internal_8cpp.html#a326186ac3723635b50e3aa379c1207ef", null ],
     [ "fi", "noodle__internal_8cpp.html#aaecba4c62e76ceb436ddfe04bc6abb65", null ],
     [ "fo", "noodle__internal_8cpp.html#a75ad2b12ebf15ea5e2ff0c21f3687512", null ],
     [ "fw", "noodle__internal_8cpp.html#a7c61cc6c43789c1765a45685f04d9c12", null ],
     [ "NOODLE_FS", "noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9", null ],
     [ "temp_buff1", "noodle__internal_8cpp.html#ab6ff5fc28357e769819fc740f7900ff2", null ],
-    [ "temp_buff2", "noodle__internal_8cpp.html#ae50746191631b2901a876e4cd69183ec", null ]
+    [ "temp_buff1_capacity", "noodle__internal_8cpp.html#aee55b8c2c0f708a3e144a51f52a74d22", null ],
+    [ "temp_buff2", "noodle__internal_8cpp.html#ae50746191631b2901a876e4cd69183ec", null ],
+    [ "temp_buff2_capacity", "noodle__internal_8cpp.html#a906c24542139062a2fb8d0e5d165ab84", null ]
 ];

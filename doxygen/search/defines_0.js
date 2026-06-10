@@ -9,5 +9,7 @@ var searchData=
   ['noodle_5fpool_5fmean_6',['NOODLE_POOL_MEAN',['../noodle__config_8h.html#a86f97e6409186eb3a8902cb43c45891c',1,'noodle_config.h']]],
   ['noodle_5fpool_5fmode_7',['NOODLE_POOL_MODE',['../noodle__config_8h.html#a0128fdde5fcaf1ea63c21ccc56628845',1,'noodle_config.h']]],
   ['noodle_5fpool_5fnone_8',['NOODLE_POOL_NONE',['../noodle__config_8h.html#aad9768432f8dd5667d4151c4860bf548',1,'noodle_config.h']]],
-  ['noodle_5fuse_5fsdfat_9',['NOODLE_USE_SDFAT',['../noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7',1,'noodle_config.h']]]
+  ['noodle_5ftemp_5fexternal_5fcapacity_5funknown_9',['NOODLE_TEMP_EXTERNAL_CAPACITY_UNKNOWN',['../noodle__memory_8cpp.html#a2cbebbce33bf73173e05a8004250c172',1,'noodle_memory.cpp']]],
+  ['noodle_5fuse_5fsdfat_10',['NOODLE_USE_SDFAT',['../noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7',1,'noodle_config.h']]],
+  ['null_11',['NULL',['../noodle_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4',1,'noodle.h']]]
 ];

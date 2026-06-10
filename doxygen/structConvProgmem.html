@@ -102,23 +102,36 @@ $(function() {
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">ConvProgmem Struct Reference</div></div>
+  <div class="headertitle"><div class="title">ConvProgmem Struct Reference<div class="ingroups"><a class="el" href="group__noodle__public.html">Public API</a></div></div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Near-PROGMEM convolution parameter bundle.  
+ <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="noodle_8h_source.html">noodle.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a581b641e90f4eb4ef52f0da3f7db139f" id="r_a581b641e90f4eb4ef52f0da3f7db139f"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a581b641e90f4eb4ef52f0da3f7db139f">K</a> = 3</td></tr>
+<tr class="memdesc:a581b641e90f4eb4ef52f0da3f7db139f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kernel width.  <br /></td></tr>
 <tr class="memitem:a60d5257526db36290e107938cd58d77a" id="r_a60d5257526db36290e107938cd58d77a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60d5257526db36290e107938cd58d77a">P</a> = 0</td></tr>
+<tr class="memdesc:a60d5257526db36290e107938cd58d77a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Padding per side; <span class="tt">65535</span> requests SAME-style 2D padding.  <br /></td></tr>
 <tr class="memitem:a72b0c11d63f273991e7c8f7763b93ea8" id="r_a72b0c11d63f273991e7c8f7763b93ea8"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72b0c11d63f273991e7c8f7763b93ea8">S</a> = 1</td></tr>
+<tr class="memdesc:a72b0c11d63f273991e7c8f7763b93ea8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convolution stride.  <br /></td></tr>
 <tr class="memitem:a76e77ca402ddd3859b41d57e20d1a296" id="r_a76e77ca402ddd3859b41d57e20d1a296"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a76e77ca402ddd3859b41d57e20d1a296">OP</a> = 0</td></tr>
+<tr class="memdesc:a76e77ca402ddd3859b41d57e20d1a296"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reserved output padding field for layout parity.  <br /></td></tr>
 <tr class="memitem:a06b20007e7900b8ebad639b061df9b41" id="r_a06b20007e7900b8ebad639b061df9b41"><td class="memItemLeft" align="right" valign="top">const float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a06b20007e7900b8ebad639b061df9b41">weight</a> = nullptr</td></tr>
+<tr class="memdesc:a06b20007e7900b8ebad639b061df9b41"><td class="mdescLeft">&#160;</td><td class="mdescRight">PROGMEM pointer to packed weights.  <br /></td></tr>
 <tr class="memitem:ac82da77c6ef58c7ba09191e9302b498e" id="r_ac82da77c6ef58c7ba09191e9302b498e"><td class="memItemLeft" align="right" valign="top">const float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac82da77c6ef58c7ba09191e9302b498e">bias</a> = nullptr</td></tr>
+<tr class="memdesc:ac82da77c6ef58c7ba09191e9302b498e"><td class="mdescLeft">&#160;</td><td class="mdescRight">PROGMEM pointer to biases, or nullptr.  <br /></td></tr>
 <tr class="memitem:a8acc8e12c86e036d2fa00eb1b5625d4f" id="r_a8acc8e12c86e036d2fa00eb1b5625d4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8acc8e12c86e036d2fa00eb1b5625d4f">act</a> = <a class="el" href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></td></tr>
+<tr class="memdesc:a8acc8e12c86e036d2fa00eb1b5625d4f"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after adding bias.  <br /></td></tr>
 </table>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Near-PROGMEM convolution parameter bundle. </p>
+<p>This is intended for small or medium AVR flash arrays that can be addressed by pgm_read_float_near(). The packed layouts match <a class="el" href="structConvMem.html" title="Memory-backed convolution parameter bundle.">ConvMem</a>. </p>
+</div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a8acc8e12c86e036d2fa00eb1b5625d4f" name="a8acc8e12c86e036d2fa00eb1b5625d4f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8acc8e12c86e036d2fa00eb1b5625d4f">&#9670;&#160;</a></span>act</h2>
 
@@ -130,6 +143,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after adding bias. </p>
 
 </div>
 </div>
@@ -145,6 +160,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>PROGMEM pointer to biases, or nullptr. </p>
+
 </div>
 </div>
 <a id="a581b641e90f4eb4ef52f0da3f7db139f" name="a581b641e90f4eb4ef52f0da3f7db139f"></a>
@@ -158,6 +175,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Kernel width. </p>
 
 </div>
 </div>
@@ -173,6 +192,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Reserved output padding field for layout parity. </p>
+
 </div>
 </div>
 <a id="a60d5257526db36290e107938cd58d77a" name="a60d5257526db36290e107938cd58d77a"></a>
@@ -186,6 +207,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Padding per side; <span class="tt">65535</span> requests SAME-style 2D padding. </p>
 
 </div>
 </div>
@@ -201,6 +224,8 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Convolution stride. </p>
+
 </div>
 </div>
 <a id="a06b20007e7900b8ebad639b061df9b41" name="a06b20007e7900b8ebad639b061df9b41"></a>
@@ -214,6 +239,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>PROGMEM pointer to packed weights. </p>
 
 </div>
 </div>

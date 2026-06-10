@@ -106,7 +106,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Memory-backed convolution parameters.  
+<p>Memory-backed convolution parameter bundle.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="noodle_8h_source.html">noodle.h</a>&gt;</code></p>
@@ -114,23 +114,24 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a6bafbab7045ec208fdaaa88b1ed26e76" id="r_a6bafbab7045ec208fdaaa88b1ed26e76"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76">K</a> = 3</td></tr>
-<tr class="memdesc:a6bafbab7045ec208fdaaa88b1ed26e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kernel size (<span class="tt"><a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a> x <a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a></span> for 2D, <span class="tt"><a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a></span> taps for 1D).  <br /></td></tr>
+<tr class="memdesc:a6bafbab7045ec208fdaaa88b1ed26e76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Kernel width, or tap count for 1D convolution.  <br /></td></tr>
 <tr class="memitem:a6660dbeb91355e2a48c2e5b8c2de72a0" id="r_a6660dbeb91355e2a48c2e5b8c2de72a0"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6660dbeb91355e2a48c2e5b8c2de72a0">P</a> = 0</td></tr>
-<tr class="memdesc:a6660dbeb91355e2a48c2e5b8c2de72a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zero padding per side.  <br /></td></tr>
+<tr class="memdesc:a6660dbeb91355e2a48c2e5b8c2de72a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Padding per side; <span class="tt">65535</span> requests SAME-style 2D padding.  <br /></td></tr>
 <tr class="memitem:aace4dd633d9db8153390a3c7332c4899" id="r_aace4dd633d9db8153390a3c7332c4899"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aace4dd633d9db8153390a3c7332c4899">S</a> = 1</td></tr>
 <tr class="memdesc:aace4dd633d9db8153390a3c7332c4899"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convolution stride.  <br /></td></tr>
 <tr class="memitem:a9e0d6c56c88e0be8c1b39adba8c48b47" id="r_a9e0d6c56c88e0be8c1b39adba8c48b47"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9e0d6c56c88e0be8c1b39adba8c48b47">OP</a> = 0</td></tr>
-<tr class="memdesc:a9e0d6c56c88e0be8c1b39adba8c48b47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output padding for transpose convolution.  <br /></td></tr>
+<tr class="memdesc:a9e0d6c56c88e0be8c1b39adba8c48b47"><td class="mdescLeft">&#160;</td><td class="mdescRight">User-computed output padding for transpose convolution.  <br /></td></tr>
 <tr class="memitem:a6e20a7b6d24a7cda27f929579d339593" id="r_a6e20a7b6d24a7cda27f929579d339593"><td class="memItemLeft" align="right" valign="top">const float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6e20a7b6d24a7cda27f929579d339593">weight</a> = nullptr</td></tr>
 <tr class="memdesc:a6e20a7b6d24a7cda27f929579d339593"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to packed weight values.  <br /></td></tr>
 <tr class="memitem:ae4c6b70e8e643a521685ee092eeaf6ab" id="r_ae4c6b70e8e643a521685ee092eeaf6ab"><td class="memItemLeft" align="right" valign="top">const float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae4c6b70e8e643a521685ee092eeaf6ab">bias</a> = nullptr</td></tr>
-<tr class="memdesc:ae4c6b70e8e643a521685ee092eeaf6ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to packed bias values.  <br /></td></tr>
+<tr class="memdesc:ae4c6b70e8e643a521685ee092eeaf6ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointer to packed bias values, or nullptr.  <br /></td></tr>
 <tr class="memitem:a646ded9176adf8a0a20d20ca6bc533c4" id="r_a646ded9176adf8a0a20d20ca6bc533c4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a646ded9176adf8a0a20d20ca6bc533c4">act</a> = <a class="el" href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></td></tr>
 <tr class="memdesc:a646ded9176adf8a0a20d20ca6bc533c4"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after adding bias.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Memory-backed convolution parameters. </p>
-<p>For normal 2D convolution, <span class="tt"><a class="el" href="#a6e20a7b6d24a7cda27f929579d339593" title="Pointer to packed weight values.">weight</a></span> points to contiguous <span class="tt">[O][I][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a>][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a>]</span> floats. For 1D convolution it points to <span class="tt">[O][I][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a>]</span>. For depthwise convolution, weights are <span class="tt">[C][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a>][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a>]</span>. <span class="tt"><a class="el" href="#ae4c6b70e8e643a521685ee092eeaf6ab" title="Pointer to packed bias values.">bias</a></span> may be <span class="tt">nullptr</span> in overloads that explicitly allow missing biases; in that case zero bias is used. </p>
+<div class="textblock"><p>Memory-backed convolution parameter bundle. </p>
+<p><span class="tt"><a class="el" href="#a6e20a7b6d24a7cda27f929579d339593" title="Pointer to packed weight values.">weight</a></span> points to packed floats in the same order as file-backed weights: <span class="tt">[O][I][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a>][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a>]</span> for 2D convolution, <span class="tt">[O][I][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a>]</span> for 1D convolution, <span class="tt">[C][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a>][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a>]</span> for depthwise convolution, and <span class="tt">[O][I][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a>][<a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a>]</span> for transpose convolution. <span class="tt"><a class="el" href="#ae4c6b70e8e643a521685ee092eeaf6ab" title="Pointer to packed bias values, or nullptr.">bias</a></span> may be <span class="tt">nullptr</span> in overloads that allow zero bias.</p>
+<p>For transpose convolution with explicit padding, callers choose OP to match the desired output width: <span class="tt">V = (W - 1) * <a class="el" href="#aace4dd633d9db8153390a3c7332c4899" title="Convolution stride.">S</a> - 2 * <a class="el" href="#a6660dbeb91355e2a48c2e5b8c2de72a0" title="Padding per side; 65535 requests SAME-style 2D padding.">P</a> + <a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel width, or tap count for 1D convolution.">K</a> + <a class="el" href="#a9e0d6c56c88e0be8c1b39adba8c48b47" title="User-computed output padding for transpose convolution.">OP</a></span>. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a646ded9176adf8a0a20d20ca6bc533c4" name="a646ded9176adf8a0a20d20ca6bc533c4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a646ded9176adf8a0a20d20ca6bc533c4">&#9670;&#160;</a></span>act</h2>
@@ -160,7 +161,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Pointer to packed bias values. </p>
+<p>Pointer to packed bias values, or nullptr. </p>
 
 </div>
 </div>
@@ -176,7 +177,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Kernel size (<span class="tt"><a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a> x <a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a></span> for 2D, <span class="tt"><a class="el" href="#a6bafbab7045ec208fdaaa88b1ed26e76" title="Kernel size (K x K for 2D, K taps for 1D).">K</a></span> taps for 1D). </p>
+<p>Kernel width, or tap count for 1D convolution. </p>
 
 </div>
 </div>
@@ -192,7 +193,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Output padding for transpose convolution. </p>
+<p>User-computed output padding for transpose convolution. </p>
 
 </div>
 </div>
@@ -208,7 +209,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Zero padding per side. </p>
+<p>Padding per side; <span class="tt">65535</span> requests SAME-style 2D padding. </p>
 
 </div>
 </div>

@@ -33,17 +33,24 @@ var NAVTREE =
       [ "Noodle And TFLite Micro Mental Models", "index.html#autotoc_md5", null ]
     ] ],
     [ "Compile-Time Configuration", "index.html#autotoc_md6", null ],
-    [ "Tensor And Parameter Layouts", "index.html#autotoc_md7", null ],
-    [ "Temporary Buffers", "index.html#autotoc_md8", null ],
-    [ "Quick Start", "index.html#autotoc_md9", [
-      [ "1. Select A Filesystem Backend", "index.html#autotoc_md10", null ],
-      [ "2. Provide Working Buffers", "index.html#autotoc_md11", null ],
-      [ "3. Construct A Processing Pipeline", "index.html#autotoc_md12", null ]
+    [ "Tensor And Parameter Layouts", "index.html#autotoc_md7", [
+      [ "Conv2DTranspose Output Sizing", "index.html#autotoc_md8", null ]
     ] ],
-    [ "Export Workflow", "index.html#autotoc_md13", null ],
-    [ "Documentation Map", "index.html#autotoc_md14", null ],
-    [ "Limitations And Notes", "index.html#autotoc_md15", null ],
-    [ "Glossary", "index.html#autotoc_md16", null ],
+    [ "Buffers And Scratch Space", "index.html#autotoc_md9", null ],
+    [ "Quick Start", "index.html#autotoc_md10", [
+      [ "1. Select A Filesystem Backend", "index.html#autotoc_md11", null ],
+      [ "2. Prepare Tensor Storage", "index.html#autotoc_md12", null ],
+      [ "3. Construct A Processing Pipeline", "index.html#autotoc_md13", null ]
+    ] ],
+    [ "Export Workflow", "index.html#autotoc_md14", null ],
+    [ "Documentation Map", "index.html#autotoc_md15", null ],
+    [ "Limitations And Notes", "index.html#autotoc_md16", null ],
+    [ "Glossary", "index.html#autotoc_md17", null ],
+    [ "Noodle Refactored Layout", "md_README.html", [
+      [ "Public files", "md_README.html#autotoc_md37", null ],
+      [ "Implementation files", "md_README.html#autotoc_md38", null ],
+      [ "User include", "md_README.html#autotoc_md39", null ]
+    ] ],
     [ "Topics", "topics.html", "topics" ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
@@ -71,7 +78,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"structConvMem.html#a9e0d6c56c88e0be8c1b39adba8c48b47"
+"noodle__conv_8cpp.html#a4d17bf0dda4408e83a741e75aadb9b3f"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

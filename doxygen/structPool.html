@@ -106,7 +106,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Valid-pooling parameters.  
+<p>Valid-pooling parameter bundle.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="noodle_8h_source.html">noodle.h</a>&gt;</code></p>
@@ -114,13 +114,13 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a6f29bf9fa312ba89e61e5fbd2bedf9d5" id="r_a6f29bf9fa312ba89e61e5fbd2bedf9d5"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5">M</a> = 1</td></tr>
-<tr class="memdesc:a6f29bf9fa312ba89e61e5fbd2bedf9d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pooling window size (<span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pooling window size (M x M for 2D, M samples for 1D).">M</a> x <a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pooling window size (M x M for 2D, M samples for 1D).">M</a></span> for 2D, <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pooling window size (M x M for 2D, M samples for 1D).">M</a></span> samples for 1D).  <br /></td></tr>
+<tr class="memdesc:a6f29bf9fa312ba89e61e5fbd2bedf9d5"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structPool.html" title="Valid-pooling parameter bundle.">Pool</a> window size, <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pool window size, M x M for 2D or M samples for 1D.">M</a> x <a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pool window size, M x M for 2D or M samples for 1D.">M</a></span> for 2D or <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pool window size, M x M for 2D or M samples for 1D.">M</a></span> samples for 1D.  <br /></td></tr>
 <tr class="memitem:af1194dd9b19245d3ff0e7f0a1991aadc" id="r_af1194dd9b19245d3ff0e7f0a1991aadc"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af1194dd9b19245d3ff0e7f0a1991aadc">T</a> = 1</td></tr>
-<tr class="memdesc:af1194dd9b19245d3ff0e7f0a1991aadc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pooling stride.  <br /></td></tr>
+<tr class="memdesc:af1194dd9b19245d3ff0e7f0a1991aadc"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structPool.html" title="Valid-pooling parameter bundle.">Pool</a> stride.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Valid-pooling parameters. </p>
-<p>Use <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pooling window size (M x M for 2D, M samples for 1D).">M</a> = 1</span> and <span class="tt"><a class="el" href="#af1194dd9b19245d3ff0e7f0a1991aadc" title="Pooling stride.">T</a> = 1</span> for identity pooling. 2D pooling uses the compile-time <span class="tt"><a class="el" href="noodle__config_8h.html#a0128fdde5fcaf1ea63c21ccc56628845">NOODLE_POOL_MODE</a></span>. Memory-backed 1D pooling computes mean pooling only when <span class="tt"><a class="el" href="noodle__config_8h.html#a0128fdde5fcaf1ea63c21ccc56628845">NOODLE_POOL_MODE</a> == <a class="el" href="noodle__config_8h.html#a86f97e6409186eb3a8902cb43c45891c">NOODLE_POOL_MEAN</a></span>; otherwise it computes max pooling. File-backed 1D pooling uses max pooling. </p>
+<div class="textblock"><p>Valid-pooling parameter bundle. </p>
+<p>Use <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pool window size, M x M for 2D or M samples for 1D.">M</a> = 1</span> and <span class="tt"><a class="el" href="#af1194dd9b19245d3ff0e7f0a1991aadc" title="Pool stride.">T</a> = 1</span> for identity pooling. 2D pooling uses the compile-time <span class="tt"><a class="el" href="noodle__config_8h.html#a0128fdde5fcaf1ea63c21ccc56628845">NOODLE_POOL_MODE</a></span>. Memory-backed 1D pooling computes mean pooling only when <span class="tt"><a class="el" href="noodle__config_8h.html#a0128fdde5fcaf1ea63c21ccc56628845">NOODLE_POOL_MODE</a> == <a class="el" href="noodle__config_8h.html#a86f97e6409186eb3a8902cb43c45891c">NOODLE_POOL_MEAN</a></span>; otherwise it computes max pooling. File-backed 1D pooling helpers perform max pooling. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a6f29bf9fa312ba89e61e5fbd2bedf9d5" name="a6f29bf9fa312ba89e61e5fbd2bedf9d5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5">&#9670;&#160;</a></span>M</h2>
@@ -134,7 +134,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Pooling window size (<span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pooling window size (M x M for 2D, M samples for 1D).">M</a> x <a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pooling window size (M x M for 2D, M samples for 1D).">M</a></span> for 2D, <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pooling window size (M x M for 2D, M samples for 1D).">M</a></span> samples for 1D). </p>
+<p><a class="el" href="structPool.html" title="Valid-pooling parameter bundle.">Pool</a> window size, <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pool window size, M x M for 2D or M samples for 1D.">M</a> x <a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pool window size, M x M for 2D or M samples for 1D.">M</a></span> for 2D or <span class="tt"><a class="el" href="#a6f29bf9fa312ba89e61e5fbd2bedf9d5" title="Pool window size, M x M for 2D or M samples for 1D.">M</a></span> samples for 1D. </p>
 
 </div>
 </div>
@@ -150,7 +150,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Pooling stride. </p>
+<p><a class="el" href="structPool.html" title="Valid-pooling parameter bundle.">Pool</a> stride. </p>
 
 </div>
 </div>

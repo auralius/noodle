@@ -102,58 +102,202 @@ $(function() {
 </div>
 
 <div class="header">
-  <div class="headertitle"><div class="title">noodle_memory.cpp File Reference</div></div>
+  <div class="headertitle"><div class="title">noodle_memory.cpp File Reference<div class="ingroups"><a class="el" href="group__noodle__api.html">Implementation API</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
 <p>Noodle memory access management helpers.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="noodle__internal_8h_source.html">noodle_internal.h</a>&quot;</code><br />
+<code>#include &lt;limits.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for noodle_memory.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="noodle__memory_8cpp__incl.png" border="0" usemap="#anoodle__memory_8cpp" loading="lazy" alt=""/></div>
 <map name="anoodle__memory_8cpp" id="anoodle__memory_8cpp">
-<area shape="rect" title="Noodle memory access management helpers." alt="" coords="317,5,454,32"/>
-<area shape="rect" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files." alt="" coords="326,80,445,107"/>
-<area shape="poly" title=" " alt="" coords="387,30,388,65,383,63,384,35"/>
-<area shape="rect" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="181,155,251,181"/>
-<area shape="poly" title=" " alt="" coords="354,109,261,150,259,146,358,106"/>
-<area shape="rect" title=" " alt="" coords="239,304,303,331"/>
-<area shape="poly" title=" " alt="" coords="378,105,345,156,309,228,283,291,279,288,304,226,341,153,374,109"/>
-<area shape="rect" title=" " alt="" coords="355,155,416,181"/>
-<area shape="poly" title=" " alt="" coords="387,105,388,140,383,138,384,109"/>
-<area shape="rect" title=" " alt="" coords="441,155,498,181"/>
-<area shape="poly" title=" " alt="" coords="401,105,446,144,441,144,400,110"/>
-<area shape="rect" title=" " alt="" coords="522,155,585,181"/>
-<area shape="poly" title=" " alt="" coords="415,105,513,148,507,148,415,110"/>
-<area shape="poly" title=" " alt="" coords="223,179,244,228,265,290,260,288,239,230,220,184"/>
-<area shape="rect" href="noodle__config_8h.html" title=" " alt="" coords="5,229,118,256"/>
-<area shape="poly" title=" " alt="" coords="188,184,104,225,101,220,191,180"/>
-<area shape="rect" href="noodle__fs_8h.html" title=" " alt="" coords="141,229,230,256"/>
-<area shape="poly" title=" " alt="" coords="213,180,199,216,195,213,209,184"/>
-<area shape="poly" title=" " alt="" coords="201,254,247,294,242,294,199,259"/>
-<area shape="rect" title=" " alt="" coords="146,304,214,331"/>
-<area shape="poly" title=" " alt="" coords="186,255,184,290,180,287,183,258"/>
+<area shape="rect" title="Noodle memory access management helpers." alt="" coords="529,5,666,32"/>
+<area shape="rect" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files." alt="" coords="481,80,600,107"/>
+<area shape="poly" title=" " alt="" coords="590,31,561,70,558,66,586,34"/>
+<area shape="rect" title=" " alt="" coords="625,80,688,107"/>
+<area shape="poly" title=" " alt="" coords="609,30,639,68,634,67,607,35"/>
+<area shape="rect" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers." alt="" coords="244,155,314,181"/>
+<area shape="poly" title=" " alt="" coords="492,108,330,155,329,150,497,106"/>
+<area shape="rect" title=" " alt="" coords="390,304,454,331"/>
+<area shape="poly" title=" " alt="" coords="533,106,500,156,463,228,434,292,431,288,458,226,495,153,528,109"/>
+<area shape="rect" title=" " alt="" coords="510,155,571,181"/>
+<area shape="poly" title=" " alt="" coords="542,105,543,140,538,138,539,109"/>
+<area shape="rect" title=" " alt="" coords="596,155,653,181"/>
+<area shape="poly" title=" " alt="" coords="556,105,601,145,596,144,554,110"/>
+<area shape="rect" title=" " alt="" coords="677,155,740,181"/>
+<area shape="poly" title=" " alt="" coords="570,105,668,148,662,148,569,110"/>
+<area shape="poly" title=" " alt="" coords="315,177,359,196,380,210,398,228,414,257,422,290,417,287,409,259,394,231,377,214,356,200,315,182"/>
+<area shape="rect" title=" " alt="" coords="184,304,252,331"/>
+<area shape="poly" title=" " alt="" coords="241,173,185,181,116,192,54,209,32,219,17,231,9,249,12,263,26,276,48,286,107,301,170,312,165,313,106,307,47,291,23,280,8,266,3,248,13,228,29,215,53,204,115,187,184,176,246,171"/>
+<area shape="rect" href="noodle__config_8h.html" title=" " alt="" coords="27,229,139,256"/>
+<area shape="poly" title=" " alt="" coords="243,184,133,226,131,221,247,180"/>
+<area shape="rect" href="noodle__fs_8h.html" title=" " alt="" coords="296,229,385,256"/>
+<area shape="poly" title=" " alt="" coords="291,179,323,218,317,217,289,184"/>
+<area shape="rect" href="noodle__buffer_8h.html" title="Grow&#45;only float buffers used by NoodleBuffer convolution overloads." alt="" coords="163,229,272,256"/>
+<area shape="poly" title=" " alt="" coords="271,180,240,220,236,215,266,183"/>
+<area shape="poly" title=" " alt="" coords="355,254,399,294,394,293,354,259"/>
+<area shape="poly" title=" " alt="" coords="322,256,253,298,251,293,316,257"/>
+<area shape="poly" title=" " alt="" coords="220,255,220,290,215,287,216,258"/>
 </map>
 </div>
 </div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a2cbebbce33bf73173e05a8004250c172" id="r_a2cbebbce33bf73173e05a8004250c172"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2cbebbce33bf73173e05a8004250c172">NOODLE_TEMP_EXTERNAL_CAPACITY_UNKNOWN</a>&#160;&#160;&#160;((size_t)-1)</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a2c6ab66f3ad5b5060dade9dac65abd75" id="r_a2c6ab66f3ad5b5060dade9dac65abd75"><td class="memItemLeft" align="right" valign="top">static float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2c6ab66f3ad5b5060dade9dac65abd75">noodle_alloc_temp_float</a> (size_t required_floats)</td></tr>
+<tr class="memitem:ad656d7ca446d9e2852022539212c4b9d" id="r_ad656d7ca446d9e2852022539212c4b9d"><td class="memItemLeft" align="right" valign="top">static float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad656d7ca446d9e2852022539212c4b9d">noodle_temp_require_impl</a> (void **ptr, size_t *capacity, size_t required_floats)</td></tr>
+<tr class="memitem:ga262e2b8555687ae3070622b2a3ce3681" id="r_ga262e2b8555687ae3070622b2a3ce3681"><td class="memItemLeft" align="right" valign="top">float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__internal.html#ga262e2b8555687ae3070622b2a3ce3681">noodle_temp1_require</a> (size_t required_floats)</td></tr>
+<tr class="memdesc:ga262e2b8555687ae3070622b2a3ce3681"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ensure temp buffer 1 can hold a number of floats.  <br /></td></tr>
+<tr class="memitem:ga0d464efb19dc3c82e46a3e9a18ded376" id="r_ga0d464efb19dc3c82e46a3e9a18ded376"><td class="memItemLeft" align="right" valign="top">float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__internal.html#ga0d464efb19dc3c82e46a3e9a18ded376">noodle_temp2_require</a> (size_t required_floats)</td></tr>
+<tr class="memdesc:ga0d464efb19dc3c82e46a3e9a18ded376"><td class="mdescLeft">&#160;</td><td class="mdescRight">Ensure temp buffer 2 can hold a number of floats.  <br /></td></tr>
+<tr class="memitem:gaf786de860af8faecf4be34c989d2d61f" id="r_gaf786de860af8faecf4be34c989d2d61f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#gaf786de860af8faecf4be34c989d2d61f">noodle_temp_buffers_free</a> (void)</td></tr>
+<tr class="memdesc:gaf786de860af8faecf4be34c989d2d61f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release automatically allocated internal scratch buffers.  <br /></td></tr>
 <tr class="memitem:ga2ad0f149cbc3812bc91746c9fb075a0b" id="r_ga2ad0f149cbc3812bc91746c9fb075a0b"><td class="memItemLeft" align="right" valign="top">float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga2ad0f149cbc3812bc91746c9fb075a0b">noodle_create_buffer</a> (uint16_t size)</td></tr>
-<tr class="memdesc:ga2ad0f149cbc3812bc91746c9fb075a0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate a raw buffer and return it as a float pointer.  <br /></td></tr>
+<tr class="memdesc:ga2ad0f149cbc3812bc91746c9fb075a0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate a raw byte buffer and return it as a float pointer.  <br /></td></tr>
 <tr class="memitem:ga765ca87fc70a89a1370dd7df7154a7c8" id="r_ga765ca87fc70a89a1370dd7df7154a7c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga765ca87fc70a89a1370dd7df7154a7c8">noodle_delete_buffer</a> (float *buffer)</td></tr>
-<tr class="memdesc:ga765ca87fc70a89a1370dd7df7154a7c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free a buffer allocated by <a class="el" href="group__noodle__public.html#ga2ad0f149cbc3812bc91746c9fb075a0b" title="Allocate a raw buffer and return it as a float pointer.">noodle_create_buffer()</a>.  <br /></td></tr>
+<tr class="memdesc:ga765ca87fc70a89a1370dd7df7154a7c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free a buffer allocated by <a class="el" href="group__noodle__public.html#ga2ad0f149cbc3812bc91746c9fb075a0b" title="Allocate a raw byte buffer and return it as a float pointer.">noodle_create_buffer()</a>.  <br /></td></tr>
 <tr class="memitem:ga914806cc09ef8e194c13c4d90b09413a" id="r_ga914806cc09ef8e194c13c4d90b09413a"><td class="memItemLeft" align="right" valign="top">float *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__internal.html#ga914806cc09ef8e194c13c4d90b09413a">noodle_slice</a> (float *flat, size_t W, size_t z)</td></tr>
 <tr class="memdesc:ga914806cc09ef8e194c13c4d90b09413a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a channel plane from a packed <span class="tt">[Z][W][W]</span> tensor.  <br /></td></tr>
 <tr class="memitem:gab3c8dde05163bd8f802c2f6268c705d2" id="r_gab3c8dde05163bd8f802c2f6268c705d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#gab3c8dde05163bd8f802c2f6268c705d2">noodle_setup_temp_buffers</a> (void *b1, void *b2)</td></tr>
-<tr class="memdesc:gab3c8dde05163bd8f802c2f6268c705d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure both reusable temporary buffers for convolution operations.  <br /></td></tr>
+<tr class="memdesc:gab3c8dde05163bd8f802c2f6268c705d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Install caller-owned internal scratch buffers.  <br /></td></tr>
 <tr class="memitem:ga25f74c7fc66b172f22636b10e030064b" id="r_ga25f74c7fc66b172f22636b10e030064b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__noodle__public.html#ga25f74c7fc66b172f22636b10e030064b">noodle_setup_temp_buffers</a> (void *b2)</td></tr>
-<tr class="memdesc:ga25f74c7fc66b172f22636b10e030064b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure only the reusable accumulation/output temporary buffer.  <br /></td></tr>
+<tr class="memdesc:ga25f74c7fc66b172f22636b10e030064b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Install only the caller-owned accumulation scratch buffer.  <br /></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:aee55b8c2c0f708a3e144a51f52a74d22" id="r_aee55b8c2c0f708a3e144a51f52a74d22"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee55b8c2c0f708a3e144a51f52a74d22">temp_buff1_capacity</a></td></tr>
+<tr class="memitem:a906c24542139062a2fb8d0e5d165ab84" id="r_a906c24542139062a2fb8d0e5d165ab84"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a906c24542139062a2fb8d0e5d165ab84">temp_buff2_capacity</a></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Noodle memory access management helpers. </p>
-</div></div><!-- contents -->
+</div><a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
+<a id="a2cbebbce33bf73173e05a8004250c172" name="a2cbebbce33bf73173e05a8004250c172"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2cbebbce33bf73173e05a8004250c172">&#9670;&#160;</a></span>NOODLE_TEMP_EXTERNAL_CAPACITY_UNKNOWN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define NOODLE_TEMP_EXTERNAL_CAPACITY_UNKNOWN&#160;&#160;&#160;((size_t)-1)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a id="a2c6ab66f3ad5b5060dade9dac65abd75" name="a2c6ab66f3ad5b5060dade9dac65abd75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c6ab66f3ad5b5060dade9dac65abd75">&#9670;&#160;</a></span>noodle_alloc_temp_float()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float * noodle_alloc_temp_float </td>
+          <td>(</td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>required_floats</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad656d7ca446d9e2852022539212c4b9d" name="ad656d7ca446d9e2852022539212c4b9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad656d7ca446d9e2852022539212c4b9d">&#9670;&#160;</a></span>noodle_temp_require_impl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float * noodle_temp_require_impl </td>
+          <td>(</td>
+          <td class="paramtype">void **</td>          <td class="paramname"><span class="paramname"><em>ptr</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *</td>          <td class="paramname"><span class="paramname"><em>capacity</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>required_floats</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-var-members" id="doc-var-members"></a><h2 id="header-doc-var-members" class="groupheader">Variable Documentation</h2>
+<a id="aee55b8c2c0f708a3e144a51f52a74d22" name="aee55b8c2c0f708a3e144a51f52a74d22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee55b8c2c0f708a3e144a51f52a74d22">&#9670;&#160;</a></span>temp_buff1_capacity</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t temp_buff1_capacity</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel extern">extern</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a906c24542139062a2fb8d0e5d165ab84" name="a906c24542139062a2fb8d0e5d165ab84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a906c24542139062a2fb8d0e5d165ab84">&#9670;&#160;</a></span>temp_buff2_capacity</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t temp_buff2_capacity</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel extern">extern</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">
 <div id="page-nav-resize-handle"></div>

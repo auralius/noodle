@@ -1,21 +1,25 @@
 <map id="noodle_internal.h" name="noodle_internal.h">
-<area shape="rect" id="Node000001" title="Private declarations shared by Noodle implementation files." alt="" coords="326,5,445,32"/>
-<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="181,80,251,107"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="354,34,261,76,259,71,358,31"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="239,229,303,256"/>
-<area shape="poly" id="edge9_Node000001_Node000003" title=" " alt="" coords="378,31,345,81,309,153,283,217,279,213,304,151,341,79,374,34"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="355,80,416,107"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="387,30,388,66,383,63,384,35"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="441,80,498,107"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="401,30,446,70,441,70,400,35"/>
-<area shape="rect" id="Node000009" title=" " alt="" coords="522,80,585,107"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="415,30,513,73,507,74,415,35"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="223,105,244,154,265,215,260,214,239,156,220,109"/>
-<area shape="rect" id="Node000004" href="$noodle__config_8h.html" title=" " alt="" coords="5,155,118,181"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="188,109,104,150,101,145,191,105"/>
-<area shape="rect" id="Node000005" href="$noodle__fs_8h.html" title=" " alt="" coords="141,155,230,181"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="213,105,199,142,195,139,209,109"/>
-<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="201,179,247,219,242,219,199,184"/>
-<area shape="rect" id="Node000006" title=" " alt="" coords="146,229,214,256"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="186,180,184,215,180,212,183,184"/>
+<area shape="rect" id="Node000001" title="Private declarations shared by Noodle implementation files." alt="" coords="481,5,600,32"/>
+<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers." alt="" coords="244,80,314,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="492,34,330,81,329,76,497,31"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="390,229,454,256"/>
+<area shape="poly" id="edge12_Node000001_Node000003" title=" " alt="" coords="533,31,500,81,463,154,434,217,431,213,458,151,495,79,528,34"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="510,80,571,107"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="542,30,543,66,538,63,539,35"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="596,80,653,107"/>
+<area shape="poly" id="edge11_Node000001_Node000009" title=" " alt="" coords="556,30,601,70,596,69,554,35"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="677,80,740,107"/>
+<area shape="poly" id="edge13_Node000001_Node000010" title=" " alt="" coords="570,30,668,73,662,74,569,35"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="315,102,359,121,380,135,398,153,414,183,422,215,417,212,409,184,394,156,377,139,356,126,315,107"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="184,229,252,256"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="241,99,185,106,116,118,54,134,32,145,17,156,9,174,12,188,26,201,48,211,107,227,170,237,165,238,106,232,47,216,23,205,8,191,3,173,13,153,29,140,53,129,115,112,184,101,246,96"/>
+<area shape="rect" id="Node000005" href="$noodle__config_8h.html" title=" " alt="" coords="27,155,139,181"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="243,109,133,151,131,146,247,105"/>
+<area shape="rect" id="Node000006" href="$noodle__fs_8h.html" title=" " alt="" coords="296,155,385,181"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="291,105,323,143,317,143,289,110"/>
+<area shape="rect" id="Node000007" href="$noodle__buffer_8h.html" title="Grow&#45;only float buffers used by NoodleBuffer convolution overloads." alt="" coords="163,155,272,181"/>
+<area shape="poly" id="edge8_Node000002_Node000007" title=" " alt="" coords="271,106,240,145,236,141,266,109"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="355,179,399,220,394,219,354,184"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="322,181,253,223,251,219,316,183"/>
+<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="220,180,220,215,215,212,216,184"/>
 </map>

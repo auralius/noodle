@@ -1,9 +1,11 @@
 var searchData=
 [
-  ['temporary_20buffers_0',['Temporary Buffers',['../index.html#autotoc_md8',1,'Temporary Buffers'],['../noodle_8h.html#noodle_temp_buffers',1,'Temporary Buffers']]],
-  ['tensor_20and_20parameter_20layouts_1',['Tensor And Parameter Layouts',['../index.html#autotoc_md7',1,'']]],
-  ['tensor_20layout_20and_20text_20files_2',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
-  ['text_20files_3',['Tensor Layout And Text Files',['../noodle_8h.html#noodle_layout',1,'']]],
-  ['tflite_20micro_20mental_20models_4',['Noodle And TFLite Micro Mental Models',['../index.html#autotoc_md5',1,'']]],
-  ['time_20configuration_5',['Compile-Time Configuration',['../index.html#autotoc_md6',1,'']]]
+  ['scratch_20space_0',['Scratch Space',['../index.html#autotoc_md9',1,'Buffers And Scratch Space'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md27',1,'Buffers And Scratch Space']]],
+  ['select_20a_20filesystem_20backend_1',['Select A Filesystem Backend',['../index.html#autotoc_md11',1,'1. Select A Filesystem Backend'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md29',1,'1. Select A Filesystem Backend']]],
+  ['sizing_2',['Sizing',['../index.html#autotoc_md8',1,'Conv2DTranspose Output Sizing'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md26',1,'Conv2DTranspose Output Sizing']]],
+  ['source_20layout_3',['Source Layout',['../index.html#autotoc_md3',1,'Public Include And Refactored Source Layout'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md21',1,'Public Include And Refactored Source Layout']]],
+  ['space_4',['Space',['../index.html#autotoc_md9',1,'Buffers And Scratch Space'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md27',1,'Buffers And Scratch Space']]],
+  ['start_5',['Start',['../index.html#autotoc_md10',1,'Quick Start'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md28',1,'Quick Start']]],
+  ['storage_6',['Storage',['../index.html#autotoc_md12',1,'2. Prepare Tensor Storage'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md30',1,'2. Prepare Tensor Storage']]],
+  ['streaming_20first_20memory_20model_7',['Streaming First Memory Model',['../index.html#autotoc_md2',1,'Streaming-First Memory Model'],['..//home/auralius/works/noodle_workspace/doxygen/mainpage.md#autotoc_md20',1,'Streaming-First Memory Model']]]
 ];

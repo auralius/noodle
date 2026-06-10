@@ -1,5 +1,5 @@
 <map id="noodle.h" name="noodle.h">
-<area shape="rect" id="Node000001" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="515,5,585,32"/>
+<area shape="rect" id="Node000001" title="Public Noodle API for small CNN/ML inference on microcontrollers." alt="" coords="515,5,585,32"/>
 <area shape="rect" id="Node000002" href="$noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files." alt="" coords="490,80,610,107"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="552,46,552,81,548,78,548,50"/>
 <area shape="rect" id="Node000003" href="$noodle__conv_8cpp.html" title="Public convolution layer wrappers: Conv1D, Conv2D, and ConvTranspose2D." alt="" coords="5,155,124,181"/>

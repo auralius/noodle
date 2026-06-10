@@ -8,5 +8,6 @@ var annotated_dup =
     [ "FCNFile", "structFCNFile.html", "structFCNFile" ],
     [ "FCNMem", "structFCNMem.html", "structFCNMem" ],
     [ "FCNProgmem", "structFCNProgmem.html", "structFCNProgmem" ],
+    [ "NoodleBuffer", "structNoodleBuffer.html", "structNoodleBuffer" ],
     [ "Pool", "structPool.html", "structPool" ]
 ];

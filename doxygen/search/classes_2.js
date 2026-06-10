@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['pool_0',['Pool',['../structPool.html',1,'']]]
+  ['noodlebuffer_0',['NoodleBuffer',['../structNoodleBuffer.html',1,'']]]
 ];

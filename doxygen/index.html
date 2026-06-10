@@ -107,7 +107,7 @@ $(function() {
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="mainpage"></a></p>
 <p>Noodle is a lightweight CNN-style inference library designed for Arduino-class microcontrollers and other memory-constrained systems. Its primary design principle is streaming-based execution: instead of storing all intermediate tensors in RAM, Noodle can read inputs, weights, and biases from external storage and write intermediate activations back to storage. This approach keeps the peak memory footprint small and predictable.</p>
-<p>This documentation describes the public API, the refactored implementation layout, and the core invariants needed to use Noodle correctly and safely: data layouts, file formats, filesystem selection, parameter layout, and buffer requirements.</p>
+<p>This documentation describes the public API, the refactored implementation layout, and the core invariants needed to use Noodle correctly and safely: data layouts, file formats, filesystem selection, parameter layout, buffer ownership, output sizing, and scratch-buffer management.</p>
 <h1 class="doxsection"><a class="anchor" id="autotoc_md0"></a>
 What Noodle Is And Is Not</h1>
 <p>Noodle is:</p>
@@ -140,23 +140,25 @@ Streaming-First Memory Model</h2>
 <p>This design explains why multiple function variants exist, such as file-to-file, memory-to-file, file-to-memory, and memory-to-memory operations.</p>
 <h2 class="doxsection"><a class="anchor" id="autotoc_md3"></a>
 Public Include And Refactored Source Layout</h2>
-<p>The application-facing boundary remains simple: user sketches include <span class="tt"><a class="el" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming.">noodle.h</a></span>. The refactor split the implementation into smaller files so each piece of behavior has a clearer home, but it did not change the public include model.</p>
+<p>The application-facing boundary remains simple: user sketches include <span class="tt"><a class="el" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers.">noodle.h</a></span>. The refactor split the implementation into smaller files so each piece of behavior has a clearer home, but it did not change the public include model.</p>
 <p>Public files:</p>
 <ul>
-<li><span class="tt"><a class="el" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming.">noodle.h</a></span>: application-facing structs, layer calls, helpers, and Doxygen API documentation.</li>
+<li><span class="tt"><a class="el" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers.">noodle.h</a></span>: application-facing structs, layer calls, helpers, and Doxygen API documentation.</li>
+<li><span class="tt"><a class="el" href="noodle__buffer_8h.html" title="Grow-only float buffers used by NoodleBuffer convolution overloads.">noodle_buffer.h</a></span>: grow-only Noodle-owned float buffers used by buffer-based convolution overloads.</li>
 <li><span class="tt"><a class="el" href="noodle__config_8h.html">noodle_config.h</a></span>: compile-time backend, file-format, pooling, and scratch sizing macros.</li>
 <li><span class="tt"><a class="el" href="noodle__fs_8h.html">noodle_fs.h</a></span>: filesystem backend abstraction, path normalization, file handle type, and open/remove/seek helpers.</li>
 </ul>
 <p>Implementation files:</p>
 <ul>
 <li><span class="tt"><a class="el" href="noodle__io_8cpp.html" title="Noodle file/storage I/O helpers.">noodle_io.cpp</a></span>: filesystem initialization and scalar/tensor file I/O.</li>
-<li><span class="tt"><a class="el" href="noodle__memory_8cpp.html" title="Noodle memory access management helpers.">noodle_memory.cpp</a></span>: buffer allocation, slicing, and temporary buffer setup.</li>
-<li><span class="tt"><a class="el" href="noodle__conv_8cpp.html" title="Public convolution layer wrappers: Conv1D, Conv2D, and ConvTranspose2D.">noodle_conv.cpp</a></span>: public Conv1D, Conv2D, Conv2DTranspose, and PROGMEM Conv2D wrappers.</li>
-<li><span class="tt"><a class="el" href="noodle__dw_8cpp.html" title="Depthwise convolution operators.">noodle_dw.cpp</a></span>: public depthwise-convolution wrappers.</li>
+<li><span class="tt"><a class="el" href="noodle__memory_8cpp.html" title="Noodle memory access management helpers.">noodle_memory.cpp</a></span>: raw buffer helpers, slicing, and global convolution scratch-buffer management.</li>
+<li><span class="tt"><a class="el" href="noodle__buffer_8cpp.html" title="Grow-only NoodleBuffer allocation helpers.">noodle_buffer.cpp</a></span>: grow-only <span class="tt"><a class="el" href="structNoodleBuffer.html" title="Grow-only float buffer managed by Noodle.">NoodleBuffer</a></span> allocation helpers.</li>
+<li><span class="tt"><a class="el" href="noodle__conv_8cpp.html" title="Public convolution layer wrappers: Conv1D, Conv2D, and ConvTranspose2D.">noodle_conv.cpp</a></span>: public Conv1D, Conv2D, Conv2DTranspose, and PROGMEM Conv2D wrappers, including <span class="tt"><a class="el" href="structNoodleBuffer.html" title="Grow-only float buffer managed by Noodle.">NoodleBuffer</a></span> wrappers for 2D/transpose convolution.</li>
+<li><span class="tt"><a class="el" href="noodle__dw_8cpp.html" title="Depthwise convolution operators.">noodle_dw.cpp</a></span>: public depthwise-convolution wrappers, including <span class="tt"><a class="el" href="structNoodleBuffer.html" title="Grow-only float buffer managed by Noodle.">NoodleBuffer</a></span> wrappers.</li>
 <li><span class="tt"><a class="el" href="noodle__fcn_8cpp.html" title="Fully connected layers.">noodle_fcn.cpp</a></span>: dense/fully connected overloads, including file-backed, memory-backed, and PROGMEM-backed parameter paths.</li>
 <li><span class="tt"><a class="el" href="noodle__shape_8cpp.html" title="Tensor-to-vector transforms: flatten, reshape, GAP, and GMP.">noodle_shape.cpp</a></span>: flatten, reshape, global average pooling, and global max pooling helpers.</li>
 <li><span class="tt"><a class="el" href="noodle__math_8cpp.html" title="Reusable math and numeric helper primitives.">noodle_math.cpp</a></span>: dot products, activations, max search, rank-specific batch normalization, and backward-compatible BN aliases.</li>
-<li><span class="tt"><a class="el" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files.">noodle_internal.h</a></span> and <span class="tt"><a class="el" href="noodle__internal_8cpp.html" title="Private shared globals and helpers for Noodle implementation files.">noodle_internal.cpp</a></span>: private shared declarations, temporary-buffer globals, low-level convolution/pooling kernels, shape formulas, and implementation helpers.</li>
+<li><span class="tt"><a class="el" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files.">noodle_internal.h</a></span> and <span class="tt"><a class="el" href="noodle__internal_8cpp.html" title="Private shared globals and helpers for Noodle implementation files.">noodle_internal.cpp</a></span>: private shared declarations, global scratch-buffer state, low-level convolution/pooling kernels, shape formulas, raw tensor/activation helpers, and implementation helpers.</li>
 </ul>
 <p>Application code should not include <span class="tt"><a class="el" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files.">noodle_internal.h</a></span>; it is only for Noodle's implementation files.</p>
 <h2 class="doxsection"><a class="anchor" id="autotoc_md4"></a>
@@ -169,9 +171,9 @@ Data Layout Conventions</h2>
 </ul>
 <p>HWC-like flatten layout:</p>
 <ul>
-<li><span class="tt"><a class="el" href="group__noodle__public.html#ga00eae91c6064d79c299a3a5893db967f" title="Flatten a packed file tensor into HWC-like memory order.">noodle_flat()</a></span> writes pixel-major interleaved channels.</li>
+<li><span class="tt"><a class="el" href="group__noodle__public.html#ga9875f0b03c550fa4ca0421969d53fc7e" title="Flatten a packed file tensor into a NoodleBuffer.">noodle_flat()</a></span> writes pixel-major interleaved channels.</li>
 <li>The output index is <span class="tt">out[(y * W + x) * C + c]</span>.</li>
-<li><span class="tt"><a class="el" href="group__noodle__public.html#gaa0bc285b257edbfd9553229e5144e378" title="Convert HWC-like memory order into packed channel-first tensor order.">noodle_reshape()</a></span> converts that HWC-like order back to packed <span class="tt">[C][W][W]</span> channel-first order for square tensors.</li>
+<li><span class="tt"><a class="el" href="group__noodle__public.html#gab861616e39d31c20b10f849446a19c78" title="Convert HWC-like NoodleBuffer data to packed channel-first data.">noodle_reshape()</a></span> converts that HWC-like order back to packed <span class="tt">[C][W][W]</span> channel-first order for square tensors.</li>
 </ul>
 <p>When mixing streaming and in-memory operations, make sure each step expects the layout produced by the previous step.</p>
 <h2 class="doxsection"><a class="anchor" id="autotoc_md5"></a>
@@ -195,7 +197,7 @@ Noodle And TFLite Micro Mental Models</h2>
 <h1 class="doxsection"><a class="anchor" id="autotoc_md6"></a>
 Compile-Time Configuration</h1>
 <p>Configuration lives in <span class="tt"><a class="el" href="noodle__config_8h.html">noodle_config.h</a></span>.</p>
-<p>Select exactly one filesystem backend before including <span class="tt"><a class="el" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming.">noodle.h</a></span>:</p>
+<p>Select exactly one filesystem backend before including <span class="tt"><a class="el" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers.">noodle.h</a></span>:</p>
 <ul>
 <li><span class="tt"><a class="el" href="noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7">NOODLE_USE_SDFAT</a></span></li>
 <li><span class="tt">NOODLE_USE_SD_MMC</span></li>
@@ -217,8 +219,8 @@ Compile-Time Configuration</h1>
 <li><span class="tt"><a class="el" href="noodle__config_8h.html#a86f97e6409186eb3a8902cb43c45891c">NOODLE_POOL_MEAN</a></span></li>
 </ul>
 <p>The 1D pooling helper performs max pooling.</p>
-<p>Fully connected file reads can be tuned with <span class="tt"><a class="el" href="noodle__config_8h.html#a60433b012233746b26eab3a83d45cd33" title="Number of float weights buffered per file-backed FCN read block.">NOODLE_FCN_BLOCK</a></span>. Float-input fully connected layers with <span class="tt"><a class="el" href="structFCNFile.html" title="File-backed fully-connected parameter bundle.">FCNFile</a></span> parameters read weights in chunks of up to that many floats. In binary mode the chunk is read as raw float32 data; in text mode the same chunk is filled by parsing one scalar at a time. The default is 128 floats, which uses <span class="tt"><a class="el" href="noodle__config_8h.html#a60433b012233746b26eab3a83d45cd33" title="Number of float weights buffered per file-backed FCN read block.">NOODLE_FCN_BLOCK</a> * sizeof(float)</span> bytes of stack for the weight buffer.</p>
-<p>Convolution and depthwise-convolution paths copy one kernel into stack scratch using <span class="tt"><a class="el" href="noodle__config_8h.html#a2efa90f3c4f4214695a9936467ba4ccc">NOODLE_MAX_K</a></span>. Set it to the largest kernel width used by the firmware; the default is 5.</p>
+<p>Fully connected file reads can be tuned with <span class="tt"><a class="el" href="noodle__config_8h.html#a60433b012233746b26eab3a83d45cd33" title="Number of float weights buffered per file-backed FCN read block.">NOODLE_FCN_BLOCK</a></span>. Float-input fully connected layers with <span class="tt"><a class="el" href="structFCNFile.html" title="File-backed fully connected parameter bundle alias.">FCNFile</a></span> parameters read weights in chunks of up to that many floats. In binary mode the chunk is read as raw float32 data; in text mode the same chunk is filled by parsing one scalar at a time. The default is 128 floats, which uses <span class="tt"><a class="el" href="noodle__config_8h.html#a60433b012233746b26eab3a83d45cd33" title="Number of float weights buffered per file-backed FCN read block.">NOODLE_FCN_BLOCK</a> * sizeof(float)</span> bytes of stack for the weight buffer.</p>
+<p>Convolution and depthwise-convolution paths copy one kernel into stack scratch using <span class="tt"><a class="el" href="noodle__config_8h.html#a2efa90f3c4f4214695a9936467ba4ccc" title="Largest convolution kernel width copied into fixed stack scratch.">NOODLE_MAX_K</a></span>. Set it to the largest kernel width used by the firmware; the default is 5.</p>
 <h1 class="doxsection"><a class="anchor" id="autotoc_md7"></a>
 Tensor And Parameter Layouts</h1>
 <p>Unless an API says otherwise, Noodle uses channel-first packed storage.</p>
@@ -239,37 +241,44 @@ Tensor And Parameter Layouts</h1>
 </ul>
 <p>File-backed fully connected layers consume weights sequentially in <span class="tt">[O][I]</span> order. The float-input variants use block reads for the weight stream, but the file layout does not change.</p>
 <p>PROGMEM-backed convolution and fully connected parameter structs use the same packed layouts as their memory-backed equivalents.</p>
-<p><span class="tt"><a class="el" href="group__noodle__public.html#ga00eae91c6064d79c299a3a5893db967f" title="Flatten a packed file tensor into HWC-like memory order.">noodle_flat()</a></span> is the main layout conversion helper. It reads packed <span class="tt">[C][V][V]</span> input and writes HWC-like spatial-major output:</p>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md8"></a>
+Conv2DTranspose Output Sizing</h2>
+<p>Noodle's transpose-convolution API is memory-backed and uses the same <span class="tt">[O][I][K][K]</span> kernel layout as normal Conv2D. The exporter can convert the kernel layout, but the firmware still chooses the layer geometry through <span class="tt">K</span>, <span class="tt">P</span>, <span class="tt">S</span>, and <span class="tt">OP</span>.</p>
+<p>For explicit symmetric padding, <span class="tt">OP</span> is user-computed from the desired output width:</p>
+<div class="fragment"><div class="line">V = (W - 1) * S - 2 * P + K + OP</div>
+</div><!-- fragment --><p>Equivalently, after choosing the desired <span class="tt">V</span>, solve:</p>
+<div class="fragment"><div class="line">OP = V - ((W - 1) * S - 2 * P + K)</div>
+</div><!-- fragment --><p><span class="tt">OP</span> should normally be in the range <span class="tt">[0, S - 1]</span>, matching common transpose-convolution conventions. When <span class="tt">P = 65535</span>, Noodle uses Keras/TF-style SAME sizing for transpose convolution: <span class="tt">V = W * S</span>, and the helper derives the asymmetric crop internally.</p>
+<p><span class="tt"><a class="el" href="group__noodle__public.html#ga9875f0b03c550fa4ca0421969d53fc7e" title="Flatten a packed file tensor into a NoodleBuffer.">noodle_flat()</a></span> is the main layout conversion helper. It reads packed <span class="tt">[C][V][V]</span> input and writes HWC-like spatial-major output:</p>
 <div class="fragment"><div class="line">output[pixel * C + channel]</div>
-</div><!-- fragment --><p><span class="tt"><a class="el" href="group__noodle__public.html#gaa0bc285b257edbfd9553229e5144e378" title="Convert HWC-like memory order into packed channel-first tensor order.">noodle_reshape()</a></span> performs the inverse memory layout conversion for square tensors. It reads HWC-like spatial-major input and writes packed channel-first output:</p>
+</div><!-- fragment --><p><span class="tt"><a class="el" href="group__noodle__public.html#gab861616e39d31c20b10f849446a19c78" title="Convert HWC-like NoodleBuffer data to packed channel-first data.">noodle_reshape()</a></span> performs the inverse memory layout conversion for square tensors. It reads HWC-like spatial-major input and writes packed channel-first output:</p>
 <div class="fragment"><div class="line">dst_chw[channel * W * W + pixel] = src_hwc[pixel * C + channel]</div>
 </div><!-- fragment --><p>Batch normalization is explicit about tensor rank:</p>
 <ul>
-<li><span class="tt"><a class="el" href="group__noodle__public.html#ga1d8755c957357c0ef2663058b560e596" title="Apply 1D batch normalization to a vector in place.">noodle_bn1d()</a></span> and <span class="tt"><a class="el" href="group__noodle__public.html#ga5bbcee45a252b3620867f308fd3fd38e" title="Apply 1D batch normalization followed by ReLU in place.">noodle_bn1d_relu()</a></span> operate on packed <span class="tt">[N]</span> vectors after FCN/Dense layers, GAP/GMP, or flatten-like outputs.</li>
-<li><span class="tt"><a class="el" href="group__noodle__public.html#gad19f5fd8ad6bdbcbe691f72af6438b9d" title="Apply 2D channel-wise batch normalization to a packed tensor in place.">noodle_bn2d()</a></span> and <span class="tt"><a class="el" href="group__noodle__public.html#ga2af23a847b7e4fab0546732199a9c048" title="Apply 2D channel-wise batch normalization followed by ReLU in place.">noodle_bn2d_relu()</a></span> operate on packed <span class="tt">[C][W][W]</span> channel-first tensors after Conv2D, depthwise Conv2D, or pointwise Conv2D.</li>
-<li><span class="tt"><a class="el" href="group__noodle__public.html#gaf660760aea8b471c05150148efdd52dd" title="Backward-compatible alias for noodle_bn2d().">noodle_bn()</a></span> and <span class="tt"><a class="el" href="group__noodle__public.html#ga4a17bb02687be3b04b6486e0dca93a02" title="Backward-compatible alias for noodle_bn2d_relu().">noodle_bn_relu()</a></span> remain as backward-compatible aliases for the old 2D channel-first behavior.</li>
+<li><span class="tt"><a class="el" href="group__noodle__public.html#ga3e343762de2933035964551ff1a78241" title="Apply 1D batch normalization in place to a NoodleBuffer vector.">noodle_bn1d()</a></span> and <span class="tt"><a class="el" href="group__noodle__public.html#gafca43f92df95ba22953b859126cc73ea" title="Apply 1D batch normalization followed by ReLU in place.">noodle_bn1d_relu()</a></span> operate on packed <span class="tt">[N]</span> vectors after FCN/Dense layers, GAP/GMP, or flatten-like outputs.</li>
+<li><span class="tt"><a class="el" href="group__noodle__public.html#ga0d20b9b295023777a7795712705363df" title="Apply 2D channel-wise batch normalization in place.">noodle_bn2d()</a></span> and <span class="tt"><a class="el" href="group__noodle__public.html#gad03fc4dc2c54da11871c17fccb27623b" title="Apply 2D channel-wise batch normalization followed by ReLU.">noodle_bn2d_relu()</a></span> operate on packed <span class="tt">[C][W][W]</span> channel-first tensors after Conv2D, depthwise Conv2D, or pointwise Conv2D.</li>
+<li><span class="tt"><a class="el" href="group__noodle__public.html#gac5d8887b9d986df0d69895d43e40d4b1" title="Backward-compatible alias for noodle_bn2d().">noodle_bn()</a></span> and <span class="tt"><a class="el" href="group__noodle__public.html#gaf17b42b996e0cf476a694894f0da2897" title="Backward-compatible alias for noodle_bn2d_relu().">noodle_bn_relu()</a></span> remain as backward-compatible aliases for the old 2D channel-first behavior.</li>
 </ul>
-<h1 class="doxsection"><a class="anchor" id="autotoc_md8"></a>
-Temporary Buffers</h1>
-<p>Some convolution overloads reuse caller-owned temporary buffers. Configure them with <span class="tt"><a class="el" href="group__noodle__public.html#gab3c8dde05163bd8f802c2f6268c705d2" title="Configure both reusable temporary buffers for convolution operations.">noodle_setup_temp_buffers()</a></span> before calling the overloads that require scratch space.</p>
-<p>Common buffer roles:</p>
-<ul>
-<li>Buffer 1: input scratch for file-backed input planes or sequences.</li>
-<li>Buffer 2: accumulation scratch for a pre-pooling output plane or sequence.</li>
-</ul>
-<p>Common sizes:</p>
-<ul>
-<li>2D input scratch: <span class="tt">W * W</span> input values.</li>
-<li>2D accumulation scratch: <span class="tt">Vconv * Vconv</span> floats, where <span class="tt">Vconv = noodle_compute_V(K, W, P, S)</span>.</li>
-<li>1D input scratch: <span class="tt">W</span> floats.</li>
-<li>1D accumulation scratch: <span class="tt">W</span> floats in the current 1D convolution overloads.</li>
-</ul>
-<p>Buffers are not owned by Noodle. The library stores raw pointers to them, so the buffers must remain valid for every call that uses them.</p>
 <h1 class="doxsection"><a class="anchor" id="autotoc_md9"></a>
+Buffers And Scratch Space</h1>
+<p>Noodle has two different buffer concepts:</p>
+<ul>
+<li>Internal convolution scratch buffers are managed globally by Noodle.</li>
+<li>Application tensor buffers are either caller-owned raw <span class="tt">float *</span> arrays or Noodle-owned <span class="tt"><a class="el" href="structNoodleBuffer.html" title="Grow-only float buffer managed by Noodle.">NoodleBuffer</a></span> descriptors.</li>
+</ul>
+<p>Convolution and depthwise-convolution overloads now request their internal scratch space on demand. Noodle allocates the global scratch buffers when first needed, grows them when a larger layer requires more space, and reuses them for later calls. Call <span class="tt"><a class="el" href="group__noodle__public.html#gaf786de860af8faecf4be34c989d2d61f" title="Release automatically allocated internal scratch buffers.">noodle_temp_buffers_free()</a></span> when the application wants to release automatically allocated scratch memory.</p>
+<p>The legacy <span class="tt"><a class="el" href="group__noodle__public.html#gab3c8dde05163bd8f802c2f6268c705d2" title="Install caller-owned internal scratch buffers.">noodle_setup_temp_buffers()</a></span> calls still exist for sketches that want to provide fixed external scratch buffers. When those pointers are installed, Noodle uses them as-is and does not resize or free them because their capacity is unknown. Make sure manually installed buffers are large enough for every layer that will use them.</p>
+<p>Common internal scratch roles:</p>
+<ul>
+<li>Temp 1: input scratch for file-backed input planes or sequences.</li>
+<li>Temp 2: accumulation scratch for a pre-pooling output plane or sequence.</li>
+</ul>
+<p>For application tensors, raw-pointer overloads expect the caller to provide correctly sized input and output arrays. <span class="tt"><a class="el" href="structNoodleBuffer.html" title="Grow-only float buffer managed by Noodle.">NoodleBuffer</a></span> overloads are the grow-only alternative: initialize a descriptor with <span class="tt"><a class="el" href="group__noodle__public.html#gaad948d5ab1af7bd8083d14c601c762b3" title="Initialize a NoodleBuffer.">noodle_buffer_init()</a></span>, pass it to supported convolution calls, and free it with <span class="tt"><a class="el" href="group__noodle__public.html#ga7d38f9ecbdabfe04029b1bae0a3fe399" title="Release a NoodleBuffer.">noodle_buffer_free()</a></span> when the tensor storage is no longer needed. A <span class="tt"><a class="el" href="structNoodleBuffer.html" title="Grow-only float buffer managed by Noodle.">NoodleBuffer</a></span> owns only memory allocated by Noodle and tracks capacity in float elements.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md10"></a>
 Quick Start</h1>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md10"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md11"></a>
 1. Select A Filesystem Backend</h2>
-<p>Enable a backend using build flags or preprocessor definitions before including <span class="tt"><a class="el" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming.">noodle.h</a></span>. The exact build flag syntax depends on your platform or build system.</p>
+<p>Enable a backend using build flags or preprocessor definitions before including <span class="tt"><a class="el" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers.">noodle.h</a></span>. The exact build flag syntax depends on your platform or build system.</p>
 <ul>
 <li>SD via SdFat: <span class="tt"><a class="el" href="noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7">NOODLE_USE_SDFAT</a></span></li>
 <li>SD_MMC: <span class="tt">NOODLE_USE_SD_MMC</span></li>
@@ -282,26 +291,36 @@ Quick Start</h1>
 <div class="fragment"><div class="line"><span class="preprocessor">#define NOODLE_USE_FFAT</span></div>
 <div class="line"><span class="preprocessor">#define NOODLE_FILE_FORMAT NOODLE_FILE_FORMAT_BIN</span></div>
 <div class="line"><span class="preprocessor">#include &quot;<a class="code" href="noodle_8h.html">noodle.h</a>&quot;</span></div>
-<div class="ttc" id="anoodle_8h_html"><div class="ttname"><a href="noodle_8h.html">noodle.h</a></div><div class="ttdoc">Tiny CNN/ML primitives for microcontrollers with optional file streaming.</div></div>
+<div class="ttc" id="anoodle_8h_html"><div class="ttname"><a href="noodle_8h.html">noodle.h</a></div><div class="ttdoc">Public Noodle API for small CNN/ML inference on microcontrollers.</div></div>
 </div><!-- fragment --><p>Initialize storage when a real filesystem backend is used:</p>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (!<a class="code hl_function" href="group__noodle__public.html#gaabe620d47e91c1e479cadcd733407b29">noodle_fs_init</a>()) {</div>
 <div class="line">  <span class="comment">// Handle storage initialization failure.</span></div>
 <div class="line">}</div>
-<div class="ttc" id="agroup__noodle__public_html_gaabe620d47e91c1e479cadcd733407b29"><div class="ttname"><a href="group__noodle__public.html#gaabe620d47e91c1e479cadcd733407b29">noodle_fs_init</a></div><div class="ttdeci">bool noodle_fs_init()</div><div class="ttdoc">Initialize the selected filesystem backend with default settings.</div><div class="ttdef"><b>Definition</b> noodle_io.cpp:88</div></div>
-</div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="autotoc_md11"></a>
-2. Provide Working Buffers</h2>
-<p>Noodle relies on a small number of reusable temporary buffers, typically two, that are shared across layer calls. This approach stabilizes peak memory usage, but it introduces several constraints:</p>
-<ul>
-<li>Buffers must be allocated and sized appropriately.</li>
-<li>Calls that share those buffers are not re-entrant.</li>
-<li>Concurrent use from multiple threads is not supported without external isolation.</li>
-</ul>
-<p>In RTOS-based systems, treat Noodle as a single-threaded worker unless separate pipelines and buffers are provided.</p>
-<div class="fragment"><div class="line"><span class="keywordtype">float</span> *b1 = (<span class="keywordtype">float</span> *)malloc(W * W * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>));</div>
-<div class="line"><span class="keywordtype">float</span> *b2 = (<span class="keywordtype">float</span> *)malloc(Vconv * Vconv * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>));</div>
-<div class="line"><a class="code hl_function" href="group__noodle__public.html#gab3c8dde05163bd8f802c2f6268c705d2">noodle_setup_temp_buffers</a>(b1, b2);</div>
-<div class="ttc" id="agroup__noodle__public_html_gab3c8dde05163bd8f802c2f6268c705d2"><div class="ttname"><a href="group__noodle__public.html#gab3c8dde05163bd8f802c2f6268c705d2">noodle_setup_temp_buffers</a></div><div class="ttdeci">void noodle_setup_temp_buffers(void *b1, void *b2)</div><div class="ttdoc">Configure both reusable temporary buffers for convolution operations.</div><div class="ttdef"><b>Definition</b> noodle_memory.cpp:21</div></div>
+<div class="ttc" id="agroup__noodle__public_html_gaabe620d47e91c1e479cadcd733407b29"><div class="ttname"><a href="group__noodle__public.html#gaabe620d47e91c1e479cadcd733407b29">noodle_fs_init</a></div><div class="ttdeci">bool noodle_fs_init()</div><div class="ttdoc">Initialize the selected filesystem backend with default settings.</div><div class="ttdef"><b>Definition</b> noodle_io.cpp:89</div></div>
 </div><!-- fragment --><h2 class="doxsection"><a class="anchor" id="autotoc_md12"></a>
+2. Prepare Tensor Storage</h2>
+<p>Noodle allocates convolution scratch space automatically. For layer inputs and outputs, either provide raw arrays with enough room for the expected tensor shape, or use <span class="tt"><a class="el" href="structNoodleBuffer.html" title="Grow-only float buffer managed by Noodle.">NoodleBuffer</a></span> for grow-only Noodle-owned tensor storage.</p>
+<div class="fragment"><div class="line"><a class="code hl_struct" href="structNoodleBuffer.html">NoodleBuffer</a> feat_a;</div>
+<div class="line"><a class="code hl_struct" href="structNoodleBuffer.html">NoodleBuffer</a> feat_b;</div>
+<div class="line"> </div>
+<div class="line"><a class="code hl_function" href="group__noodle__public.html#gaad948d5ab1af7bd8083d14c601c762b3">noodle_buffer_init</a>(&amp;feat_a);</div>
+<div class="line"><a class="code hl_function" href="group__noodle__public.html#gaad948d5ab1af7bd8083d14c601c762b3">noodle_buffer_init</a>(&amp;feat_b);</div>
+<div class="line"> </div>
+<div class="line"><span class="keywordtype">float</span> *input = <a class="code hl_function" href="group__noodle__public.html#gaad5eb8af08fa63b1db4058557935449b">noodle_buffer_require</a>(&amp;feat_a, W * W);</div>
+<div class="line"><span class="comment">// Fill input with one packed [1][W][W] feature map.</span></div>
+<div class="line"><span class="comment">// Later, pass &amp;feat_a and &amp;feat_b to NoodleBuffer convolution overloads.</span></div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// At shutdown or when the tensors are no longer needed:</span></div>
+<div class="line"><a class="code hl_function" href="group__noodle__public.html#ga7d38f9ecbdabfe04029b1bae0a3fe399">noodle_buffer_free</a>(&amp;feat_a);</div>
+<div class="line"><a class="code hl_function" href="group__noodle__public.html#ga7d38f9ecbdabfe04029b1bae0a3fe399">noodle_buffer_free</a>(&amp;feat_b);</div>
+<div class="line"><a class="code hl_function" href="group__noodle__public.html#gaf786de860af8faecf4be34c989d2d61f">noodle_temp_buffers_free</a>();</div>
+<div class="ttc" id="agroup__noodle__public_html_ga7d38f9ecbdabfe04029b1bae0a3fe399"><div class="ttname"><a href="group__noodle__public.html#ga7d38f9ecbdabfe04029b1bae0a3fe399">noodle_buffer_free</a></div><div class="ttdeci">void noodle_buffer_free(NoodleBuffer *buf)</div><div class="ttdoc">Release a NoodleBuffer.</div><div class="ttdef"><b>Definition</b> noodle_buffer.cpp:68</div></div>
+<div class="ttc" id="agroup__noodle__public_html_gaad5eb8af08fa63b1db4058557935449b"><div class="ttname"><a href="group__noodle__public.html#gaad5eb8af08fa63b1db4058557935449b">noodle_buffer_require</a></div><div class="ttdeci">float * noodle_buffer_require(NoodleBuffer *buf, size_t required_floats)</div><div class="ttdoc">Ensure that a buffer can hold at least required_floats floats.</div><div class="ttdef"><b>Definition</b> noodle_buffer.cpp:42</div></div>
+<div class="ttc" id="agroup__noodle__public_html_gaad948d5ab1af7bd8083d14c601c762b3"><div class="ttname"><a href="group__noodle__public.html#gaad948d5ab1af7bd8083d14c601c762b3">noodle_buffer_init</a></div><div class="ttdeci">void noodle_buffer_init(NoodleBuffer *buf)</div><div class="ttdoc">Initialize a NoodleBuffer.</div><div class="ttdef"><b>Definition</b> noodle_buffer.cpp:35</div></div>
+<div class="ttc" id="agroup__noodle__public_html_gaf786de860af8faecf4be34c989d2d61f"><div class="ttname"><a href="group__noodle__public.html#gaf786de860af8faecf4be34c989d2d61f">noodle_temp_buffers_free</a></div><div class="ttdeci">void noodle_temp_buffers_free(void)</div><div class="ttdoc">Release automatically allocated internal scratch buffers.</div><div class="ttdef"><b>Definition</b> noodle_memory.cpp:75</div></div>
+<div class="ttc" id="astructNoodleBuffer_html"><div class="ttname"><a href="structNoodleBuffer.html">NoodleBuffer</a></div><div class="ttdoc">Grow-only float buffer managed by Noodle.</div><div class="ttdef"><b>Definition</b> noodle_buffer.h:29</div></div>
+</div><!-- fragment --><p>The global scratch buffers and shared file handles mean Noodle calls are not re-entrant. In RTOS-based systems, treat a Noodle pipeline as a single-threaded worker unless you add external serialization.</p>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md13"></a>
 3. Construct A Processing Pipeline</h2>
 <p>Create a small explicit pipeline:</p>
 <div class="fragment"><div class="line"><a class="code hl_struct" href="structConv.html">Conv</a> conv1;</div>
@@ -316,10 +335,10 @@ Quick Start</h1>
 <div class="line">pool1.<a class="code hl_variable" href="structPool.html#a6f29bf9fa312ba89e61e5fbd2bedf9d5">M</a> = 2;</div>
 <div class="line">pool1.<a class="code hl_variable" href="structPool.html#af1194dd9b19245d3ff0e7f0a1991aadc">T</a> = 2;</div>
 <div class="line"> </div>
-<div class="line">uint16_t V = <a class="code hl_function" href="group__noodle__public.html#ga31bf8b8e6222200a0099ccefa27cbd8a">noodle_conv_float</a>(<span class="stringliteral">&quot;input.bin&quot;</span>, 1, 8, <span class="stringliteral">&quot;c1.bin&quot;</span>, W, conv1, pool1, NULL);</div>
+<div class="line">uint16_t V = <a class="code hl_function" href="group__noodle__public.html#ga00678d064898058d29705c7b8bb13ed3">noodle_conv_float</a>(<span class="stringliteral">&quot;input.bin&quot;</span>, 1, 8, <span class="stringliteral">&quot;c1.bin&quot;</span>, W, conv1, pool1, <a class="code hl_define" href="noodle_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4">NULL</a>);</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">float</span> flat[8 * V * V];</div>
-<div class="line"><a class="code hl_function" href="group__noodle__public.html#ga00eae91c6064d79c299a3a5893db967f">noodle_flat</a>(<span class="stringliteral">&quot;c1.bin&quot;</span>, flat, V, 8);</div>
+<div class="line"><a class="code hl_function" href="group__noodle__public.html#ga9875f0b03c550fa4ca0421969d53fc7e">noodle_flat</a>(<span class="stringliteral">&quot;c1.bin&quot;</span>, flat, V, 8);</div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">float</span> scores[10];</div>
 <div class="line"><a class="code hl_struct" href="structFCNFile.html">FCNFile</a> head;</div>
@@ -327,28 +346,29 @@ Quick Start</h1>
 <div class="line">head.<a class="code hl_variable" href="structFCNFile.html#a1c4e2bfdac6f38e676d7e15d630b3f1f">bias_fn</a> = <span class="stringliteral">&quot;b02.bin&quot;</span>;</div>
 <div class="line">head.<a class="code hl_variable" href="structFCNFile.html#a2663461bad77bd28ef2350042404e0fc">act</a> = <a class="code hl_enumvalue" href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0ba82ab757474d3b936d9d5a6f86ba1bebe">ACT_SOFTMAX</a>;</div>
 <div class="line"> </div>
-<div class="line"><a class="code hl_function" href="group__noodle__public.html#ga173bcc3844c49c58115ddc09ca144027">noodle_fcn</a>(flat, 8 * V * V, 10, scores, head, NULL);</div>
-<div class="ttc" id="agroup__noodle__public_html_ga00eae91c6064d79c299a3a5893db967f"><div class="ttname"><a href="group__noodle__public.html#ga00eae91c6064d79c299a3a5893db967f">noodle_flat</a></div><div class="ttdeci">uint16_t noodle_flat(const char *in_fn, float *output, uint16_t V, uint16_t n_filters)</div><div class="ttdoc">Flatten a packed file tensor into HWC-like memory order.</div><div class="ttdef"><b>Definition</b> noodle_shape.cpp:8</div></div>
-<div class="ttc" id="agroup__noodle__public_html_ga173bcc3844c49c58115ddc09ca144027"><div class="ttname"><a href="group__noodle__public.html#ga173bcc3844c49c58115ddc09ca144027">noodle_fcn</a></div><div class="ttdeci">uint16_t noodle_fcn(const int8_t *input, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, const FCNFile &amp;fcn, CBFPtr progress_cb=NULL)</div><div class="ttdoc">Run a memory-to-file fully-connected layer with int8 inputs.</div><div class="ttdef"><b>Definition</b> noodle_fcn.cpp:8</div></div>
-<div class="ttc" id="agroup__noodle__public_html_ga31bf8b8e6222200a0099ccefa27cbd8a"><div class="ttname"><a href="group__noodle__public.html#ga31bf8b8e6222200a0099ccefa27cbd8a">noodle_conv_float</a></div><div class="ttdeci">uint16_t noodle_conv_float(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, uint16_t W, const Conv &amp;conv, const Pool &amp;pool, CBFPtr progress_cb=NULL)</div><div class="ttdoc">Run file-to-file 2D convolution on float input feature maps.</div><div class="ttdef"><b>Definition</b> noodle_conv.cpp:508</div></div>
-<div class="ttc" id="agroup__noodle__public_html_gga88d663f0b33c1fa71023f6a108f22c0ba82ab757474d3b936d9d5a6f86ba1bebe"><div class="ttname"><a href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0ba82ab757474d3b936d9d5a6f86ba1bebe">ACT_SOFTMAX</a></div><div class="ttdeci">@ ACT_SOFTMAX</div><div class="ttdoc">Normalize a vector with softmax where supported.</div><div class="ttdef"><b>Definition</b> noodle.h:108</div></div>
-<div class="ttc" id="agroup__noodle__public_html_gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418"><div class="ttname"><a href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></div><div class="ttdeci">@ ACT_RELU</div><div class="ttdoc">Clamp negative values to zero.</div><div class="ttdef"><b>Definition</b> noodle.h:107</div></div>
-<div class="ttc" id="astructConv_html"><div class="ttname"><a href="structConv.html">Conv</a></div><div class="ttdoc">File-backed convolution parameters.</div><div class="ttdef"><b>Definition</b> noodle.h:120</div></div>
-<div class="ttc" id="astructConv_html_a06a4c1c303a0ed5689c44bc31a955e16"><div class="ttname"><a href="structConv.html#a06a4c1c303a0ed5689c44bc31a955e16">Conv::bias_fn</a></div><div class="ttdeci">const char * bias_fn</div><div class="ttdoc">Bias filename.</div><div class="ttdef"><b>Definition</b> noodle.h:127</div></div>
-<div class="ttc" id="astructConv_html_a0abad0da1a24d1df13b48ef82962741d"><div class="ttname"><a href="structConv.html#a0abad0da1a24d1df13b48ef82962741d">Conv::S</a></div><div class="ttdeci">uint16_t S</div><div class="ttdoc">Convolution stride.</div><div class="ttdef"><b>Definition</b> noodle.h:123</div></div>
-<div class="ttc" id="astructConv_html_a21fd6c93f78b47d6d6ab8a3d3c0a8e57"><div class="ttname"><a href="structConv.html#a21fd6c93f78b47d6d6ab8a3d3c0a8e57">Conv::P</a></div><div class="ttdeci">uint16_t P</div><div class="ttdoc">Zero padding per side; 65535 requests SAME-style 2D padding.</div><div class="ttdef"><b>Definition</b> noodle.h:122</div></div>
-<div class="ttc" id="astructConv_html_a453058405fc5099e675010dba2d0652a"><div class="ttname"><a href="structConv.html#a453058405fc5099e675010dba2d0652a">Conv::K</a></div><div class="ttdeci">uint16_t K</div><div class="ttdoc">Kernel size (K x K for 2D, K taps for 1D).</div><div class="ttdef"><b>Definition</b> noodle.h:121</div></div>
-<div class="ttc" id="astructConv_html_a79314a60c05e53973c1e96d8746f7cbb"><div class="ttname"><a href="structConv.html#a79314a60c05e53973c1e96d8746f7cbb">Conv::act</a></div><div class="ttdeci">Activation act</div><div class="ttdoc">Activation applied after adding bias.</div><div class="ttdef"><b>Definition</b> noodle.h:129</div></div>
-<div class="ttc" id="astructConv_html_a9080677ffe8d84ce042cf67230353cdd"><div class="ttname"><a href="structConv.html#a9080677ffe8d84ce042cf67230353cdd">Conv::weight_fn</a></div><div class="ttdeci">const char * weight_fn</div><div class="ttdoc">Weight filename.</div><div class="ttdef"><b>Definition</b> noodle.h:126</div></div>
-<div class="ttc" id="astructFCNFile_html"><div class="ttname"><a href="structFCNFile.html">FCNFile</a></div><div class="ttdoc">File-backed fully-connected parameter bundle.</div><div class="ttdef"><b>Definition</b> noodle.h:1270</div></div>
-<div class="ttc" id="astructFCNFile_html_a068939bf9b2edb60ea6c22faab4b5865"><div class="ttname"><a href="structFCNFile.html#a068939bf9b2edb60ea6c22faab4b5865">FCNFile::weight_fn</a></div><div class="ttdeci">const char * weight_fn</div><div class="ttdoc">Weight filename with row-major [O][I] values.</div><div class="ttdef"><b>Definition</b> noodle.h:1271</div></div>
-<div class="ttc" id="astructFCNFile_html_a1c4e2bfdac6f38e676d7e15d630b3f1f"><div class="ttname"><a href="structFCNFile.html#a1c4e2bfdac6f38e676d7e15d630b3f1f">FCNFile::bias_fn</a></div><div class="ttdeci">const char * bias_fn</div><div class="ttdoc">Bias filename with one scalar per output.</div><div class="ttdef"><b>Definition</b> noodle.h:1272</div></div>
-<div class="ttc" id="astructFCNFile_html_a2663461bad77bd28ef2350042404e0fc"><div class="ttname"><a href="structFCNFile.html#a2663461bad77bd28ef2350042404e0fc">FCNFile::act</a></div><div class="ttdeci">Activation act</div><div class="ttdoc">Activation applied after each output is computed.</div><div class="ttdef"><b>Definition</b> noodle.h:1273</div></div>
-<div class="ttc" id="astructPool_html"><div class="ttname"><a href="structPool.html">Pool</a></div><div class="ttdoc">Valid-pooling parameters.</div><div class="ttdef"><b>Definition</b> noodle.h:197</div></div>
-<div class="ttc" id="astructPool_html_a6f29bf9fa312ba89e61e5fbd2bedf9d5"><div class="ttname"><a href="structPool.html#a6f29bf9fa312ba89e61e5fbd2bedf9d5">Pool::M</a></div><div class="ttdeci">uint16_t M</div><div class="ttdoc">Pooling window size (M x M for 2D, M samples for 1D).</div><div class="ttdef"><b>Definition</b> noodle.h:198</div></div>
-<div class="ttc" id="astructPool_html_af1194dd9b19245d3ff0e7f0a1991aadc"><div class="ttname"><a href="structPool.html#af1194dd9b19245d3ff0e7f0a1991aadc">Pool::T</a></div><div class="ttdeci">uint16_t T</div><div class="ttdoc">Pooling stride.</div><div class="ttdef"><b>Definition</b> noodle.h:199</div></div>
+<div class="line"><a class="code hl_function" href="group__noodle__public.html#ga427b17291b2d9cb26a97a40ed1820a57">noodle_fcn</a>(flat, 8 * V * V, 10, scores, head, <a class="code hl_define" href="noodle_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4">NULL</a>);</div>
+<div class="ttc" id="agroup__noodle__public_html_ga00678d064898058d29705c7b8bb13ed3"><div class="ttname"><a href="group__noodle__public.html#ga00678d064898058d29705c7b8bb13ed3">noodle_conv_float</a></div><div class="ttdeci">uint16_t noodle_conv_float(const char *in_fn, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, uint16_t W, const Conv &amp;conv, const Pool &amp;pool, CBFPtr progress_cb=0)</div><div class="ttdoc">Run file-to-file 2D convolution on float input feature maps.</div><div class="ttdef"><b>Definition</b> noodle_conv.cpp:507</div></div>
+<div class="ttc" id="agroup__noodle__public_html_ga427b17291b2d9cb26a97a40ed1820a57"><div class="ttname"><a href="group__noodle__public.html#ga427b17291b2d9cb26a97a40ed1820a57">noodle_fcn</a></div><div class="ttdeci">uint16_t noodle_fcn(const int8_t *input, uint16_t n_inputs, uint16_t n_outputs, const char *out_fn, const FCNFile &amp;fcn, CBFPtr progress_cb=0)</div><div class="ttdoc">Run a fully connected layer from int8 memory to a file.</div><div class="ttdef"><b>Definition</b> noodle_fcn.cpp:9</div></div>
+<div class="ttc" id="agroup__noodle__public_html_ga9875f0b03c550fa4ca0421969d53fc7e"><div class="ttname"><a href="group__noodle__public.html#ga9875f0b03c550fa4ca0421969d53fc7e">noodle_flat</a></div><div class="ttdeci">uint16_t noodle_flat(const char *in_fn, NoodleBuffer *output, uint16_t V, uint16_t n_filters)</div><div class="ttdoc">Flatten a packed file tensor into a NoodleBuffer.</div><div class="ttdef"><b>Definition</b> noodle_shape.cpp:102</div></div>
+<div class="ttc" id="agroup__noodle__public_html_gga88d663f0b33c1fa71023f6a108f22c0ba82ab757474d3b936d9d5a6f86ba1bebe"><div class="ttname"><a href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0ba82ab757474d3b936d9d5a6f86ba1bebe">ACT_SOFTMAX</a></div><div class="ttdeci">@ ACT_SOFTMAX</div><div class="ttdoc">Normalize a final output vector where supported.</div><div class="ttdef"><b>Definition</b> noodle.h:97</div></div>
+<div class="ttc" id="agroup__noodle__public_html_gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418"><div class="ttname"><a href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></div><div class="ttdeci">@ ACT_RELU</div><div class="ttdoc">Clamp negative values to zero.</div><div class="ttdef"><b>Definition</b> noodle.h:96</div></div>
+<div class="ttc" id="anoodle_8h_html_a070d2ce7b6bb7e5c05602aa8c308d0c4"><div class="ttname"><a href="noodle_8h.html#a070d2ce7b6bb7e5c05602aa8c308d0c4">NULL</a></div><div class="ttdeci">#define NULL</div><div class="ttdef"><b>Definition</b> noodle.h:54</div></div>
+<div class="ttc" id="astructConv_html"><div class="ttname"><a href="structConv.html">Conv</a></div><div class="ttdoc">File-backed convolution parameter bundle.</div><div class="ttdef"><b>Definition</b> noodle.h:112</div></div>
+<div class="ttc" id="astructConv_html_a06a4c1c303a0ed5689c44bc31a955e16"><div class="ttname"><a href="structConv.html#a06a4c1c303a0ed5689c44bc31a955e16">Conv::bias_fn</a></div><div class="ttdeci">const char * bias_fn</div><div class="ttdoc">Bias filename.</div><div class="ttdef"><b>Definition</b> noodle.h:119</div></div>
+<div class="ttc" id="astructConv_html_a0abad0da1a24d1df13b48ef82962741d"><div class="ttname"><a href="structConv.html#a0abad0da1a24d1df13b48ef82962741d">Conv::S</a></div><div class="ttdeci">uint16_t S</div><div class="ttdoc">Convolution stride.</div><div class="ttdef"><b>Definition</b> noodle.h:115</div></div>
+<div class="ttc" id="astructConv_html_a21fd6c93f78b47d6d6ab8a3d3c0a8e57"><div class="ttname"><a href="structConv.html#a21fd6c93f78b47d6d6ab8a3d3c0a8e57">Conv::P</a></div><div class="ttdeci">uint16_t P</div><div class="ttdoc">Padding per side; 65535 requests SAME-style 2D padding.</div><div class="ttdef"><b>Definition</b> noodle.h:114</div></div>
+<div class="ttc" id="astructConv_html_a453058405fc5099e675010dba2d0652a"><div class="ttname"><a href="structConv.html#a453058405fc5099e675010dba2d0652a">Conv::K</a></div><div class="ttdeci">uint16_t K</div><div class="ttdoc">Kernel width, or tap count for 1D convolution.</div><div class="ttdef"><b>Definition</b> noodle.h:113</div></div>
+<div class="ttc" id="astructConv_html_a79314a60c05e53973c1e96d8746f7cbb"><div class="ttname"><a href="structConv.html#a79314a60c05e53973c1e96d8746f7cbb">Conv::act</a></div><div class="ttdeci">Activation act</div><div class="ttdoc">Activation applied after adding bias.</div><div class="ttdef"><b>Definition</b> noodle.h:121</div></div>
+<div class="ttc" id="astructConv_html_a9080677ffe8d84ce042cf67230353cdd"><div class="ttname"><a href="structConv.html#a9080677ffe8d84ce042cf67230353cdd">Conv::weight_fn</a></div><div class="ttdeci">const char * weight_fn</div><div class="ttdoc">Weight filename.</div><div class="ttdef"><b>Definition</b> noodle.h:118</div></div>
+<div class="ttc" id="astructFCNFile_html"><div class="ttname"><a href="structFCNFile.html">FCNFile</a></div><div class="ttdoc">File-backed fully connected parameter bundle alias.</div><div class="ttdef"><b>Definition</b> noodle.h:227</div></div>
+<div class="ttc" id="astructFCNFile_html_a068939bf9b2edb60ea6c22faab4b5865"><div class="ttname"><a href="structFCNFile.html#a068939bf9b2edb60ea6c22faab4b5865">FCNFile::weight_fn</a></div><div class="ttdeci">const char * weight_fn</div><div class="ttdoc">Weight filename with [O][I] values.</div><div class="ttdef"><b>Definition</b> noodle.h:228</div></div>
+<div class="ttc" id="astructFCNFile_html_a1c4e2bfdac6f38e676d7e15d630b3f1f"><div class="ttname"><a href="structFCNFile.html#a1c4e2bfdac6f38e676d7e15d630b3f1f">FCNFile::bias_fn</a></div><div class="ttdeci">const char * bias_fn</div><div class="ttdoc">Bias filename with one scalar per output.</div><div class="ttdef"><b>Definition</b> noodle.h:229</div></div>
+<div class="ttc" id="astructFCNFile_html_a2663461bad77bd28ef2350042404e0fc"><div class="ttname"><a href="structFCNFile.html#a2663461bad77bd28ef2350042404e0fc">FCNFile::act</a></div><div class="ttdeci">Activation act</div><div class="ttdoc">Activation applied after each output.</div><div class="ttdef"><b>Definition</b> noodle.h:230</div></div>
+<div class="ttc" id="astructPool_html"><div class="ttname"><a href="structPool.html">Pool</a></div><div class="ttdoc">Valid-pooling parameter bundle.</div><div class="ttdef"><b>Definition</b> noodle.h:198</div></div>
+<div class="ttc" id="astructPool_html_a6f29bf9fa312ba89e61e5fbd2bedf9d5"><div class="ttname"><a href="structPool.html#a6f29bf9fa312ba89e61e5fbd2bedf9d5">Pool::M</a></div><div class="ttdeci">uint16_t M</div><div class="ttdoc">Pool window size, M x M for 2D or M samples for 1D.</div><div class="ttdef"><b>Definition</b> noodle.h:199</div></div>
+<div class="ttc" id="astructPool_html_af1194dd9b19245d3ff0e7f0a1991aadc"><div class="ttname"><a href="structPool.html#af1194dd9b19245d3ff0e7f0a1991aadc">Pool::T</a></div><div class="ttdeci">uint16_t T</div><div class="ttdoc">Pool stride.</div><div class="ttdef"><b>Definition</b> noodle.h:200</div></div>
 </div><!-- fragment --><p>External storage acts as activation memory in streaming pipelines. For models that fit in RAM, use the memory-backed overloads and <span class="tt">.h</span> arrays instead.</p>
-<h1 class="doxsection"><a class="anchor" id="autotoc_md13"></a>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md14"></a>
 Export Workflow</h1>
 <p>Noodle is inference-only. Train with Keras, PyTorch, or another desktop framework, then export parameters into Noodle's layouts.</p>
 <p>The included <span class="tt">model_exporter.py</span> writes text scalar files and matching C/C++ headers:</p>
@@ -365,30 +385,31 @@ Export Workflow</h1>
 <li>Dense: Keras <span class="tt">(Din, Dout)</span> to Noodle <span class="tt">[O][I]</span></li>
 <li>Batch normalization: <span class="tt">[gamma][beta][mean][var]</span></li>
 </ul>
-<p>For models with Conv2DTranspose, prefer <span class="tt">exporter_model(model, out_dir)</span> so the exporter can distinguish transpose convolution kernels from regular Conv2D kernels. Keras Conv2DTranspose uses <span class="tt">(Kh, Kw, Cout, Cin)</span> and is exported to Noodle <span class="tt">[O][I][K][K]</span> without a spatial kernel flip.</p>
-<h1 class="doxsection"><a class="anchor" id="autotoc_md14"></a>
+<p>For models with Conv2DTranspose, prefer <span class="tt">exporter_model(model, out_dir)</span> so the exporter can distinguish transpose convolution kernels from regular Conv2D kernels. Keras Conv2DTranspose uses <span class="tt">(Kh, Kw, Cout, Cin)</span> and is exported to Noodle <span class="tt">[O][I][K][K]</span> without a spatial kernel flip. The exporter does not choose <span class="tt">OP</span>; set <span class="tt">conv.OP</span> in firmware from the intended transpose-convolution output size.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md15"></a>
 Documentation Map</h1>
 <p>The generated reference is organized around:</p>
 <ul>
 <li><a class="el" href="group__noodle__public.html">Public API</a>: application-facing structs, functions, and helpers.</li>
 <li><a class="el" href="group__noodle__fs.html">Filesystem Backend Layer</a>: filesystem backend types, path normalization, and file helpers.</li>
 <li><a class="el" href="group__noodle__internal.html">Internal Helpers</a>: lower-level routines documented for maintainers.</li>
-<li>Implementation Files: source-level implementation documentation.</li>
+<li><a class="el" href="group__noodle__api.html">Implementation Files</a>: source-level implementation documentation.</li>
 </ul>
-<p>Configuration macros are described in <span class="tt"><a class="el" href="noodle__config_8h.html">noodle_config.h</a></span>. When reading the implementation, start from the public declaration in <span class="tt"><a class="el" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming.">noodle.h</a></span>, then move to the matching refactored <span class="tt">.cpp</span> file; shared private pieces are declared in <span class="tt"><a class="el" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files.">noodle_internal.h</a></span>.</p>
-<h1 class="doxsection"><a class="anchor" id="autotoc_md15"></a>
+<p>Configuration macros are described in <span class="tt"><a class="el" href="noodle__config_8h.html">noodle_config.h</a></span>. When reading the implementation, start from the public declaration in <span class="tt"><a class="el" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers.">noodle.h</a></span>, then move to the matching refactored <span class="tt">.cpp</span> file; shared private pieces are declared in <span class="tt"><a class="el" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files.">noodle_internal.h</a></span>.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md16"></a>
 Limitations And Notes</h1>
 <ul>
-<li>Several helpers rely on shared file handles and shared temporary buffer pointers. Treat the library as non-reentrant unless you add external serialization.</li>
+<li>Several helpers rely on shared file handles and shared global scratch buffers. Treat the library as non-reentrant unless you add external serialization.</li>
 <li><span class="tt"><a class="el" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files.">noodle_internal.h</a></span> is private implementation surface and may change without preserving application-level compatibility.</li>
 <li>Path normalization for slash-requiring filesystems uses a static buffer.</li>
 <li>Many 2D APIs assume square feature maps (<span class="tt">W * W</span>) rather than rectangular tensors.</li>
-<li><span class="tt"><a class="el" href="noodle__config_8h.html#a2efa90f3c4f4214695a9936467ba4ccc">NOODLE_MAX_K</a></span> must be large enough for the largest convolution kernel copied into stack scratch.</li>
+<li><span class="tt"><a class="el" href="noodle__config_8h.html#a2efa90f3c4f4214695a9936467ba4ccc" title="Largest convolution kernel width copied into fixed stack scratch.">NOODLE_MAX_K</a></span> must be large enough for the largest convolution kernel copied into stack scratch.</li>
 <li>Explicit convolution padding uses one padding value per side. Passing <span class="tt">P = 65535</span> requests SAME-style output sizing, and the helper resolves the required top/left and bottom/right padding internally.</li>
+<li>For transpose convolution with explicit padding, <span class="tt">OP</span> is an output-size choice made by the caller: <span class="tt">V = (W - 1) * S - 2 * P + K + OP</span>.</li>
 <li>Pooling uses valid regions only; pooling layers do not add padding.</li>
 <li>File-backed execution can be I/O-bound on small boards. Binary scalar files are usually faster and smaller than text scalar files.</li>
 </ul>
-<h1 class="doxsection"><a class="anchor" id="autotoc_md16"></a>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md17"></a>
 Glossary</h1>
 <ul>
 <li>CHW: channel-first planar storage.</li>
@@ -399,7 +420,7 @@ Glossary</h1>
 <li><span class="tt">K</span>: kernel size.</li>
 <li><span class="tt">P</span>: padding.</li>
 <li><span class="tt">S</span>: stride.</li>
-<li><span class="tt">OP</span>: output padding for transpose convolution. </li>
+<li><span class="tt">OP</span>: user-computed output padding for transpose convolution. </li>
 </ul>
 </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>

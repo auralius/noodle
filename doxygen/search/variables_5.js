@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['noodle_5ffs_0',['NOODLE_FS',['../noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9',1,'NOODLE_FS:&#160;noodle_internal.cpp'],['../noodle__internal_8h.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9',1,'NOODLE_FS:&#160;noodle_internal.cpp']]]
+  ['k_0',['K',['../structConv.html#a453058405fc5099e675010dba2d0652a',1,'Conv::K'],['../structConvFile.html#aa01288fd8619eedb1b4cb6cdb386c7dc',1,'ConvFile::K'],['../structConvMem.html#a6bafbab7045ec208fdaaa88b1ed26e76',1,'ConvMem::K'],['../structConvProgmem.html#a581b641e90f4eb4ef52f0da3f7db139f',1,'ConvProgmem::K']]]
 ];

@@ -136,7 +136,7 @@ Functions</h2></td></tr>
 <p>Noodle reads and writes model tensors through a tiny common API so the same higher-level code can run on SdFat, SD_MMC, FFat, LittleFS, or with storage disabled. This header selects the backend-specific includes and exposes:</p>
 <ul>
 <li>NDL_File, the file-handle type used by the public API.</li>
-<li><span class="tt"><a class="el" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9">NOODLE_FS</a></span>, the selected filesystem object or singleton for real backends.</li>
+<li><span class="tt"><a class="el" href="noodle__internal_8cpp.html#ae7a5c8ccd2782283f68dd9fa5f8cacc9" title="SdFat filesystem object used by the SdFat backend.">NOODLE_FS</a></span>, the selected filesystem object or singleton for real backends.</li>
 <li><a class="el" href="#gae2aa969aab31cda295d25d16a61fdb1d" title="Open a file for reading using the selected backend.">noodle_fs_open_read()</a>, <a class="el" href="#gadf921fb8ac0e8ef8c1cd813727f6bb17" title="Open a file for writing using the selected backend.">noodle_fs_open_write()</a>, <a class="el" href="#ga5dbe4ec6d197b52e376b6eb666ddb6eb" title="Remove a file using the selected backend.">noodle_fs_remove()</a>, and <a class="el" href="#ga1a593eb3990e10577afd3528aa5848e2" title="Rewind a file handle to position 0.">noodle_rewind_file()</a>.</li>
 </ul>
 <p>Define exactly one backend macro before this header is included:</p>
@@ -147,7 +147,7 @@ Functions</h2></td></tr>
 <li><span class="tt">NOODLE_USE_LITTLEFS</span></li>
 <li><span class="tt">NOODLE_USE_NONE</span></li>
 </ul>
-<p>When using the main <span class="tt"><a class="el" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming.">noodle.h</a></span> entry point, <span class="tt"><a class="el" href="noodle__config_8h.html">noodle_config.h</a></span> is included first and selects <span class="tt"><a class="el" href="noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7">NOODLE_USE_SDFAT</a></span> by default if no backend macro is set. If this header is included directly, the caller must define one backend macro first.</p>
+<p>When using the main <span class="tt"><a class="el" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers.">noodle.h</a></span> entry point, <span class="tt"><a class="el" href="noodle__config_8h.html">noodle_config.h</a></span> is included first and selects <span class="tt"><a class="el" href="noodle__config_8h.html#ae0e6fddf43bb2f77b884d94088f091e7">NOODLE_USE_SDFAT</a></span> by default if no backend macro is set. If this header is included directly, the caller must define one backend macro first.</p>
 <h1 class="doxsection"><a class="anchor" id="noodle_fs_paths"></a>
 Path Normalization</h1>
 <p>Arduino filesystem APIs such as SD_MMC, FFat, and LittleFS expect paths with a leading slash, for example <span class="tt">"/w01.txt"</span>. SdFat commonly uses bare names, for example <span class="tt">"w01.txt"</span>. <a class="el" href="#gafe6e88826b205695ee88ad8879754e2a" title="Normalize a filename/path for the selected filesystem backend.">noodle_norm_filename()</a> applies this policy before open/remove calls.</p>

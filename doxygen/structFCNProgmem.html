@@ -106,23 +106,23 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>AVR PROGMEM-backed fully-connected parameter bundle.  
+<p>Far-PROGMEM fully connected parameter bundle for AVR.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="noodle_8h_source.html">noodle.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a0f37309cbe41e8f73c1e14d5866b92fe" id="r_a0f37309cbe41e8f73c1e14d5866b92fe"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f37309cbe41e8f73c1e14d5866b92fe">weight_far</a></td></tr>
+<tr class="memitem:a0f37309cbe41e8f73c1e14d5866b92fe" id="r_a0f37309cbe41e8f73c1e14d5866b92fe"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f37309cbe41e8f73c1e14d5866b92fe">weight_far</a> = 0</td></tr>
 <tr class="memdesc:a0f37309cbe41e8f73c1e14d5866b92fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Far flash address of row-major <span class="tt">[O][I]</span> weights.  <br /></td></tr>
-<tr class="memitem:ad57c7e81884518edd383b3b23d375ca9" id="r_ad57c7e81884518edd383b3b23d375ca9"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad57c7e81884518edd383b3b23d375ca9">bias_far</a></td></tr>
-<tr class="memdesc:ad57c7e81884518edd383b3b23d375ca9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Far flash address of output biases, or <span class="tt">0</span> for zero bias.  <br /></td></tr>
-<tr class="memitem:ae7e9deea0f5ef4200982d22bb101e106" id="r_ae7e9deea0f5ef4200982d22bb101e106"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7e9deea0f5ef4200982d22bb101e106">act</a></td></tr>
-<tr class="memdesc:ae7e9deea0f5ef4200982d22bb101e106"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> mode, using <a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a> values.  <br /></td></tr>
+<tr class="memitem:ad57c7e81884518edd383b3b23d375ca9" id="r_ad57c7e81884518edd383b3b23d375ca9"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad57c7e81884518edd383b3b23d375ca9">bias_far</a> = 0</td></tr>
+<tr class="memdesc:ad57c7e81884518edd383b3b23d375ca9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Far flash address of biases, or 0 for zero bias.  <br /></td></tr>
+<tr class="memitem:ae7e9deea0f5ef4200982d22bb101e106" id="r_ae7e9deea0f5ef4200982d22bb101e106"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7e9deea0f5ef4200982d22bb101e106">act</a> = <a class="el" href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></td></tr>
+<tr class="memdesc:ae7e9deea0f5ef4200982d22bb101e106"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> mode using <a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> values.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>AVR PROGMEM-backed fully-connected parameter bundle. </p>
-<p>Use this when fully-connected weights and optional biases are stored in AVR flash memory and must be read with <span class="tt">pgm_read_float_far()</span>. <span class="tt"><a class="el" href="#a0f37309cbe41e8f73c1e14d5866b92fe" title="Far flash address of row-major [O][I] weights.">weight_far</a></span> is a far flash address, typically produced with <span class="tt">pgm_get_far_address(weights)</span>, and points to row-major <span class="tt">[O][I]</span> float values. <span class="tt"><a class="el" href="#ad57c7e81884518edd383b3b23d375ca9" title="Far flash address of output biases, or 0 for zero bias.">bias_far</a></span> points to <code class="param">n_outputs</code> float biases, or is <span class="tt">0</span> to use zero bias. </p>
+<div class="textblock"><p>Far-PROGMEM fully connected parameter bundle for AVR. </p>
+<p><span class="tt"><a class="el" href="#a0f37309cbe41e8f73c1e14d5866b92fe" title="Far flash address of row-major [O][I] weights.">weight_far</a></span> and <span class="tt"><a class="el" href="#ad57c7e81884518edd383b3b23d375ca9" title="Far flash address of biases, or 0 for zero bias.">bias_far</a></span> are far flash addresses such as values produced by pgm_get_far_address(). On non-AVR targets, <a class="el" href="structFCNProgmem.html" title="Far-PROGMEM fully connected parameter bundle for AVR.">FCNProgmem</a> overloads compile but return 0. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ae7e9deea0f5ef4200982d22bb101e106" name="ae7e9deea0f5ef4200982d22bb101e106"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae7e9deea0f5ef4200982d22bb101e106">&#9670;&#160;</a></span>act</h2>
@@ -131,12 +131,12 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint8_t FCNProgmem::act</td>
+          <td class="memname">uint8_t FCNProgmem::act = <a class="el" href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> mode, using <a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a> values. </p>
+<p><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> mode using <a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> values. </p>
 
 </div>
 </div>
@@ -147,12 +147,12 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t FCNProgmem::bias_far</td>
+          <td class="memname">uint32_t FCNProgmem::bias_far = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Far flash address of output biases, or <span class="tt">0</span> for zero bias. </p>
+<p>Far flash address of biases, or 0 for zero bias. </p>
 
 </div>
 </div>
@@ -163,7 +163,7 @@ Public Attributes</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t FCNProgmem::weight_far</td>
+          <td class="memname">uint32_t FCNProgmem::weight_far = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -1,6 +1,6 @@
 <map id="noodle_config.h" name="noodle_config.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="494,5,606,32"/>
-<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="515,80,585,107"/>
+<area shape="rect" id="Node000002" href="$noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers." alt="" coords="515,80,585,107"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="551,46,552,81,548,78,548,50"/>
 <area shape="rect" id="Node000003" href="$noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files." alt="" coords="490,155,610,181"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="552,120,552,156,548,153,548,124"/>

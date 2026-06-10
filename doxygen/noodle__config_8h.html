@@ -111,7 +111,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="center"><img src="noodle__config_8h__dep__incl.png" border="0" usemap="#anoodle__config_8hdep" loading="lazy" alt=""/></div>
 <map name="anoodle__config_8hdep" id="anoodle__config_8hdep">
 <area shape="rect" title=" " alt="" coords="494,5,606,32"/>
-<area shape="rect" href="noodle_8h.html" title="Tiny CNN/ML primitives for microcontrollers with optional file streaming." alt="" coords="515,80,585,107"/>
+<area shape="rect" href="noodle_8h.html" title="Public Noodle API for small CNN/ML inference on microcontrollers." alt="" coords="515,80,585,107"/>
 <area shape="poly" title=" " alt="" coords="551,46,552,81,548,78,548,50"/>
 <area shape="rect" href="noodle__internal_8h.html" title="Private declarations shared by Noodle implementation files." alt="" coords="490,155,610,181"/>
 <area shape="poly" title=" " alt="" coords="552,120,552,156,548,153,548,124"/>
@@ -147,8 +147,9 @@ Macros</h2></td></tr>
 <tr class="memitem:a86f97e6409186eb3a8902cb43c45891c" id="r_a86f97e6409186eb3a8902cb43c45891c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a86f97e6409186eb3a8902cb43c45891c">NOODLE_POOL_MEAN</a>&#160;&#160;&#160;2</td></tr>
 <tr class="memitem:a0128fdde5fcaf1ea63c21ccc56628845" id="r_a0128fdde5fcaf1ea63c21ccc56628845"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0128fdde5fcaf1ea63c21ccc56628845">NOODLE_POOL_MODE</a>&#160;&#160;&#160;<a class="el" href="#a86f97e6409186eb3a8902cb43c45891c">NOODLE_POOL_MEAN</a></td></tr>
 <tr class="memitem:a60433b012233746b26eab3a83d45cd33" id="r_a60433b012233746b26eab3a83d45cd33"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60433b012233746b26eab3a83d45cd33">NOODLE_FCN_BLOCK</a>&#160;&#160;&#160;128</td></tr>
-<tr class="memdesc:a60433b012233746b26eab3a83d45cd33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of float weights buffered per file-backed <a class="el" href="structFCN.html" title="Legacy file-backed fully-connected parameter bundle.">FCN</a> read block.  <br /></td></tr>
+<tr class="memdesc:a60433b012233746b26eab3a83d45cd33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of float weights buffered per file-backed <a class="el" href="structFCN.html" title="File-backed fully connected parameter bundle.">FCN</a> read block.  <br /></td></tr>
 <tr class="memitem:a2efa90f3c4f4214695a9936467ba4ccc" id="r_a2efa90f3c4f4214695a9936467ba4ccc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2efa90f3c4f4214695a9936467ba4ccc">NOODLE_MAX_K</a>&#160;&#160;&#160;5</td></tr>
+<tr class="memdesc:a2efa90f3c4f4214695a9936467ba4ccc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Largest convolution kernel width copied into fixed stack scratch.  <br /></td></tr>
 </table>
 <a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
 <a id="a60433b012233746b26eab3a83d45cd33" name="a60433b012233746b26eab3a83d45cd33"></a>
@@ -163,7 +164,7 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Number of float weights buffered per file-backed <a class="el" href="structFCN.html" title="Legacy file-backed fully-connected parameter bundle.">FCN</a> read block. </p>
+<p>Number of float weights buffered per file-backed <a class="el" href="structFCN.html" title="File-backed fully connected parameter bundle.">FCN</a> read block. </p>
 <p>Used by float-input fully connected layers with <a class="el" href="structFCNFile.html">FCNFile</a> parameters. Binary file mode reads each block as raw float32 data; text file mode fills the same block by parsing scalar values one at a time. Higher values can reduce file read calls, but increase stack usage by <span class="tt"><a class="el" href="#a60433b012233746b26eab3a83d45cd33" title="Number of float weights buffered per file-backed FCN read block.">NOODLE_FCN_BLOCK</a> * sizeof(float)</span> bytes. </p>
 
 </div>
@@ -221,6 +222,9 @@ Macros</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Largest convolution kernel width copied into fixed stack scratch. </p>
+<p>Convolution and depthwise-convolution paths use stack arrays sized from this macro when copying one kernel at a time. Set it to the largest <span class="tt">K</span> used by the firmware. </p>
 
 </div>
 </div>

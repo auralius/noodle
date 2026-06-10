@@ -106,7 +106,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>File-backed fully-connected parameter bundle.  
+<p>File-backed fully connected parameter bundle alias.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="noodle_8h_source.html">noodle.h</a>&gt;</code></p>
@@ -114,15 +114,14 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a068939bf9b2edb60ea6c22faab4b5865" id="r_a068939bf9b2edb60ea6c22faab4b5865"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a068939bf9b2edb60ea6c22faab4b5865">weight_fn</a> = nullptr</td></tr>
-<tr class="memdesc:a068939bf9b2edb60ea6c22faab4b5865"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weight filename with row-major <span class="tt">[O][I]</span> values.  <br /></td></tr>
+<tr class="memdesc:a068939bf9b2edb60ea6c22faab4b5865"><td class="mdescLeft">&#160;</td><td class="mdescRight">Weight filename with <span class="tt">[O][I]</span> values.  <br /></td></tr>
 <tr class="memitem:a1c4e2bfdac6f38e676d7e15d630b3f1f" id="r_a1c4e2bfdac6f38e676d7e15d630b3f1f"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1c4e2bfdac6f38e676d7e15d630b3f1f">bias_fn</a> = nullptr</td></tr>
 <tr class="memdesc:a1c4e2bfdac6f38e676d7e15d630b3f1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bias filename with one scalar per output.  <br /></td></tr>
 <tr class="memitem:a2663461bad77bd28ef2350042404e0fc" id="r_a2663461bad77bd28ef2350042404e0fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b">Activation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2663461bad77bd28ef2350042404e0fc">act</a> = <a class="el" href="group__noodle__public.html#gga88d663f0b33c1fa71023f6a108f22c0bae00106a9a5d3860d160fc33063a3d418">ACT_RELU</a></td></tr>
-<tr class="memdesc:a2663461bad77bd28ef2350042404e0fc"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output is computed.  <br /></td></tr>
+<tr class="memdesc:a2663461bad77bd28ef2350042404e0fc"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>File-backed fully-connected parameter bundle. </p>
-<p>The weight file is read in row-major <span class="tt">[O][I]</span> order and the bias file contains one scalar per output neuron. Float-input <a class="el" href="structFCN.html" title="Legacy file-backed fully-connected parameter bundle.">FCN</a> overloads may buffer weight reads in chunks of <span class="tt"><a class="el" href="noodle__config_8h.html#a60433b012233746b26eab3a83d45cd33" title="Number of float weights buffered per file-backed FCN read block.">NOODLE_FCN_BLOCK</a></span> floats to reduce file I/O overhead. </p>
+<div class="textblock"><p>File-backed fully connected parameter bundle alias. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a2663461bad77bd28ef2350042404e0fc" name="a2663461bad77bd28ef2350042404e0fc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2663461bad77bd28ef2350042404e0fc">&#9670;&#160;</a></span>act</h2>
@@ -136,7 +135,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output is computed. </p>
+<p><a class="el" href="group__noodle__public.html#ga88d663f0b33c1fa71023f6a108f22c0b" title="Activation applied after bias where supported.">Activation</a> applied after each output. </p>
 
 </div>
 </div>
@@ -168,7 +167,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Weight filename with row-major <span class="tt">[O][I]</span> values. </p>
+<p>Weight filename with <span class="tt">[O][I]</span> values. </p>
 
 </div>
 </div>

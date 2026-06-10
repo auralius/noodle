@@ -1,0 +1,9 @@
+<map id="noodle_buffer.cpp" name="noodle_buffer.cpp">
+<area shape="rect" id="Node000001" title="Grow&#45;only NoodleBuffer allocation helpers." alt="" coords="53,5,176,32"/>
+<area shape="rect" id="Node000002" href="$noodle__buffer_8h.html" title="Grow&#45;only float buffers used by NoodleBuffer convolution overloads." alt="" coords="5,80,115,107"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,35,81,69,76,66,107,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="139,80,202,107"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="125,30,155,68,149,68,124,35"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="26,155,94,181"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="62,105,63,140,57,138,58,109"/>
+</map>

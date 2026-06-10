@@ -2,6 +2,8 @@ var files_dup =
 [
     [ "docs", "dir_49e56c817e5e54854c35e136979f97ca.html", null ],
     [ "noodle.h", "noodle_8h.html", "noodle_8h" ],
+    [ "noodle_buffer.cpp", "noodle__buffer_8cpp.html", "noodle__buffer_8cpp" ],
+    [ "noodle_buffer.h", "noodle__buffer_8h.html", "noodle__buffer_8h" ],
     [ "noodle_config.h", "noodle__config_8h.html", "noodle__config_8h" ],
     [ "noodle_conv.cpp", "noodle__conv_8cpp.html", "noodle__conv_8cpp" ],
     [ "noodle_dw.cpp", "noodle__dw_8cpp.html", "noodle__dw_8cpp" ],
