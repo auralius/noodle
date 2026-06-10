@@ -289,7 +289,7 @@ def send_image_get_output(ser: serial.Serial, img28_u8: np.ndarray, timeout_s: f
         if not line:
             continue
 
-        print(f"[rx] {line}")
+        #print(f"[rx] {line}")
 
         if line.startswith("OUT "):
             parts = line.split()
