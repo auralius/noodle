@@ -1,6 +1,6 @@
 /**
  * @file noodle_memory.cpp
- * @brief Noodle memory accessmanagement helpers.
+ * @brief Noodle memory access management helpers.
  */
 #include "noodle_internal.h"
 
