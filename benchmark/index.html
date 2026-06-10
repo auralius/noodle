@@ -274,13 +274,13 @@
 <h2 id="1-benchmark-objective">1. Benchmark objective</h2>
 <p>This benchmark compares the proposed <strong>Noodle</strong> runtime against <strong>TensorFlow Lite Micro (TFLite Micro)</strong> for the same image denoising autoencoder deployed on an ESP32-S3 board. The objective is to compare the runtime behavior of two embedded inference approaches under the same input/output protocol:</p>
 <ol>
-<li><strong>Noodle</strong>, which executes the network using explicit operator calls and preallocated ping-pong buffers.</li>
+<li><strong>Noodle</strong>, which executes the network using explicit operator calls and grow-only <code>NoodleBuffer</code> tensor buffers.</li>
 <li><strong>TFLite Micro</strong>, which executes the same model through a general interpreter and a preallocated tensor arena.</li>
 </ol>
 <p>The comparison focuses on inference latency, reconstruction quality, and runtime memory behavior.</p>
 <h2 id="2-target-platform">2. Target platform</h2>
 <p>The benchmark was executed on an ESP32-S3 class board using the Arduino framework with PSRAM enabled. Images were transferred from the host computer to the microcontroller over serial, and the denoised output image was returned to the host using the same serial protocol for both runtimes.</p>
-<p>The reported measurements are based on 100 test images. Runtime memory was measured before and after inference to check whether inference caused dynamic allocation, changing free memory, or memory leakage.</p>
+<p>The reported measurements are based on 100 test images. Runtime memory was measured before and after inference to check whether inference caused changing free memory or memory leakage.</p>
 <h2 id="3-model-under-test">3. Model under test</h2>
 <p>The evaluated model is a small convolutional denoising autoencoder for 28 × 28 grayscale images. The model receives a noisy image and reconstructs a denoised output image of the same spatial size.</p>
 <p>The network structure is:</p>
@@ -350,37 +350,45 @@
 </tr>
 </tbody>
 </table>
-<p>In the Noodle implementation, tensors are stored in channel-first format during inference. The network is executed using two ping-pong buffers and one temporary convolution scratch buffer.</p>
+<p>In the Noodle implementation, tensors are stored in channel-first format during inference. The network is executed using two grow-only <code>NoodleBuffer</code> objects in a ping-pong pattern. Internal operator scratch buffers are managed automatically by Noodle.</p>
 <h2 id="4-runtime-implementations">4. Runtime implementations</h2>
 <h3 id="41-noodle-implementation">4.1 Noodle implementation</h3>
-<p>The Noodle implementation uses explicit memory planning. Two preallocated buffers are used for intermediate tensors:</p>
-<ul>
-<li><code>BUF_A</code></li>
-<li><code>BUF_B</code></li>
-</ul>
-<p>The inference flow is:</p>
-<pre><code class="language-text">BUF_A contains X
-BUF_B contains Z1
-BUF_A contains Z2
-BUF_B contains Z3
-BUF_A contains Y
+<p>The current Noodle implementation uses <code>NoodleBuffer</code>, a grow-only tensor buffer abstraction. A <code>NoodleBuffer</code> starts empty, grows when a layer requires more storage, and then reuses the same memory for later layers. It does not shrink automatically during inference. Thus, we define two tensor buffers:</p>
+<pre><code class="language-cpp">static NoodleBuffer A;
+static NoodleBuffer B;
+</code></pre>
+<p>The forward pass is written as an explicit ping-pong schedule:</p>
+<pre><code class="language-cpp">NoodleBuffer *in  = &amp;A; // X
+NoodleBuffer *out = &amp;B;
+
+W = noodle_conv_float(in, 1, 16, out, W, E1, no_pool, NULL);  // A = Z1
+swap_buffers(in, out);
+
+W = noodle_conv_float(in, 16, 32, out, W, E2, no_pool, NULL);  // B = Z2
+swap_buffers(in, out);
+
+W = noodle_conv_transpose_float(in, 32, 16, out, W, D1, NULL); // A = Z3
+swap_buffers(in, out);
+
+W = noodle_conv_transpose_float(in, 16, 1, out, W, D2, NULL);  // A = Y
+swap_buffers(in, out);
 </code></pre>
 <p>The largest intermediate tensor is:</p>
 <pre><code class="language-text">16 × 14 × 14 = 3136 floats
 </code></pre>
-<p>Thus, each ping-pong buffer requires:</p>
+<p>Thus, after growth, each ping-pong tensor buffer requires at most:</p>
 <pre><code class="language-text">3136 × 4 bytes = 12,544 bytes
 </code></pre>
-<p>A separate temporary buffer is used by the memory-to-memory Conv2D operator. In this benchmark, this buffer was allocated as:</p>
-<pre><code class="language-text">28 × 28 floats = 784 floats = 3,136 bytes
+<p>Internal convolution scratch storage is also automatic. For this model, the memory-to-memory Conv2D layers require only a one-plane pre-pooling scratch buffer. The maximum Conv2D scratch requirement is:</p>
+<pre><code class="language-text">14 × 14 floats = 196 floats = 784 bytes
 </code></pre>
-<p>The explicit Noodle buffer allocation is therefore:</p>
-<pre><code class="language-text">BUF_A  = 12,544 bytes
-BUF_B  = 12,544 bytes
-TEMP2  =  3,136 bytes
-Total  = 28,224 bytes ≈ 27.6 KiB
+<p>The effective steady-state Noodle tensor/scratch storage is therefore approximately:</p>
+<pre><code class="language-text">A                 = 12,544 bytes
+B                 = 12,544 bytes
+Conv2D scratch    =    784 bytes
+Total             = 25,872 bytes ≈ 25.3 KiB
 </code></pre>
-<p>The measured PSRAM usage was slightly higher because of allocator overhead.</p>
+<p>The measured PSRAM usage can be slightly higher because of allocator overhead and runtime/library bookkeeping. The measurements reported below correspond to the benchmark run and should be remeasured whenever the runtime implementation or allocation policy is changed.</p>
 <h3 id="42-tensorflow-lite-micro-implementation">4.2 TensorFlow Lite Micro implementation</h3>
 <p>The TensorFlow Lite Micro implementation uses a <code>.tflite</code> model converted from the same autoencoder. The model is executed using a <code>MicroInterpreter</code> and a preallocated tensor arena.</p>
 <p>The model size was:</p>
@@ -404,7 +412,7 @@ Total  = 28,224 bytes ≈ 27.6 KiB
 <li>MSE reduction,</li>
 <li>mean inference time.</li>
 </ul>
-<p>Runtime memory was measured before and after inference. The memory measurements showed constant values before and after inference for both runtimes. Therefore, both implementations exhibit fixed runtime memory behavior after setup.</p>
+<p>Runtime memory was measured before and after inference. The memory measurements showed constant values before and after inference for both runtimes. Therefore, both implementations exhibit fixed runtime memory behavior after setup or first buffer growth.</p>
 <h2 id="6-benchmark-results">6. Benchmark results</h2>
 <h3 id="61-latency-and-reconstruction-quality">6.1 Latency and reconstruction quality</h3>
 <table>
@@ -519,22 +527,23 @@ Total  = 28,224 bytes ≈ 27.6 KiB
 </tr>
 <tr>
 <td>Runtime allocation behavior</td>
-<td style="text-align: right;">Fixed</td>
-<td style="text-align: right;">Fixed</td>
+<td style="text-align: right;">Fixed after buffer growth</td>
+<td style="text-align: right;">Fixed after setup</td>
 <td>Both show no per-inference memory growth</td>
 </tr>
 </tbody>
 </table>
 <h2 id="7-interpretation">7. Interpretation</h2>
 <p>Both runtimes show fixed memory usage during repeated inference. The free memory before inference and after inference remained unchanged, indicating that neither implementation performs per-image dynamic allocation or leaks memory during the measured inference loop.</p>
-<p>Noodle uses slightly less PSRAM and achieved substantially lower inference latency. The main difference is the execution strategy. Noodle uses direct operator calls and a static execution schedule based on explicitly planned ping-pong buffers. TensorFlow Lite Micro uses a general interpreter and tensor arena, which provide broader model compatibility but introduce interpreter overhead.</p>
+<p>Noodle uses slightly less PSRAM and achieved substantially lower inference latency. The main difference is the execution strategy. Noodle uses direct operator calls and a model-specific execution schedule expressed through <code>NoodleBuffer</code> ping-pong tensors. TensorFlow Lite Micro uses a general interpreter and tensor arena, which provide broader model compatibility but introduce interpreter overhead.</p>
+<p>The newer <code>NoodleBuffer</code> interface also improves usability. Earlier examples required manual tensor-buffer and scratch-buffer allocation. With <code>NoodleBuffer</code>, the user still sees the embedded execution pattern, but the buffers grow automatically when needed and are reused afterward. This keeps the ping-pong memory model explicit while making examples easier to read and teach.</p>
 <p>For this autoencoder workload, Noodle achieved comparable reconstruction quality while reducing inference time by approximately 1.87× and using slightly less PSRAM than a tuned TensorFlow Lite Micro configuration.</p>
 <h2 id="8-summary">8. Summary</h2>
-<p>For the same 28 × 28 image denoising autoencoder on ESP32-S3, Noodle achieved a mean inference time of 103.72 ms, compared with 194.36 ms for TensorFlow Lite Micro. This corresponds to a speedup of approximately 1.87×. Both runtimes achieved comparable reconstruction quality, with mean output MSE values of 0.003933 for Noodle and 0.004051 for TensorFlow Lite Micro. Memory measurements showed fixed runtime behavior for both implementations, with no change in free memory before and after inference. With a tuned 32 KiB tensor arena, TensorFlow Lite Micro used approximately 35.6 KiB of PSRAM, while Noodle used approximately 30.7 KiB. These results indicate that Noodle's explicit operator execution and static ping-pong memory plan reduce latency while maintaining a slightly smaller memory footprint than a tuned interpreter-based runtime.</p>
-<p><strong>The comparison with TensorFlow Lite Micro highlights the trade-off between a general interpreter-based deployment path and an explicitly planned runtime.</strong> TensorFlow Lite Micro provides broad model compatibility through an interpreter and tensor arena, but this generality introduces additional execution overhead. In contrast, Noodle uses a model-specific execution schedule with explicit ping-pong buffers, allowing the inference path to avoid per-image dynamic allocation and reduce intermediate storage requirements. For the evaluated denoising autoencoder, this resulted in comparable reconstruction quality, a 1.87× reduction in inference latency, and a slightly smaller PSRAM footprint.</p>
+<p>For the same 28 × 28 image denoising autoencoder on ESP32-S3, Noodle achieved a mean inference time of 103.72 ms, compared with 194.36 ms for TensorFlow Lite Micro. This corresponds to a speedup of approximately 1.87×. Both runtimes achieved comparable reconstruction quality, with mean output MSE values of 0.003933 for Noodle and 0.004051 for TensorFlow Lite Micro. Memory measurements showed fixed runtime behavior for both implementations, with no change in free memory before and after inference. With a tuned 32 KiB tensor arena, TensorFlow Lite Micro used approximately 35.6 KiB of PSRAM, while Noodle used approximately 30.7 KiB. These results indicate that Noodle's direct operator execution and explicit ping-pong memory schedule reduce latency while maintaining a slightly smaller memory footprint than a tuned interpreter-based runtime.</p>
+<p><strong>The comparison with TensorFlow Lite Micro highlights the trade-off between a general interpreter-based deployment path and an explicitly scheduled runtime.</strong> TensorFlow Lite Micro provides broad model compatibility through an interpreter and tensor arena, but this generality introduces additional execution overhead. In contrast, Noodle uses a model-specific execution schedule with grow-only <code>NoodleBuffer</code> tensors, allowing the inference path to avoid per-image dynamic allocation while keeping the memory flow visible. For the evaluated denoising autoencoder, this resulted in comparable reconstruction quality, a 1.87× reduction in inference latency, and a slightly smaller PSRAM footprint.</p>
 <h2 id="9-notes-and-limitations">9. Notes and limitations</h2>
 <p><strong>The benchmark should be interpreted as a runtime comparison for this specific model and platform.</strong> TensorFlow Lite Micro was used with a beginner-friendly <code>AllOpsResolver</code>, which may include more operators than strictly necessary. A minimal resolver could reduce flash usage and possibly reduce some integration overhead. The tensor arena was tuned down to 32 KiB for the final memory comparison, but the exact minimum arena requirement may depend on the TFLite Micro version, operator implementations, memory planner, compiler, and build configuration.</p>
-<p>Conversely, Noodle's result benefits from a manually explicit execution schedule tailored to this model. Therefore, the comparison <strong>primarily demonstrates the benefit of explicit memory planning and direct operator execution for small embedded neural networks, rather than claiming universal superiority across all models or deployment scenarios</strong>.</p>
+<p>Conversely, Noodle's result benefits from an explicit execution schedule tailored to this model. The newer <code>NoodleBuffer</code> abstraction reduces the user burden of manual buffer allocation, but the model still follows a hand-written sequence of operator calls. Therefore, the comparison <strong>primarily demonstrates the benefit of explicit scheduling and direct operator execution for small embedded neural networks, rather than claiming universal superiority across all models or deployment scenarios</strong>.</p>
 
 
 

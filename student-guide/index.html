@@ -556,22 +556,18 @@ Use P = n only when you intentionally want explicit n-pixel padding.
 </code></pre>
 <p>The <code>wXX.h</code> and <code>bXX.h</code> files are generated after training and exporting the model.</p>
 <h3 id="important-note-about-older-maincpp-examples">Important note about older <code>main.cpp</code> examples</h3>
-<p>Some older Noodle examples allocate one permanent tensor for every layer output, such as <code>X</code>, <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, and <code>Y</code>. Some older examples also do not allocate and register the Noodle temporary buffer.</p>
-<p>For this guide, we use the safer version:</p>
-<pre><code class="language-text">BUF_A + BUF_B = ping-pong tensor storage
-TEMP2         = Noodle Conv2D scratch storage
+<p>Some older Noodle examples allocate one permanent tensor for every layer output, such as <code>X</code>, <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, and <code>Y</code>. Other older examples use manually allocated ping-pong arrays such as <code>BUF_A</code>, <code>BUF_B</code>, and a separate temporary buffer such as <code>TEMP2</code>.</p>
+<p>For this guide, we use the newer and cleaner <code>NoodleBuffer</code> API:</p>
+<pre><code class="language-cpp">static NoodleBuffer A;
+static NoodleBuffer B;
 </code></pre>
-<p>Do not copy an old <code>main.cpp</code> directly unless it has been updated to allocate:</p>
-<pre><code class="language-cpp">BUF_A
-BUF_B
-TEMP2
+<p><code>NoodleBuffer</code> is a grow-only tensor buffer. It starts empty, grows when a layer needs more storage, and then reuses that memory for later layers. The user does not need to manually compute the maximum activation size, allocate intermediate arrays, or call <code>noodle_setup_temp_buffers()</code> for normal memory-to-memory examples.</p>
+<p>The important idea remains the same:</p>
+<pre><code class="language-text">A stores the current tensor
+B stores the next tensor
+then A and B are swapped
 </code></pre>
-<p>and call:</p>
-<pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP2);
-</code></pre>
-<p>Without <code>TEMP2</code>, the memory-to-memory Conv2D path may return <code>0</code>, and the firmware may later print:</p>
-<pre><code class="language-text">ERR_BAD_W 0
-</code></pre>
+<p>So the memory movement is still visible to students, but the low-level allocation details are handled by Noodle.</p>
 <hr />
 <h2 id="5-step-1-train-the-autoencoder">5. Step 1 — Train the Autoencoder</h2>
 <p>Open <code>Auto_Encoder.ipynb</code>.</p>
@@ -643,14 +639,23 @@ static constexpr uint16_t IMG_SIZE = IMG_W * IMG_H;
 <p>The firmware receives <code>IMG_SIZE = 784</code> bytes from Python, converts the bytes to float values in <code>[0, 1]</code>, runs Noodle inference, converts the output back to bytes, and sends the denoised image back.</p>
 <hr />
 <h2 id="8-step-4-understand-the-noodle-forward-pass">8. Step 4 — Understand the Noodle Forward Pass</h2>
-<p>The autoencoder forward pass has four layers:</p>
-<pre><code class="language-cpp">W = noodle_conv_float(X,  C_IN, C1, Z1, W, E1, no_pool, NULL);
-W = noodle_conv_float(Z1, C1, C2, Z2, W, E2, no_pool, NULL);
+<p>The autoencoder forward pass has four layers. With the newer <code>NoodleBuffer</code> API, we do not write the layer outputs as separate arrays named <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, and <code>Y</code>. Instead, we use two buffers and swap their roles after each layer:</p>
+<pre><code class="language-cpp">NoodleBuffer *in  = &amp;A;
+NoodleBuffer *out = &amp;B;
 
-W = noodle_conv_transpose_float(Z2, C2, C3, Z3, W, D1, NULL);
-W = noodle_conv_transpose_float(Z3, C3, C_OUT, Y, W, D2, NULL);
+W = noodle_conv_float(in, C_IN, C1, out, W, E1, no_pool, NULL);
+swap_buffers(in, out);
 
-noodle_sigmoid(Y, IMG_SIZE);
+W = noodle_conv_float(in, C1, C2, out, W, E2, no_pool, NULL);
+swap_buffers(in, out);
+
+W = noodle_conv_transpose_float(in, C2, C3, out, W, D1, NULL);
+swap_buffers(in, out);
+
+W = noodle_conv_transpose_float(in, C3, C_OUT, out, W, D2, NULL);
+swap_buffers(in, out);
+
+noodle_sigmoid(in, IMG_SIZE);
 </code></pre>
 <p>The encoder uses normal convolution:</p>
 <pre><code class="language-cpp">E1.OP = 0;
@@ -662,10 +667,10 @@ D2.OP = 1;
 </code></pre>
 <p>The last layer uses <code>ACT_NONE</code> in the <code>ConvMem</code> structure, then applies sigmoid manually:</p>
 <pre><code class="language-cpp">D2.act = ACT_NONE;
-noodle_sigmoid(Y, IMG_SIZE);
+noodle_sigmoid(in, IMG_SIZE);
 </code></pre>
-<p>This matches the Keras decoder output activation.</p>
-<h2 id="9-step-5-preparing-memory-variables-with-ping-pong-buffers">9. Step 5 — Preparing Memory Variables with Ping-Pong Buffers</h2>
+<p>After the final swap, <code>in</code> points to the buffer that contains the denoised output image. This matches the Keras decoder output activation while keeping the memory flow explicit.</p>
+<h2 id="9-step-5-preparing-memory-with-noodlebuffer">9. Step 5 — Preparing Memory with <code>NoodleBuffer</code></h2>
 <p>For the first version, use <strong>memory-to-memory inference</strong>. This means all tensors are stored in RAM, not on an SD card or external file.</p>
 <p>However, we do <strong>not</strong> need to allocate one permanent buffer for every layer output.</p>
 <p>The naive view is:</p>
@@ -681,13 +686,18 @@ Z3 → dec2 → Y
 <pre><code class="language-text">current input tensor
 next output tensor
 </code></pre>
-<p>So we can use <strong>ping-pong buffers</strong>:</p>
-<pre><code class="language-text">BUF_A → layer → BUF_B
-BUF_B → layer → BUF_A
-BUF_A → layer → BUF_B
-BUF_B → layer → BUF_A
+<p>So we use two grow-only <code>NoodleBuffer</code> objects:</p>
+<pre><code class="language-cpp">static NoodleBuffer A;
+static NoodleBuffer B;
 </code></pre>
-<p>This is the recommended memory-to-memory version for this experiment.</p>
+<p>The buffers are initialized once:</p>
+<pre><code class="language-cpp">noodle_buffer_init(&amp;A);
+noodle_buffer_init(&amp;B);
+</code></pre>
+<p>Before receiving the first image, we make sure that buffer <code>A</code> can hold the input image:</p>
+<pre><code class="language-cpp">noodle_buffer_require(&amp;A, IMG_SIZE);
+</code></pre>
+<p>After that, each Noodle layer grows the output buffer automatically when needed. The buffers do not shrink between layers, so the allocated memory is reused during later inference calls.</p>
 <hr />
 <h3 id="91-tensor-sizes">9.1 Tensor sizes</h3>
 <p>The autoencoder uses the following tensor shapes:</p>
@@ -736,141 +746,84 @@ BUF_B → layer → BUF_A
 <p>The largest tensor is:</p>
 <pre><code class="language-text">16 × 14 × 14 = 3136 floats
 </code></pre>
-<p>Therefore, each ping-pong buffer must be able to store at least 3136 floats.</p>
-<pre><code class="language-text">BUF_A = 3136 floats
-BUF_B = 3136 floats
+<p>With <code>NoodleBuffer</code>, we do not manually allocate this size. The buffers grow to this size automatically when the first large layer output is produced.</p>
+<p>The important memory idea is still:</p>
+<pre><code class="language-text">A and B take turns storing layer tensors.
 </code></pre>
-<p>Memory requirement:</p>
-<pre><code class="language-text">2 × 3136 floats × 4 bytes = 25088 bytes
-                         ≈ 24.5 KB
-</code></pre>
-<p>This is smaller than allocating all five tensors permanently:</p>
-<pre><code class="language-text">X  = 1  × 28 × 28 = 784 floats
-Z1 = 16 × 14 × 14 = 3136 floats
-Z2 = 32 × 7  × 7  = 1568 floats
-Z3 = 16 × 14 × 14 = 3136 floats
-Y  = 1  × 28 × 28 = 784 floats
-
-total = 9408 floats
-      = 9408 × 4 bytes
-      = 37632 bytes
-      ≈ 36.75 KB
-</code></pre>
-<p>So the ping-pong version saves:</p>
-<pre><code class="language-text">37632 - 25088 = 12544 bytes
-              ≈ 12.25 KB
+<p>The logical flow is:</p>
+<pre><code class="language-text">A contains X
+B contains Z1
+A contains Z2
+B contains Z3
+A contains Y
 </code></pre>
 <hr />
-<h3 id="92-declare-model-dimensions">9.2 Declare model dimensions</h3>
-<p>Declare the tensor dimensions clearly. This helps us connect the C++ firmware to the Keras model summary.</p>
-<pre><code class="language-cpp">static constexpr uint16_t W_IN  = 28;
-static constexpr uint16_t C_IN  = 1;
-
-static constexpr uint16_t W1    = 14;
-static constexpr uint16_t C1    = 16;
-
-static constexpr uint16_t W2    = 7;
-static constexpr uint16_t C2    = 32;
-
-static constexpr uint16_t W3    = 14;
-static constexpr uint16_t C3    = 16;
-
-static constexpr uint16_t W_OUT = 28;
-static constexpr uint16_t C_OUT = 1;
-</code></pre>
-<p>The important rule is:</p>
-<pre><code class="language-text">number of floats = C × W × W
-</code></pre>
-<p>For this example, all feature maps are square.</p>
-<hr />
-<h3 id="93-declare-ping-pong-buffers">9.3 Declare ping-pong buffers</h3>
-<p>Instead of declaring five tensor pointers:</p>
-<pre><code class="language-cpp">static float *X  = nullptr;
-static float *Z1 = nullptr;
-static float *Z2 = nullptr;
-static float *Z3 = nullptr;
-static float *Y  = nullptr;
-</code></pre>
-<p>declare only two large working buffers:</p>
-<pre><code class="language-cpp">static constexpr size_t PINGPONG_FLOATS = 16 * 14 * 14;
-
-static float *BUF_A = nullptr;
-static float *BUF_B = nullptr;
+<h3 id="92-declare-noodlebuffer-objects">9.2 Declare <code>NoodleBuffer</code> objects</h3>
+<p>Declare two <code>NoodleBuffer</code> objects:</p>
+<pre><code class="language-cpp">static NoodleBuffer A;
+static NoodleBuffer B;
 </code></pre>
 <p>These two buffers will take turns storing the current layer input and the next layer output.</p>
 <hr />
-<h3 id="94-allocate-ping-pong-memory-and-noodle-temporary-memory">9.4 Allocate ping-pong memory and Noodle temporary memory</h3>
-<p>Use one helper function so the code works on ESP32 boards with or without PSRAM:</p>
-<pre><code class="language-cpp">static float *alloc_float_buffer(size_t n) {
-#if defined(ARDUINO_ARCH_ESP32)
-  float *p = (float *)ps_malloc(n * sizeof(float));
-  if (p) return p;
-#endif
-  return (float *)malloc(n * sizeof(float));
-}
-</code></pre>
-<p>Then allocate the two ping-pong buffers and the Noodle temporary buffer.</p>
-<p>For this guide, use the beginner-safe <code>TEMP2</code> size:</p>
-<pre><code class="language-text">TEMP2 = 28 × 28 floats
-</code></pre>
-<p>This is larger than the exact minimum, but easier to explain.</p>
-<pre><code class="language-cpp">static constexpr size_t PINGPONG_FLOATS = 16 * 14 * 14;
-static constexpr size_t TEMP2_FLOATS    = 28 * 28;
+<h3 id="93-initialize-the-buffers">9.3 Initialize the buffers</h3>
+<p>Use one helper function to initialize the two buffers and prepare the input buffer:</p>
+<pre><code class="language-cpp">static void init_buffers() {
+  noodle_buffer_init(&amp;A);
+  noodle_buffer_init(&amp;B);
 
-static float *BUF_A = nullptr;
-static float *BUF_B = nullptr;
-static float *TEMP2 = nullptr;
-
-static void alloc_buffers() {
-  BUF_A = alloc_float_buffer(PINGPONG_FLOATS);
-  BUF_B = alloc_float_buffer(PINGPONG_FLOATS);
-  TEMP2 = alloc_float_buffer(TEMP2_FLOATS);
-
-  if (!BUF_A || !BUF_B || !TEMP2) {
-    Serial.println(F(&quot;ERROR allocation failed&quot;));
+  if (!noodle_buffer_require(&amp;A, IMG_SIZE)) {
+    Serial.println(F(&quot;ERROR buffer allocation failed&quot;));
     while (true) delay(1000);
   }
 
-  // Required before using memory-to-memory Conv2D.
-  noodle_setup_temp_buffers(TEMP2);
-
-  Serial.println(F(&quot;Ping-pong and temp buffers allocated&quot;));
+  Serial.println(F(&quot;NoodleBuffer ready&quot;));
 }
 </code></pre>
-<p>This is the main memory preparation step.</p>
-<p>The important idea is:</p>
-<pre><code class="language-text">BUF_A and BUF_B are for layer tensors.
-TEMP2 is for internal Conv2D accumulation.
+<p>This replaces older manual allocation code such as:</p>
+<pre><code class="language-cpp">BUF_A = alloc_float_buffer(...);
+BUF_B = alloc_float_buffer(...);
+TEMP2 = alloc_float_buffer(...);
+noodle_setup_temp_buffers(TEMP2);
 </code></pre>
+<p>In the current API, normal memory-to-memory examples do not need to call <code>noodle_setup_temp_buffers()</code> directly. Internal scratch buffers are handled by Noodle.</p>
 <hr />
-<h3 id="95-input-and-output-byte-buffers">9.5 Input and output byte buffers</h3>
-<p>The serial protocol sends images as bytes, not floats. Therefore, the firmware also needs byte buffers:</p>
+<h3 id="94-input-and-output-byte-buffers">9.4 Input and output byte buffers</h3>
+<p>The serial protocol sends images as bytes, not floats. Therefore, the firmware still needs byte buffers:</p>
 <pre><code class="language-cpp">static uint8_t RX_BYTES[IMG_SIZE];
 static uint8_t TX_BYTES[IMG_SIZE];
 </code></pre>
 <p><code>RX_BYTES</code> stores the incoming noisy image from Python.</p>
 <p><code>TX_BYTES</code> stores the outgoing denoised image sent back to Python.</p>
 <p>The conversion is:</p>
-<pre><code class="language-text">Python uint8 image → RX_BYTES → BUF_A as float [0,1]
+<pre><code class="language-text">Python uint8 image → RX_BYTES → NoodleBuffer A as float [0,1]
 final output float → TX_BYTES → Python uint8 image
 </code></pre>
 <hr />
-<h3 id="96-convert-input-bytes-to-floats">9.6 Convert input bytes to floats</h3>
-<p>Before inference, convert the received image to floating-point values in <code>BUF_A</code>:</p>
-<pre><code class="language-cpp">static void bytes_to_float_image_0_1(const uint8_t *src, float *dst, size_t n) {
+<h3 id="95-convert-input-bytes-to-noodlebuffer">9.5 Convert input bytes to <code>NoodleBuffer</code></h3>
+<p>Before inference, convert the received image to floating-point values in buffer <code>A</code>:</p>
+<pre><code class="language-cpp">static void bytes_to_float_image_0_1(const uint8_t *src,
+                                     NoodleBuffer *dst,
+                                     size_t n) {
+  float *x = noodle_buffer_require(dst, n);
+  if (!x) return;
+
   const float inv = 1.0f / 255.0f;
   for (size_t i = 0; i &lt; n; i++) {
-    dst[i] = (float)src[i] * inv;
+    x[i] = (float)src[i] * inv;
   }
 }
 </code></pre>
 <p>This matches the Python/Keras normalization.</p>
 <hr />
-<h3 id="97-convert-output-floats-to-bytes">9.7 Convert output floats to bytes</h3>
+<h3 id="96-convert-output-noodlebuffer-to-bytes">9.6 Convert output <code>NoodleBuffer</code> to bytes</h3>
 <p>After inference, convert the denoised image back to <code>uint8_t</code>:</p>
-<pre><code class="language-cpp">static void float_image_to_bytes_0_255(const float *src, uint8_t *dst, size_t n) {
+<pre><code class="language-cpp">static void float_image_to_bytes_0_255(const NoodleBuffer *src,
+                                       uint8_t *dst,
+                                       size_t n) {
+  const float *x = src-&gt;data;
+
   for (size_t i = 0; i &lt; n; i++) {
-    float v = src[i];
+    float v = x[i];
 
     if (v &lt; 0.0f) v = 0.0f;
     if (v &gt; 1.0f) v = 1.0f;
@@ -886,9 +839,20 @@ final output float → TX_BYTES → Python uint8 image
 </code></pre>
 <p>This makes the result easy to plot in Python.</p>
 <hr />
+<h3 id="97-helper-for-swapping-buffers">9.7 Helper for swapping buffers</h3>
+<p>The ping-pong pattern is easier to read with a small helper:</p>
+<pre><code class="language-cpp">static inline void swap_buffers(NoodleBuffer *&amp;in,
+                                NoodleBuffer *&amp;out) {
+  NoodleBuffer *tmp = in;
+  in = out;
+  out = tmp;
+}
+</code></pre>
+<p>After each layer, <code>out</code> contains the new tensor. We then swap the pointers so that the next layer reads from it.</p>
+<hr />
 <h3 id="98-ping-pong-layer-mapping">9.8 Ping-pong layer mapping</h3>
 <p>The forward pass becomes:</p>
-<pre><code class="language-cpp">static uint16_t run_autoencoder_forward_pingpong() {
+<pre><code class="language-cpp">static uint16_t run_autoencoder_forward() {
   ConvMem E1;
   E1.K = 3; E1.P = 65535; E1.S = 2; E1.OP = 0;
   E1.weight = w01; E1.bias = b01; E1.act = ACT_RELU;
@@ -910,46 +874,44 @@ final output float → TX_BYTES → Python uint8 image
   no_pool.M = 1;
   no_pool.T = 1;
 
-  float *A = BUF_A;
-  float *B = BUF_B;
+  NoodleBuffer *in  = &amp;A;
+  NoodleBuffer *out = &amp;B;
 
   uint16_t W = W_IN;
 
-  // X is in A, Z1 will be in B.
-  W = noodle_conv_float(A, C_IN, C1, B, W, E1, no_pool, NULL);
+  W = noodle_conv_float(in, C_IN, C1, out, W, E1, no_pool, NULL);
+  swap_buffers(in, out);
 
-  // Z1 is in B, Z2 will be in A.
-  W = noodle_conv_float(B, C1, C2, A, W, E2, no_pool, NULL);
+  W = noodle_conv_float(in, C1, C2, out, W, E2, no_pool, NULL);
+  swap_buffers(in, out);
 
-  // Z2 is in A, Z3 will be in B.
-  W = noodle_conv_transpose_float(A, C2, C3, B, W, D1, NULL);
+  W = noodle_conv_transpose_float(in, C2, C3, out, W, D1, NULL);
+  swap_buffers(in, out);
 
-  // Z3 is in B, Y will be in A.
-  W = noodle_conv_transpose_float(B, C3, C_OUT, A, W, D2, NULL);
+  W = noodle_conv_transpose_float(in, C3, C_OUT, out, W, D2, NULL);
+  swap_buffers(in, out);
 
-  // Final sigmoid is applied to Y, which is now in A.
-  noodle_sigmoid(A, IMG_SIZE);
+  noodle_sigmoid(in, IMG_SIZE);
 
   return W;
 }
 </code></pre>
 <p>The layer flow is:</p>
-<pre><code class="language-text">BUF_A contains X
-BUF_B contains Z1
-BUF_A contains Z2
-BUF_B contains Z3
-BUF_A contains Y
+<pre><code class="language-text">A contains X
+B contains Z1
+A contains Z2
+B contains Z3
+A contains Y
 </code></pre>
-<p>So after inference, the final output image is in <code>BUF_A</code>.</p>
+<p>So after inference, the final output image is in the buffer pointed to by <code>in</code>.</p>
 <hr />
 <h3 id="99-processing-one-image">9.9 Processing one image</h3>
 <p>The complete image-processing step becomes:</p>
 <pre><code class="language-cpp">static void process_one_image() {
-  // RX_BYTES → BUF_A
-  bytes_to_float_image_0_1(RX_BYTES, BUF_A, IMG_SIZE);
+  bytes_to_float_image_0_1(RX_BYTES, &amp;A, IMG_SIZE);
 
   uint32_t t0 = micros();
-  uint16_t W_final = run_autoencoder_forward_pingpong();
+  uint16_t W_final = run_autoencoder_forward();
   uint32_t dt = micros() - t0;
 
   if (W_final != W_OUT) {
@@ -958,12 +920,13 @@ BUF_A contains Y
     return;
   }
 
-  // BUF_A contains the final denoised output.
-  float_image_to_bytes_0_255(BUF_A, TX_BYTES, IMG_SIZE);
+  // The final output is in A for this four-layer ping-pong sequence.
+  float_image_to_bytes_0_255(&amp;A, TX_BYTES, IMG_SIZE);
 
   NoodleSerial::send_output_image(TX_BYTES, IMG_SIZE, dt);
 }
 </code></pre>
+<p>For this four-layer autoencoder, the final output returns to <code>A</code>. If the number of layers changes, the final output buffer may change. One robust approach is to store the final output pointer globally or return it together with <code>W_final</code>.</p>
 <hr />
 <h3 id="910-why-ping-pong-works-here">9.10 Why ping-pong works here</h3>
 <p>Ping-pong buffering works because this autoencoder is a <strong>straight-line network</strong>:</p>
@@ -975,30 +938,7 @@ BUF_A contains Y
 <p>This would not be enough for all networks. Models with skip connections, residual connections, concatenation, or branches may need to keep older tensors alive for longer.</p>
 <p>For this denoising autoencoder, ping-pong buffering is safe.</p>
 <hr />
-<h3 id="911-important-ping-pong-buffers-are-not-temporary-buffers">9.11 Important: ping-pong buffers are not temporary buffers</h3>
-<p>The ping-pong buffers store layer tensors:</p>
-<pre><code class="language-text">X, Z1, Z2, Z3, Y
-</code></pre>
-<p>Noodle temporary buffers store internal operator scratch memory.</p>
-<p>These are different concepts.</p>
-<p>A simple way to remember it is:</p>
-<pre><code class="language-text">BUF_A and BUF_B hold tensors between layers.
-TEMP2 is scratch paper used while one Conv2D layer is being computed.
-</code></pre>
-<p>So we should not treat <code>TEMP2</code> as another layer output buffer. It is only temporary workspace.</p>
-<p>A slightly more technical version is:</p>
-<pre><code class="language-text">Ping-pong buffers store data that must survive until the next layer.
-TEMP2 stores temporary values that are only needed while the current operator is running.
-</code></pre>
-<p>So the complete memory idea is:</p>
-<pre><code class="language-text">BUF_A / BUF_B  = layer tensor storage
-TEMP2          = internal Conv2D scratch storage
-RX_BYTES       = serial input bytes
-TX_BYTES       = serial output bytes
-</code></pre>
-<p>The next section explains <code>TEMP2</code>.</p>
-<hr />
-<h3 id="912-memory-preparation-checklist">9.12 Memory preparation checklist</h3>
+<h3 id="911-memory-preparation-checklist">9.11 Memory preparation checklist</h3>
 <p>Before running inference, we should check:</p>
 <table>
 <thead>
@@ -1021,16 +961,8 @@ TX_BYTES       = serial output bytes
 <td>16 × 14 × 14</td>
 </tr>
 <tr>
-<td>Ping-pong buffer size</td>
-<td>3136 floats each</td>
-</tr>
-<tr>
-<td>Number of ping-pong buffers</td>
-<td>2</td>
-</tr>
-<tr>
-<td>Ping-pong tensor memory</td>
-<td>25088 bytes</td>
+<td>User-visible tensor buffers</td>
+<td>Two <code>NoodleBuffer</code> objects</td>
 </tr>
 <tr>
 <td>Input byte buffer</td>
@@ -1050,148 +982,17 @@ TX_BYTES       = serial output bytes
 </tr>
 <tr>
 <td>Final output location</td>
-<td><code>BUF_A</code></td>
+<td><code>A</code> for this four-layer model</td>
 </tr>
 </tbody>
 </table>
 <p>For this beginner guide, the goal is not yet to use SD card storage. The goal is to understand how tensors move through memory.</p>
 <p>After we understand this memory-to-memory ping-pong version, we can then move to the more advanced Noodle style where activations, parameters, or both are stored externally.</p>
 <hr />
-<h2 id="10-step-6-temporary-buffers">10. Step 6 — Temporary Buffers</h2>
-<p>Noodle uses temporary buffers as reusable scratch memory. These buffers are not model weights and these buffers are not permanent layer outputs. These buffers are only working space used inside some operators.</p>
-<p>In this guide, think of <code>TEMP2</code> as <strong>scratch paper</strong>: it is used briefly during Conv2D and then reused. It does not store a named layer output such as <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, or <code>Y</code>.</p>
-<p>For this image denoising case, the important rule is:</p>
-<pre><code class="language-text">Conv2D needs temp_buff2.
-Conv2DTranspose in this memory-to-memory case does not need temp_buff1/temp_buff2.
-</code></pre>
-<p>The current firmware uses memory-to-memory convolution:</p>
-<pre><code class="language-cpp">W = noodle_conv_float(X,  C_IN, C1, Z1, W, E1, no_pool, NULL);
-W = noodle_conv_float(Z1, C1, C2, Z2, W, E2, no_pool, NULL);
-</code></pre>
-<p>Even though both input and output tensors are already in memory, <code>noodle_conv_float()</code> still uses <code>temp_buff2</code> as an accumulation buffer for one output channel plane.</p>
-<h3 id="101-what-does-temp_buff2-store">10.1 What does <code>temp_buff2</code> store?</h3>
-<p>During Conv2D, Noodle does not immediately write the final output tensor. For each output channel, it first accumulates:</p>
-<pre><code class="language-text">input channel 0 contribution
-+ input channel 1 contribution
-+ ...
-+ input channel N contribution
-</code></pre>
-<p>into one temporary output plane.</p>
-<p>After accumulation, Noodle applies:</p>
-<pre><code class="language-text">bias → activation → pooling
-</code></pre>
-<p>Then the result is copied into the real output tensor.</p>
-<p>So <code>temp_buff2</code> must be large enough to hold one pre-pooling output plane:</p>
-<pre><code class="language-text">temp_buff2 size = Vconv × Vconv floats
-</code></pre>
-<p>where <code>Vconv</code> is the Conv2D output width before pooling.</p>
-<p>For SAME-style stride-2 convolution in this example:</p>
-<pre><code class="language-text">enc1: input 28×28, stride 2 → output 14×14
-enc2: input 14×14, stride 2 → output 7×7
-</code></pre>
-<p>Therefore:</p>
-<pre><code class="language-text">enc1 temp_buff2 = 14 × 14 = 196 floats
-enc2 temp_buff2 = 7 × 7 = 49 floats
-</code></pre>
-<p>The largest requirement is:</p>
-<pre><code class="language-text">max temp_buff2 = 196 floats
-               = 196 × 4 bytes
-               = 784 bytes
-</code></pre>
-<h3 id="102-recommended-we-version">10.2 Recommended we version</h3>
-<p>For clarity, we can allocate a slightly larger scratch buffer:</p>
-<pre><code class="language-cpp">static constexpr uint16_t TEMP2_FLOATS = IMG_W * IMG_W;
-static float *TEMP2 = nullptr;
-</code></pre>
-<p>This gives:</p>
-<pre><code class="language-text">TEMP2_FLOATS = 28 × 28 = 784 floats
-TEMP2 memory = 784 × 4 = 3136 bytes
-</code></pre>
-<p>This is larger than necessary, but easy to understand because it matches one full image plane.</p>
-<p>In the final we code, <code>TEMP2</code> is allocated together with <code>BUF_A</code> and <code>BUF_B</code> inside <code>alloc_buffers()</code>.</p>
-<p>The critical line is:</p>
-<pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP2);
-</code></pre>
-<p>This line registers the scratch buffer with Noodle before any <code>noodle_conv_float()</code> call runs.</p>
-<h3 id="103-more-memory-efficient-version">10.3 More memory-efficient version</h3>
-<p>After we understand the concept, we can use the exact minimum:</p>
-<pre><code class="language-cpp">static constexpr uint16_t TEMP2_FLOATS = 14 * 14;
-static float *TEMP2 = nullptr;
-</code></pre>
-<p>Then:</p>
-<pre><code class="language-cpp">TEMP2 = alloc_float_buffer(TEMP2_FLOATS);
-noodle_setup_temp_buffers(TEMP2);
-</code></pre>
-<p>This only uses:</p>
-<pre><code class="language-text">196 floats × 4 bytes = 784 bytes
-</code></pre>
-<h3 id="104-do-we-need-temp_buff1">10.4 Do we need <code>temp_buff1</code>?</h3>
-<p>For this exact firmware, no.</p>
-<p><code>temp_buff1</code> is mainly needed when Noodle must stream input planes from a file or other external storage. In this denoising firmware, the input and intermediate tensors are already in memory:</p>
-<pre><code class="language-text">X, Z1, Z2, Z3, Y
-</code></pre>
-<p>So the current memory-to-memory Conv2D path only needs <code>temp_buff2</code>.</p>
-<p>If we later move activations to SD card, then <code>temp_buff1</code> becomes necessary. In that case, size it for the largest input plane:</p>
-<pre><code class="language-text">max temp_buff1 = 28 × 28 floats
-               = 784 floats
-               = 3136 bytes
-</code></pre>
-<p>and register both buffers:</p>
-<pre><code class="language-cpp">noodle_setup_temp_buffers(TEMP1, TEMP2);
-</code></pre>
-<h3 id="105-temporary-buffer-checklist">10.5 Temporary buffer checklist</h3>
-<p>Before running inference, we should answer:</p>
-<table>
-<thead>
-<tr>
-<th>Question</th>
-<th>Answer for this denoising case</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Are we using Conv2D?</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>Does Conv2D need <code>temp_buff2</code>?</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>Largest Conv2D pre-pooling plane?</td>
-<td>14 × 14</td>
-</tr>
-<tr>
-<td>Minimum <code>temp_buff2</code> size?</td>
-<td>196 floats</td>
-</tr>
-<tr>
-<td>Beginner-safe <code>temp_buff2</code> size?</td>
-<td>784 floats</td>
-</tr>
-<tr>
-<td>Do we need <code>temp_buff1</code>?</td>
-<td>No, not for memory-to-memory tensors</td>
-</tr>
-<tr>
-<td>Do Conv2DTranspose layers need shared temp buffers here?</td>
-<td>No</td>
-</tr>
-<tr>
-<td>Are <code>BUF_A</code> and <code>BUF_B</code> the same as <code>TEMP2</code>?</td>
-<td>No, these are layer tensor buffers</td>
-</tr>
-</tbody>
-</table>
-<p>A missing temp buffer usually causes <code>noodle_conv_float()</code> to return <code>0</code>, which then leads to a wrong layer width and finally:</p>
-<pre><code class="language-text">ERR_BAD_W 0
-</code></pre>
-<hr />
-<hr />
-<h2 id="11-step-7-serial-protocol">11. Step 7 — Serial Protocol</h2>
+<h2 id="10-step-7-serial-protocol">10. Step 7 — Serial Protocol</h2>
 <p>The microcontroller and Python communicate using a simple serial protocol.</p>
 <h3 id="microcontroller-startup">Microcontroller startup</h3>
-<p>After boot and buffer allocation, the microcontroller prints:</p>
+<p>After boot and <code>NoodleBuffer</code> initialization, the microcontroller prints:</p>
 <pre><code class="language-text">READY
 </code></pre>
 <h3 id="python-sends-one-image">Python sends one image</h3>
@@ -1215,7 +1016,7 @@ noodle_setup_temp_buffers(TEMP2);
 </code></pre>
 <p>This means the microcontroller is ready for the next image.</p>
 <hr />
-<h2 id="12-step-8-python-host-test">12. Step 8 — Python Host Test</h2>
+<h2 id="11-step-8-python-host-test">11. Step 8 — Python Host Test</h2>
 <p>The Python host should:</p>
 <ol>
 <li>Open the serial port.</li>
@@ -1246,10 +1047,10 @@ noodle_setup_temp_buffers(TEMP2);
 <pre><code class="language-text">clean image | noisy image | Noodle denoised image
 </code></pre>
 <hr />
-<h2 id="13-step-9-expected-output">13. Step 9 — Expected Output</h2>
+<h2 id="12-step-9-expected-output">12. Step 9 — Expected Output</h2>
 <p>A successful serial log should look like this:</p>
 <pre><code class="language-text">BOOT OK
-Buffers allocated
+NoodleBuffer ready
 READY
 RDYIMG
 ACK
@@ -1260,7 +1061,7 @@ READY
 </code></pre>
 <p>The exact inference time depends on the board.</p>
 <hr />
-<h2 id="14-common-problems">14. Common Problems</h2>
+<h2 id="13-common-problems">13. Common Problems</h2>
 <h3 id="problem-python-never-receives-ready">Problem: Python never receives <code>READY</code></h3>
 <p>Reset the board or reopen the serial port. The firmware prints <code>READY</code> repeatedly if no valid <code>IMG</code> header is received, so the protocol should recover automatically.</p>
 <h3 id="problem-err_timeout">Problem: <code>ERR_TIMEOUT</code></h3>
@@ -1276,11 +1077,7 @@ D2.P = 65535;
 <p>If one layer accidentally uses <code>P = 0</code>, the width sequence may no longer be:</p>
 <pre><code class="language-text">28 → 14 → 7 → 14 → 28
 </code></pre>
-<p>Also check that <code>TEMP2</code> was allocated and registered:</p>
-<pre><code class="language-cpp">TEMP2 = alloc_float_buffer(TEMP2_FLOATS);
-noodle_setup_temp_buffers(TEMP2);
-</code></pre>
-<p>If <code>TEMP2</code> is missing, the Conv2D path may fail and return width <code>0</code>.</p>
+<p>With the current <code>NoodleBuffer</code> API, the sketch does not need to manually allocate or register <code>TEMP2</code>. If <code>ERR_BAD_W 0</code> appears, first check the layer definitions, padding, channel counts, and whether the output buffer allocation failed.</p>
 <h3 id="problem-output-image-is-black-or-white">Problem: Output image is black or white</h3>
 <p>Check these items:</p>
 <ol>
@@ -1299,7 +1096,7 @@ noodle_setup_temp_buffers(TEMP2);
 <li>The training noise level is similar to the test noise level.</li>
 </ol>
 <hr />
-<h2 id="15-experiment-checklist">15. Experiment Checklist</h2>
+<h2 id="14-experiment-checklist">14. Experiment Checklist</h2>
 <p>Before reporting the experiment, we should include:</p>
 <ul>
 <li>Keras model summary.</li>
@@ -1311,7 +1108,7 @@ noodle_setup_temp_buffers(TEMP2);
 <li>Short explanation of the Noodle layer mapping.</li>
 </ul>
 <hr />
-<h2 id="16-final-benchmark-running-the-same-autoencoder-with-tflite-micro">16. Final Benchmark: Running the Same Autoencoder with TFLite Micro</h2>
+<h2 id="15-final-benchmark-running-the-same-autoencoder-with-tflite-micro">15. Final Benchmark: Running the Same Autoencoder with TFLite Micro</h2>
 <p>After we successfully run the image denoising model with Noodle, we can benchmark the same model using <strong>TensorFlow Lite Micro</strong>.</p>
 <p>The goal is to compare two embedded inference styles:</p>
 <table>
@@ -1324,7 +1121,7 @@ noodle_setup_temp_buffers(TEMP2);
 <tbody>
 <tr>
 <td>Noodle</td>
-<td>Explicit layer-by-layer inference with visible memory planning</td>
+<td>Explicit layer-by-layer inference with visible <code>NoodleBuffer</code> ping-pong tensors</td>
 </tr>
 <tr>
 <td>TFLite Micro</td>
@@ -1334,7 +1131,7 @@ noodle_setup_temp_buffers(TEMP2);
 </table>
 <p>This benchmark highlights the trade-off between <strong>manual control</strong> and <strong>framework automation</strong>.</p>
 <hr />
-<h3 id="161-export-the-keras-model-to-tflite">16.1 Export the Keras model to <code>.tflite</code></h3>
+<h3 id="151-export-the-keras-model-to-tflite">15.1 Export the Keras model to <code>.tflite</code></h3>
 <p>After training the autoencoder, convert it to a float TFLite model:</p>
 <pre><code class="language-python">import tensorflow as tf
 import os
@@ -1355,7 +1152,7 @@ print(&quot;TFLite size:&quot;, len(tflite_model), &quot;bytes&quot;)
 </code></pre>
 <p>For the first benchmark, use float32 TFLite. Quantized int8 TFLite can be added later after the float version works.</p>
 <hr />
-<h3 id="162-convert-tflite-to-a-c-header">16.2 Convert <code>.tflite</code> to a C header</h3>
+<h3 id="152-convert-tflite-to-a-c-header">15.2 Convert <code>.tflite</code> to a C header</h3>
 <p>The ESP32 Arduino sketch needs the model as a C array.</p>
 <p>In Linux or Google Colab, use:</p>
 <pre><code class="language-bash">xxd -i mnist_denoising_autoencoder_float.tflite &gt; model_data.h
@@ -1380,7 +1177,7 @@ with open(&quot;model_data.h&quot;, &quot;w&quot;) as f:
 </code></pre>
 <p>Copy <code>model_data.h</code> into the ESP32 Arduino project folder.</p>
 <hr />
-<h3 id="163-esp32-tflite-micro-project-files">16.3 ESP32 TFLite Micro project files</h3>
+<h3 id="153-esp32-tflite-micro-project-files">15.3 ESP32 TFLite Micro project files</h3>
 <p>The TFLite Micro benchmark project should contain:</p>
 <pre><code class="language-text">esp32_tflm_denoising/
 ├── main_tflm_denoising_benchmark.cpp
@@ -1394,16 +1191,16 @@ with open(&quot;model_data.h&quot;, &quot;w&quot;) as f:
 </code></pre>
 <p>So the same Python host script used for Noodle can also be used for TFLite Micro.</p>
 <hr />
-<h3 id="164-tensor-arena">16.4 Tensor arena</h3>
-<p>TFLite Micro does not require us to manually allocate <code>BUF_A</code>, <code>BUF_B</code>, and <code>TEMP2</code>.</p>
+<h3 id="154-tensor-arena">15.4 Tensor arena</h3>
+<p>TFLite Micro does not expose the same <code>NoodleBuffer</code> ping-pong schedule to the user.</p>
 <p>Instead, it uses one large memory region called the <strong>tensor arena</strong>.</p>
 <p>A simple explanation is:</p>
 <pre><code class="language-text">Noodle:
-  BUF_A / BUF_B = layer tensor storage
-  TEMP2         = operator scratch storage
+  A / B NoodleBuffer objects = visible ping-pong tensor storage
+  internal scratch buffers   = operator workspace managed by Noodle
 
 TFLite Micro:
-  tensor_arena  = framework-managed storage for tensors and scratch memory
+  tensor_arena               = framework-managed storage for tensors and scratch memory
 </code></pre>
 <p>So for TFLite Micro, we allocate:</p>
 <pre><code class="language-cpp">constexpr size_t TENSOR_ARENA_SIZE = 512 * 1024;
@@ -1413,7 +1210,7 @@ static uint8_t *tensor_arena = nullptr;
 <p>If allocation fails, increase available memory by using an ESP32 board with PSRAM.</p>
 <p>If <code>AllocateTensors()</code> fails, increase <code>TENSOR_ARENA_SIZE</code>.</p>
 <hr />
-<h3 id="165-required-tflite-micro-operators">16.5 Required TFLite Micro operators</h3>
+<h3 id="155-required-tflite-micro-operators">15.5 Required TFLite Micro operators</h3>
 <p>This autoencoder usually needs these operators:</p>
 <pre><code class="language-text">CONV_2D
 TRANSPOSE_CONV
@@ -1423,7 +1220,7 @@ LOGISTIC
 <p>For the benchmark, the provided ESP32 code uses <code>AllOpsResolver</code> to avoid missing-operator problems.</p>
 <p>After the benchmark works, we can replace <code>AllOpsResolver</code> with a smaller <code>MicroMutableOpResolver</code> to reduce flash usage.</p>
 <hr />
-<h3 id="166-benchmark-comparison-table">16.6 Benchmark comparison table</h3>
+<h3 id="156-benchmark-comparison-table">15.6 Benchmark comparison table</h3>
 <p>We should record:</p>
 <table>
 <thead>
@@ -1456,12 +1253,12 @@ LOGISTIC
 </tr>
 <tr>
 <td>RAM strategy</td>
-<td style="text-align: right;">ping-pong + TEMP2</td>
+<td style="text-align: right;"><code>NoodleBuffer</code> ping-pong + internal scratch</td>
 <td style="text-align: right;">tensor arena</td>
 </tr>
 <tr>
 <td>Memory control</td>
-<td style="text-align: right;">explicit</td>
+<td style="text-align: right;">explicit schedule, automatic buffer growth</td>
 <td style="text-align: right;">framework-managed</td>
 </tr>
 <tr>
@@ -1477,10 +1274,10 @@ LOGISTIC
 </tbody>
 </table>
 <p>This comparison is useful because it shows the educational difference between Noodle and TFLite Micro.</p>
-<p>Noodle makes the memory movement visible.</p>
+<p>Noodle makes the memory movement visible through the <code>NoodleBuffer</code> ping-pong schedule.</p>
 <p>TFLite Micro hides most memory movement inside the interpreter.</p>
 <hr />
-<h2 id="17-main-points">17. Main Points</h2>
+<h2 id="16-main-points">16. Main Points</h2>
 <p>After completing this exercise, we should understand that:</p>
 <ol>
 <li>A convolutional autoencoder can perform image denoising.</li>
@@ -1488,6 +1285,7 @@ LOGISTIC
 <li>Keras tensor layout and Noodle tensor layout are different.</li>
 <li>Weight export is a critical deployment step.</li>
 <li>Serial communication is needed to move input and output images between Python and the microcontroller.</li>
+<li><code>NoodleBuffer</code> removes most manual allocation code while keeping the ping-pong tensor flow visible.</li>
 <li>Embedded inference is not only about model accuracy, but also memory, data layout, and communication protocol.</li>
 </ol>
 
