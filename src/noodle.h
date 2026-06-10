@@ -105,12 +105,15 @@ enum Activation : uint8_t {
  * `[O][I][K][K]`; for 1D convolution, `[O][I][K]`; for depthwise convolution,
  * `[C][K][K]`. Bias files contain one scalar per output channel, or one scalar
  * per channel for depthwise convolution.
+ *
+ * For transpose convolution with explicit padding, callers choose OP to match
+ * the desired output width: `V = (W - 1) * S - 2 * P + K + OP`.
  */
 struct Conv {
   uint16_t K  = 3;       ///< Kernel width, or tap count for 1D convolution.
   uint16_t P  = 0;       ///< Padding per side; `65535` requests SAME-style 2D padding.
   uint16_t S  = 1;       ///< Convolution stride.
-  uint16_t OP = 0;       ///< Output padding for transpose convolution.
+  uint16_t OP = 0;       ///< User-computed output padding for transpose convolution.
 
   const char *weight_fn = nullptr;  ///< Weight filename.
   const char *bias_fn   = nullptr;  ///< Bias filename.
@@ -124,12 +127,15 @@ struct Conv {
  *
  * This carries the same layout and semantics as Conv and is kept for code that
  * prefers an explicit file-backed name.
+ *
+ * For transpose convolution with explicit padding, callers choose OP to match
+ * the desired output width: `V = (W - 1) * S - 2 * P + K + OP`.
  */
 struct ConvFile {
   uint16_t K  = 3;       ///< Kernel width, or tap count for 1D convolution.
   uint16_t P  = 0;       ///< Padding per side; `65535` requests SAME-style 2D padding.
   uint16_t S  = 1;       ///< Convolution stride.
-  uint16_t OP = 0;       ///< Output padding for transpose convolution.
+  uint16_t OP = 0;       ///< User-computed output padding for transpose convolution.
 
   const char *weight_fn = nullptr;  ///< Weight filename.
   const char *bias_fn   = nullptr;  ///< Bias filename.
@@ -145,12 +151,15 @@ struct ConvFile {
  * `[O][I][K][K]` for 2D convolution, `[O][I][K]` for 1D convolution,
  * `[C][K][K]` for depthwise convolution, and `[O][I][K][K]` for transpose
  * convolution. `bias` may be `nullptr` in overloads that allow zero bias.
+ *
+ * For transpose convolution with explicit padding, callers choose OP to match
+ * the desired output width: `V = (W - 1) * S - 2 * P + K + OP`.
  */
 struct ConvMem {
   uint16_t K  = 3;       ///< Kernel width, or tap count for 1D convolution.
   uint16_t P  = 0;       ///< Padding per side; `65535` requests SAME-style 2D padding.
   uint16_t S  = 1;       ///< Convolution stride.
-  uint16_t OP = 0;       ///< Output padding for transpose convolution.
+  uint16_t OP = 0;       ///< User-computed output padding for transpose convolution.
 
   const float *weight = nullptr;    ///< Pointer to packed weight values.
   const float *bias   = nullptr;    ///< Pointer to packed bias values, or nullptr.
@@ -1006,6 +1015,10 @@ uint16_t noodle_dwconv_float(NoodleBuffer *input,
  * Input is packed `[I][W][W]`; output is packed `[O][Vt][Vt]`. Weights use
  * `[O][I][K][K]`.
  *
+ * For explicit padding, callers set `conv.OP` so
+ * `Vt = (W - 1) * conv.S - 2 * conv.P + conv.K + conv.OP` matches the desired
+ * output width. With `conv.P == 65535`, SAME-style output uses `Vt = W * conv.S`.
+ *
  * @param input Input NoodleBuffer with packed feature maps.
  * @param n_inputs Number of input channels.
  * @param n_outputs Number of output channels.
@@ -1171,6 +1184,12 @@ uint16_t noodle_fcn_progmem(NoodleBuffer *input,
  * Reads packed `[C][V][V]` input and writes HWC-like order:
  * `output[pixel * C + channel]`. The output buffer grows automatically to
  * `V * V * n_filters` floats.
+ *
+ * @param in_fn Input file containing packed channel-first planes.
+ * @param output Destination buffer grown as needed.
+ * @param V Input plane width and height.
+ * @param n_filters Number of channel planes.
+ * @return Number of floats written, or 0 on null input/allocation failure.
  */
 uint16_t noodle_flat(const char *in_fn,
                      NoodleBuffer *output,
@@ -1183,6 +1202,12 @@ uint16_t noodle_flat(const char *in_fn,
  *
  * Reads `input` as packed `[C][V][V]`, grows `output` to
  * `V * V * n_filters` floats, and writes `output[pixel * C + channel]`.
+ *
+ * @param input Source buffer with packed channel-first planes.
+ * @param output Destination buffer grown as needed.
+ * @param V Input plane width and height.
+ * @param n_filters Number of channel planes.
+ * @return Number of floats written, or 0 on null input/allocation failure.
  */
 uint16_t noodle_flat(NoodleBuffer *input,
                      NoodleBuffer *output,
@@ -1194,68 +1219,315 @@ uint16_t noodle_flat(NoodleBuffer *input,
  * @ingroup noodle_public
  *
  * The destination buffer grows automatically to `W * W * C` floats.
+ *
+ * @param src_hwc Source buffer in `src[pixel * C + channel]` order.
+ * @param dst_chw Destination buffer grown as needed.
+ * @param W Output plane width and height.
+ * @param C Number of channel planes.
+ * @return Number of floats written, or 0 on null input/allocation failure.
  */
 uint16_t noodle_reshape(NoodleBuffer *src_hwc,
                         NoodleBuffer *dst_chw,
                         uint16_t W,
                         uint16_t C);
 
-/** @brief Apply global average pooling in place on a NoodleBuffer. */
+/**
+ * @brief Apply global average pooling in place on packed channel-first maps.
+ * @ingroup noodle_public
+ *
+ * Reduces `[C][W][W]` to `[C]` by writing each channel mean into the first
+ * `C` positions of @p inout.
+ *
+ * @param inout Buffer containing packed `[C][W][W]` data.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @return @p C, or 0 when @p inout has no data.
+ */
 uint16_t noodle_gap(NoodleBuffer *inout, uint16_t C, uint16_t W);
 
-/** @brief Apply global max pooling in place on a NoodleBuffer. */
+/**
+ * @brief Apply global max pooling in place on packed channel-first data.
+ * @ingroup noodle_public
+ *
+ * Reduces each channel to one maximum value in the first `C` positions of
+ * @p inout. The current helper scans @p W values per channel.
+ *
+ * @param inout Buffer containing packed channel data.
+ * @param C Number of channels.
+ * @param W Number of values scanned per channel.
+ * @return @p C, or 0 when @p inout has no data.
+ */
 uint16_t noodle_gmp(NoodleBuffer *inout, uint16_t C, uint16_t W);
 
-/** @brief Apply numerically stabilized softmax in place on a NoodleBuffer. */
+/**
+ * @brief Apply numerically stabilized softmax in place on a NoodleBuffer.
+ * @ingroup noodle_public
+ * @param input_output Vector buffer updated in place.
+ * @param n Number of vector elements.
+ * @return @p n, or 0 when @p input_output has no data.
+ */
 uint16_t noodle_soft_max(NoodleBuffer *input_output, uint16_t n);
 
-/** @brief Apply sigmoid in place on a NoodleBuffer. */
+/**
+ * @brief Apply sigmoid in place on a NoodleBuffer.
+ * @ingroup noodle_public
+ * @param input_output Vector buffer updated in place.
+ * @param n Number of vector elements.
+ * @return @p n, or 0 when @p input_output has no data.
+ */
 uint16_t noodle_sigmoid(NoodleBuffer *input_output, uint16_t n);
 
-/** @brief Compute sigmoid for one scalar. */
+/**
+ * @brief Compute sigmoid for one scalar.
+ * @ingroup noodle_public
+ * @param x Scalar input.
+ * @return Logistic sigmoid of @p x.
+ */
 float noodle_sigmoidf(float x);
 
-/** @brief Apply logistic sigmoid in place on a NoodleBuffer. */
+/**
+ * @brief Apply logistic sigmoid in place on a NoodleBuffer.
+ * @ingroup noodle_public
+ * @param input_output Vector buffer updated in place.
+ * @param n Number of vector elements.
+ * @return @p n, or 0 when @p input_output has no data.
+ */
 uint16_t noodle_logit(NoodleBuffer *input_output, uint16_t n);
 
-/** @brief Apply ReLU in place on a NoodleBuffer. */
+/**
+ * @brief Apply ReLU in place on a NoodleBuffer.
+ * @ingroup noodle_public
+ * @param input_output Vector buffer updated in place.
+ * @param n Number of vector elements.
+ * @return @p n, or 0 when @p input_output has no data.
+ */
 uint16_t noodle_relu(NoodleBuffer *input_output, uint16_t n);
 
-/** @brief Find the maximum value and its index in a NoodleBuffer vector. */
+/**
+ * @brief Find the maximum value and its index in a NoodleBuffer vector.
+ * @ingroup noodle_public
+ * @param input Input vector buffer.
+ * @param n Number of vector elements to inspect.
+ * @param max_val Receives the maximum value, or 0.0 for null/empty input.
+ * @param max_idx Receives the maximum index, or 0 for null/empty input.
+ */
 void noodle_find_max(NoodleBuffer *input, uint16_t n,
                      float &max_val, uint16_t &max_idx);
 
-// Batch normalization convenience overloads.
+/**
+ * @brief Apply 1D batch normalization in place to a NoodleBuffer vector.
+ * @ingroup noodle_public
+ *
+ * `gamma`, `beta`, `mean`, and `var` each contain @p N values.
+ *
+ * @param x Vector buffer updated in place.
+ * @param N Number of vector elements.
+ * @param gamma Scale parameters.
+ * @param beta Offset parameters.
+ * @param mean Moving-mean parameters.
+ * @param var Moving-variance parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p N, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn1d(NoodleBuffer *x, uint16_t N,
                      const float *gamma, const float *beta,
                      const float *mean, const float *var, float eps);
+
+/**
+ * @brief Apply 1D batch normalization from a packed parameter array.
+ * @ingroup noodle_public
+ *
+ * `bn_params` is packed as `[gamma[N]][beta[N]][mean[N]][var[N]]`.
+ *
+ * @param x Vector buffer updated in place.
+ * @param N Number of vector elements.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p N, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn1d(NoodleBuffer *x, uint16_t N,
                      const float *bn_params, float eps);
+
+/**
+ * @brief Apply 1D batch normalization followed by ReLU in place.
+ * @ingroup noodle_public
+ *
+ * `gamma`, `beta`, `mean`, and `var` each contain @p N values.
+ *
+ * @param x Vector buffer updated in place.
+ * @param N Number of vector elements.
+ * @param gamma Scale parameters.
+ * @param beta Offset parameters.
+ * @param mean Moving-mean parameters.
+ * @param var Moving-variance parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p N, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn1d_relu(NoodleBuffer *x, uint16_t N,
                           const float *gamma, const float *beta,
                           const float *mean, const float *var, float eps);
+
+/**
+ * @brief Apply packed 1D batch normalization followed by ReLU in place.
+ * @ingroup noodle_public
+ *
+ * `bn_params` is packed as `[gamma[N]][beta[N]][mean[N]][var[N]]`.
+ *
+ * @param x Vector buffer updated in place.
+ * @param N Number of vector elements.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p N, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn1d_relu(NoodleBuffer *x, uint16_t N,
                           const float *bn_params, float eps);
 
+/**
+ * @brief Apply 2D channel-wise batch normalization in place.
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`. The parameter arrays each contain @p C
+ * values, one per channel.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param gamma Scale parameters.
+ * @param beta Offset parameters.
+ * @param mean Moving-mean parameters.
+ * @param var Moving-variance parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn2d(NoodleBuffer *x, uint16_t C, uint16_t W,
                      const float *gamma, const float *beta,
                      const float *mean, const float *var, float eps);
+
+/**
+ * @brief Apply 2D channel-wise batch normalization from packed parameters.
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`. `bn_params` is packed as
+ * `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn2d(NoodleBuffer *x, uint16_t C, uint16_t W,
                      const float *bn_params, float eps);
+
+/**
+ * @brief Apply 2D channel-wise batch normalization followed by ReLU.
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`. The parameter arrays each contain @p C
+ * values, one per channel.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param gamma Scale parameters.
+ * @param beta Offset parameters.
+ * @param mean Moving-mean parameters.
+ * @param var Moving-variance parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn2d_relu(NoodleBuffer *x, uint16_t C, uint16_t W,
                           const float *gamma, const float *beta,
                           const float *mean, const float *var, float eps);
+
+/**
+ * @brief Apply packed 2D batch normalization followed by ReLU.
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`. `bn_params` is packed as
+ * `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn2d_relu(NoodleBuffer *x, uint16_t C, uint16_t W,
                           const float *bn_params, float eps);
 
-// Backward-compatible BN aliases for NoodleBuffer.
+/**
+ * @brief Backward-compatible alias for noodle_bn2d().
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param gamma Scale parameters.
+ * @param beta Offset parameters.
+ * @param mean Moving-mean parameters.
+ * @param var Moving-variance parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn(NoodleBuffer *x, uint16_t C, uint16_t W,
                    const float *gamma, const float *beta,
                    const float *mean, const float *var, float eps);
+
+/**
+ * @brief Backward-compatible alias for packed-parameter noodle_bn2d().
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`. `bn_params` is packed as
+ * `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn(NoodleBuffer *x, uint16_t C, uint16_t W,
                    const float *bn_params, float eps);
+
+/**
+ * @brief Backward-compatible alias for noodle_bn2d_relu().
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param gamma Scale parameters.
+ * @param beta Offset parameters.
+ * @param mean Moving-mean parameters.
+ * @param var Moving-variance parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn_relu(NoodleBuffer *x, uint16_t C, uint16_t W,
                         const float *gamma, const float *beta,
                         const float *mean, const float *var, float eps);
+
+/**
+ * @brief Backward-compatible alias for packed-parameter noodle_bn2d_relu().
+ * @ingroup noodle_public
+ *
+ * Treats @p x as packed `[C][W][W]`. `bn_params` is packed as
+ * `[gamma[C]][beta[C]][mean[C]][var[C]]`.
+ *
+ * @param x Tensor buffer updated in place.
+ * @param C Number of channels.
+ * @param W Plane width and height.
+ * @param bn_params Packed batch-normalization parameters.
+ * @param eps Small value added to variance before inversion.
+ * @return @p W, or 0 when @p x has no data.
+ */
 uint16_t noodle_bn_relu(NoodleBuffer *x, uint16_t C, uint16_t W,
                         const float *bn_params, float eps);

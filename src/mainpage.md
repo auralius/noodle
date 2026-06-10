@@ -10,7 +10,7 @@ the peak memory footprint small and predictable.
 This documentation describes the public API, the refactored implementation
 layout, and the core invariants needed to use Noodle correctly and safely:
 data layouts, file formats, filesystem selection, parameter layout, buffer
-ownership, and scratch-buffer management.
+ownership, output sizing, and scratch-buffer management.
 
 ## What Noodle Is And Is Not
 
@@ -95,7 +95,7 @@ Implementation files:
   normalization, and backward-compatible BN aliases.
 - `noodle_internal.h` and `noodle_internal.cpp`: private shared declarations,
   global scratch-buffer state, low-level convolution/pooling kernels, shape
-  formulas, and implementation helpers.
+  formulas, raw tensor/activation helpers, and implementation helpers.
 
 Application code should not include `noodle_internal.h`; it is only for Noodle's
 implementation files.
@@ -217,6 +217,31 @@ file layout does not change.
 
 PROGMEM-backed convolution and fully connected parameter structs use the same
 packed layouts as their memory-backed equivalents.
+
+### Conv2DTranspose Output Sizing
+
+Noodle's transpose-convolution API is memory-backed and uses the same
+`[O][I][K][K]` kernel layout as normal Conv2D. The exporter can convert the
+kernel layout, but the firmware still chooses the layer geometry through `K`,
+`P`, `S`, and `OP`.
+
+For explicit symmetric padding, `OP` is user-computed from the desired output
+width:
+
+@code{.cpp}
+V = (W - 1) * S - 2 * P + K + OP
+@endcode
+
+Equivalently, after choosing the desired `V`, solve:
+
+@code{.cpp}
+OP = V - ((W - 1) * S - 2 * P + K)
+@endcode
+
+`OP` should normally be in the range `[0, S - 1]`, matching common
+transpose-convolution conventions. When `P = 65535`, Noodle uses
+Keras/TF-style SAME sizing for transpose convolution: `V = W * S`, and the
+helper derives the asymmetric crop internally.
 
 `noodle_flat()` is the main layout conversion helper. It reads packed
 `[C][V][V]` input and writes HWC-like spatial-major output:
@@ -395,7 +420,9 @@ The exporter handles the common layouts used by this repository:
 For models with Conv2DTranspose, prefer `exporter_model(model, out_dir)` so the
 exporter can distinguish transpose convolution kernels from regular Conv2D
 kernels. Keras Conv2DTranspose uses `(Kh, Kw, Cout, Cin)` and is exported to
-Noodle `[O][I][K][K]` without a spatial kernel flip.
+Noodle `[O][I][K][K]` without a spatial kernel flip. The exporter does not
+choose `OP`; set `conv.OP` in firmware from the intended transpose-convolution
+output size.
 
 ## Documentation Map
 
@@ -428,6 +455,8 @@ the matching refactored `.cpp` file; shared private pieces are declared in
 - Explicit convolution padding uses one padding value per side. Passing
   `P = 65535` requests SAME-style output sizing, and the helper resolves the
   required top/left and bottom/right padding internally.
+- For transpose convolution with explicit padding, `OP` is an output-size choice
+  made by the caller: `V = (W - 1) * S - 2 * P + K + OP`.
 - Pooling uses valid regions only; pooling layers do not add padding.
 - File-backed execution can be I/O-bound on small boards. Binary scalar files
   are usually faster and smaller than text scalar files.
@@ -442,4 +471,4 @@ the matching refactored `.cpp` file; shared private pieces are declared in
 - `K`: kernel size.
 - `P`: padding.
 - `S`: stride.
-- `OP`: output padding for transpose convolution.
+- `OP`: user-computed output padding for transpose convolution.

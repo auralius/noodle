@@ -1,4 +1,7 @@
+// This is a simple autoencoder inference example for the Noodle framework.
+// Last tested, June 11, 2026 on an ESP32-S3
 #include <Arduino.h>
+
 #include "noodle.h"
 #include "noodle_serial.h"
 
@@ -36,8 +39,10 @@ static void bytes_to_float_image(const uint8_t *src, float *dst, size_t n) {
 static void float_image_to_bytes(const float *src, uint8_t *dst, size_t n) {
   for (size_t i = 0; i < n; i++) {
     float v = src[i];
+
     if (v < 0.0f) v = 0.0f;
     if (v > 1.0f) v = 1.0f;
+
     dst[i] = (uint8_t)(255.0f * v + 0.5f);
   }
 }
@@ -69,20 +74,20 @@ static uint16_t run_autoencoder_forward() {
 
   // X is in A.
   // Each layer writes to out, then we swap in/out.
-  W = noodle_conv_float(in, 1, 16, out, W, E1, no_pool, NULL);       // A -> B
+  W = noodle_conv_float(in, 1, 16, out, W, E1, no_pool, NULL);    // A -> B
   swap_buffers(in, out);
 
-  W = noodle_conv_float(in, 16, 32, out, W, E2, no_pool, NULL);      // B -> A
+  W = noodle_conv_float(in, 16, 32, out, W, E2, no_pool, NULL);   // B -> A
   swap_buffers(in, out);
 
-  W = noodle_conv_transpose_float(in, 32, 16, out, W, D1, NULL);     // A -> B
+  W = noodle_conv_transpose_float(in, 32, 16, out, W, D1, NULL);  // A -> B
   swap_buffers(in, out);
 
-  W = noodle_conv_transpose_float(in, 16, 1, out, W, D2, NULL);      // B -> A
+  W = noodle_conv_transpose_float(in, 16, 1, out, W, D2, NULL);   // B -> A
   swap_buffers(in, out);
 
   // Final output is now in 'in'.
-  noodle_sigmoid(in->data, IMG_SIZE);
+  noodle_sigmoid(in, IMG_SIZE);
   Y = in;
 
   return W;
@@ -90,11 +95,22 @@ static uint16_t run_autoencoder_forward() {
 
 static void process_one_image() {
   // Put input image into A.
-  bytes_to_float_image(RX_BYTES, noodle_buffer_require(&A, IMG_SIZE), IMG_SIZE);
+  float *x = noodle_buffer_require(&A, IMG_SIZE);
+  if (!x) {
+    Serial.println(F("ERR_ALLOC_INPUT"));
+    NoodleSerial::print_ready();
+    return;
+  }
 
-  uint32_t t0 = micros();
-  uint16_t W = run_autoencoder_forward();
-  uint32_t dt = micros() - t0;
+  bytes_to_float_image(RX_BYTES, x, IMG_SIZE);
+
+  // Timing benchmark:
+  // Only the autoencoder forward pass is timed.
+  // Serial RX, byte-to-float conversion, output conversion, and Serial TX
+  // are outside this measurement.
+  const uint32_t t0 = micros();
+  const uint16_t W = run_autoencoder_forward();
+  const uint32_t dt = micros() - t0;
 
   if (W != IMG_W) {
     Serial.printf("ERR_BAD_W %u\n", W);
@@ -111,10 +127,19 @@ void setup() {
   NoodleSerial::clear_input();
 
   Serial.println();
-  Serial.println(F("BOOT SMART BUFFER AE"));
+  Serial.println(F("BOOT SMART BUFFER AE TIME_BENCH"));
 
   noodle_buffer_init(&A);
   noodle_buffer_init(&B);
+
+  // Optional warm-up allocation.
+  // This removes first-image buffer-growth cost from the timing benchmark.
+  // Comment this block if you want to include first-growth behavior.
+  float *x = noodle_buffer_require(&A, IMG_SIZE);
+  if (!x) {
+    Serial.println(F("ERR_ALLOC_INIT"));
+    while (true) delay(1000);
+  }
 
   NoodleSerial::print_ready();
 }
