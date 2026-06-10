@@ -7,12 +7,10 @@ tensors in RAM, Noodle can read inputs, weights, and biases from external
 storage and write intermediate activations back to storage. This approach keeps
 the peak memory footprint small and predictable.
 
-This documentation describes the public API, as well as the core invariants
-needed to use Noodle correctly and safely: data layouts, file formats,
-filesystem selection, parameter layout, and buffer requirements.
-
-@defgroup noodle_api Implementation Files
-@brief Source-level implementation documentation.
+This documentation describes the public API, the refactored implementation
+layout, and the core invariants needed to use Noodle correctly and safely:
+data layouts, file formats, filesystem selection, parameter layout, and buffer
+requirements.
 
 ## What Noodle Is And Is Not
 
@@ -22,14 +20,15 @@ Noodle is:
   flattening, fully connected, and related CNN-style pipelines.
 - Designed for memory-constrained environments, with APIs that support
   file-backed I/O to avoid large `W * W * C` allocations.
-- File-backed, memory-backed, and mixed file/memory overloads for the core layer
-  families.
+- File-backed, memory-backed, PROGMEM-backed, and mixed file/memory overloads
+  where the layer family supports them.
 - Backend-agnostic at the call site: filesystem operations are routed through a
   small abstraction layer. See @ref noodle_fs "Filesystem Backend Layer".
 - A library of explicit layer primitives, including 2D convolution, 1D
   convolution, 2D depthwise convolution, memory-backed 2D transpose convolution,
-  pooling, flattening, global average pooling, fully connected layers, ReLU,
-  sigmoid, softmax, batch normalization, and max-index helpers.
+  pooling, flattening, reshaping, global average pooling, global max pooling,
+  fully connected layers, ReLU, sigmoid, softmax, rank-specific batch
+  normalization, and max-index helpers.
 
 Noodle is not:
 
@@ -59,6 +58,42 @@ Noodle addresses this issue through a streaming execution model:
 
 This design explains why multiple function variants exist, such as file-to-file,
 memory-to-file, file-to-memory, and memory-to-memory operations.
+
+### Public Include And Refactored Source Layout
+
+The application-facing boundary remains simple: user sketches include
+`noodle.h`. The refactor split the implementation into smaller files so each
+piece of behavior has a clearer home, but it did not change the public include
+model.
+
+Public files:
+
+- `noodle.h`: application-facing structs, layer calls, helpers, and Doxygen
+  API documentation.
+- `noodle_config.h`: compile-time backend, file-format, pooling, and scratch
+  sizing macros.
+- `noodle_fs.h`: filesystem backend abstraction, path normalization, file
+  handle type, and open/remove/seek helpers.
+
+Implementation files:
+
+- `noodle_io.cpp`: filesystem initialization and scalar/tensor file I/O.
+- `noodle_memory.cpp`: buffer allocation, slicing, and temporary buffer setup.
+- `noodle_conv.cpp`: public Conv1D, Conv2D, Conv2DTranspose, and PROGMEM Conv2D
+  wrappers.
+- `noodle_dw.cpp`: public depthwise-convolution wrappers.
+- `noodle_fcn.cpp`: dense/fully connected overloads, including file-backed,
+  memory-backed, and PROGMEM-backed parameter paths.
+- `noodle_shape.cpp`: flatten, reshape, global average pooling, and global max
+  pooling helpers.
+- `noodle_math.cpp`: dot products, activations, max search, rank-specific batch
+  normalization, and backward-compatible BN aliases.
+- `noodle_internal.h` and `noodle_internal.cpp`: private shared declarations,
+  temporary-buffer globals, low-level convolution/pooling kernels, shape
+  formulas, and implementation helpers.
+
+Application code should not include `noodle_internal.h`; it is only for Noodle's
+implementation files.
 
 ### Data Layout Conventions
 
@@ -147,6 +182,10 @@ mode the same chunk is filled by parsing one scalar at a time. The default is
 128 floats, which uses `NOODLE_FCN_BLOCK * sizeof(float)` bytes of stack for the
 weight buffer.
 
+Convolution and depthwise-convolution paths copy one kernel into stack scratch
+using `NOODLE_MAX_K`. Set it to the largest kernel width used by the firmware;
+the default is 5.
+
 ## Tensor And Parameter Layouts
 
 Unless an API says otherwise, Noodle uses channel-first packed storage.
@@ -164,11 +203,15 @@ Layer parameters:
 - 2D transpose convolution weights: `[O][I][K][K]`
 - Fully connected weights: `[O][I]`
 - Bias files or arrays: one scalar per output channel or neuron
-- Batch normalization arrays: `[gamma[C]][beta[C]][mean[C]][var[C]]`
+- Batch normalization arrays: `[gamma[N]][beta[N]][mean[N]][var[N]]`, where
+  `N` is a vector length for BN1D or a channel count for BN2D
 
 File-backed fully connected layers consume weights sequentially in `[O][I]`
 order. The float-input variants use block reads for the weight stream, but the
 file layout does not change.
+
+PROGMEM-backed convolution and fully connected parameter structs use the same
+packed layouts as their memory-backed equivalents.
 
 `noodle_flat()` is the main layout conversion helper. It reads packed
 `[C][V][V]` input and writes HWC-like spatial-major output:
@@ -184,6 +227,15 @@ output:
 @code{.cpp}
 dst_chw[channel * W * W + pixel] = src_hwc[pixel * C + channel]
 @endcode
+
+Batch normalization is explicit about tensor rank:
+
+- `noodle_bn1d()` and `noodle_bn1d_relu()` operate on packed `[N]` vectors after
+  FCN/Dense layers, GAP/GMP, or flatten-like outputs.
+- `noodle_bn2d()` and `noodle_bn2d_relu()` operate on packed `[C][W][W]`
+  channel-first tensors after Conv2D, depthwise Conv2D, or pointwise Conv2D.
+- `noodle_bn()` and `noodle_bn_relu()` remain as backward-compatible aliases for
+  the old 2D channel-first behavior.
 
 ## Temporary Buffers
 
@@ -320,7 +372,8 @@ The exporter handles the common layouts used by this repository:
 
 For models with Conv2DTranspose, prefer `exporter_model(model, out_dir)` so the
 exporter can distinguish transpose convolution kernels from regular Conv2D
-kernels.
+kernels. Keras Conv2DTranspose uses `(Kh, Kw, Cout, Cin)` and is exported to
+Noodle `[O][I][K][K]` without a spatial kernel flip.
 
 ## Documentation Map
 
@@ -334,16 +387,23 @@ The generated reference is organized around:
 - @ref noodle_api "Implementation Files": source-level implementation
   documentation.
 
-Configuration macros are described in `noodle_config.h`.
+Configuration macros are described in `noodle_config.h`. When reading the
+implementation, start from the public declaration in `noodle.h`, then move to
+the matching refactored `.cpp` file; shared private pieces are declared in
+`noodle_internal.h`.
 
 ## Limitations And Notes
 
 - Several helpers rely on shared file handles and shared temporary buffer
   pointers. Treat the library as non-reentrant unless you add external
   serialization.
+- `noodle_internal.h` is private implementation surface and may change without
+  preserving application-level compatibility.
 - Path normalization for slash-requiring filesystems uses a static buffer.
 - Many 2D APIs assume square feature maps (`W * W`) rather than rectangular
   tensors.
+- `NOODLE_MAX_K` must be large enough for the largest convolution kernel copied
+  into stack scratch.
 - Explicit convolution padding uses one padding value per side. Passing
   `P = 65535` requests SAME-style output sizing, and the helper resolves the
   required top/left and bottom/right padding internally.
