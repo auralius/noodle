@@ -1023,6 +1023,7 @@ def exporter_tflite(tflite_path: str, out_dir: str):
                 _write_array_txt_and_h(out_dir, "b", b_idx, b)
             continue
 
+    write_model_weights_header(out_dir, w_idx, b_idx)
     print(f"Export complete: w={w_idx}, b={b_idx}, out_dir={out_dir}")
 
 def debug_tflite_ops(tflite_path):
@@ -1071,6 +1072,18 @@ def debug_tflite_ops(tflite_path):
                   "dtype", d.get("dtype", None))
         print()
 
+def write_model_weights_header(out_dir: str, w_count: int, b_count: int):
+    path = os.path.join(out_dir, "model_weights.h")
+    with open(path, "w") as f:
+        f.write("#pragma once\n\n")
+        n = max(w_count, b_count)
+        for i in range(1, n + 1):
+            if i <= w_count:
+                f.write(f'#include "w{i:02d}.h"\n')
+            if i <= b_count:
+                f.write(f'#include "b{i:02d}.h"\n')
+    print(path)
+                
 if __name__ == "__main__":
     import argparse
 
@@ -1109,3 +1122,4 @@ if __name__ == "__main__":
     # Execute the exporter
     print(f"Exporting {args.tflite_path} to directory '{args.out_dir}'...")
     exporter_tflite(args.tflite_path, args.out_dir)
+    

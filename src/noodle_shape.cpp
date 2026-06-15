@@ -147,3 +147,76 @@ uint16_t noodle_gmp(NoodleBuffer *inout, uint16_t C, uint16_t W) {
   if (!inout || !inout->data) return 0;
   return noodle_gmp(inout->data, C, W);
 }
+
+uint16_t noodle_concat(NoodleBuffer *A,
+                       uint16_t C_A,
+                       NoodleBuffer *B,
+                       uint16_t C_B,
+                       NoodleBuffer *output,
+                       uint16_t V)
+{
+  if (!A || !B || !output) return 0;
+  if (!A->data || !B->data) return 0;
+
+  const uint32_t plane = (uint32_t)V * (uint32_t)V;
+  const uint16_t C_out = C_A + C_B;
+  const uint32_t total = (uint32_t)C_out * plane;
+
+  float *Y = noodle_buffer_require(output, total);
+  if (!Y) return 0;
+
+  // Copy A channels first.
+  const uint32_t nA = (uint32_t)C_A * plane;
+  for (uint32_t i = 0; i < nA; i++) {
+    Y[i] = A->data[i];
+  }
+
+  // Copy B channels after A.
+  const uint32_t nB = (uint32_t)C_B * plane;
+  const uint32_t offset = nA;
+  for (uint32_t i = 0; i < nB; i++) {
+    Y[offset + i] = B->data[i];
+  }
+
+  return C_out;
+}
+
+uint16_t noodle_pool2d(NoodleBuffer *input,
+                       uint16_t C,
+                       uint16_t W,
+                       NoodleBuffer *output,
+                       uint16_t K,
+                       uint16_t S) {
+  if (!input || !output) return 0;
+  if (!input->data) return 0;
+  if (C == 0 || W == 0 || K == 0 || S == 0) return 0;
+
+  // Keep this wrapper out-of-place for safety.
+  // In-place pooling can overwrite values that are still needed,
+  // especially for overlapping pooling where S < K.
+  if (input == output) return 0;
+
+#if NOODLE_POOL_MODE == NOODLE_POOL_NONE
+  const uint16_t Wo = W;
+#else
+  const uint16_t Wo = (K == 1 && S == 1)
+                    ? W
+                    : (uint16_t)((W - K) / S + 1);
+#endif
+
+  const uint32_t in_plane  = (uint32_t)W  * (uint32_t)W;
+  const uint32_t out_plane = (uint32_t)Wo * (uint32_t)Wo;
+
+  float *Y = noodle_buffer_require(output, (size_t)C * out_plane);
+  if (!Y) return 0;
+
+  for (uint16_t c = 0; c < C; c++) {
+    const float *x_c = input->data + (uint32_t)c * in_plane;
+    float *y_c = Y + (uint32_t)c * out_plane;
+
+    const uint16_t got = noodle_do_pooling(x_c, W, K, S, y_c);
+    if (got != Wo) return 0;
+  }
+
+  return Wo;
+}

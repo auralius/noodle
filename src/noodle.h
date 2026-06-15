@@ -1260,6 +1260,51 @@ uint16_t noodle_gap(NoodleBuffer *inout, uint16_t C, uint16_t W);
 uint16_t noodle_gmp(NoodleBuffer *inout, uint16_t C, uint16_t W);
 
 /**
+ * @brief Concatenate two packed channel-first tensors by channel.
+ * @ingroup noodle_public
+ *
+ * Reads @p A as `[C_A][V][V]` and @p B as `[C_B][V][V]`, grows @p output to
+ * `(C_A + C_B) * V * V` floats, then copies all @p A channels followed by all
+ * @p B channels.
+ *
+ * @param A First input buffer.
+ * @param C_A Number of channels in @p A.
+ * @param B Second input buffer.
+ * @param C_B Number of channels in @p B.
+ * @param output Destination buffer grown as needed.
+ * @param V Input and output plane width and height.
+ * @return Combined channel count, or 0 on null input/allocation failure.
+ */
+uint16_t noodle_concat(NoodleBuffer *A, uint16_t C_A,
+                       NoodleBuffer *B, uint16_t C_B,
+                       NoodleBuffer *output, uint16_t V);
+
+/**
+ * @brief Apply 2D pooling to a packed channel-first tensor.
+ * @ingroup noodle_public
+ *
+ * Reads @p input as `[C][W][W]`, grows @p output for `[C][Wo][Wo]`, and pools
+ * each channel independently using the compile-time `NOODLE_POOL_MODE`. When
+ * `NOODLE_POOL_MODE == NOODLE_POOL_NONE`, the helper copies each plane and
+ * returns @p W. The wrapper rejects in-place pooling because overlapping
+ * windows can overwrite values that are still needed.
+ *
+ * @param input Source tensor buffer.
+ * @param C Number of channels.
+ * @param W Input plane width and height.
+ * @param output Destination tensor buffer grown as needed.
+ * @param K Pool window size.
+ * @param S Pool stride.
+ * @return Output plane width, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_pool2d(NoodleBuffer *input,
+                       uint16_t C,
+                       uint16_t W,
+                       NoodleBuffer *output,
+                       uint16_t K,
+                       uint16_t S);
+
+/**
  * @brief Apply numerically stabilized softmax in place on a NoodleBuffer.
  * @ingroup noodle_public
  * @param input_output Vector buffer updated in place.
