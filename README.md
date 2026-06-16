@@ -21,6 +21,8 @@ Noodle provides primitive modular functions for **convolution layer, dense layer
 
 * Although we still use the Arduino Framework, development is done wit Visual Code and PlatformIO.  
 
+##
+![](poster.png)
 
 ## Authors
 
