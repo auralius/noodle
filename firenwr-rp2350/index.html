@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://auralius.github.io/noodle/lenet-5-pico/">
+        <link rel="canonical" href="https://auralius.github.io/noodle/firenwr-rp2350/">
       
       
       
@@ -18,7 +18,7 @@
     
     
       
-        <title>LeNet-5-28×28 on Raspberry Pico 2040 - Noodle - The Documentation</title>
+        <title>Tiny FireNet CIFAR-10 on RP2350 with `NoodleBuffer - Noodle - The Documentation</title>
       
     
     
@@ -62,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#lenet-5-2828-on-raspberry-pico-2040" class="md-skip">
+        <a href="#tiny-firenet-cifar-10-on-rp2350-with-noodlebuffer" class="md-skip">
           Skip to content
         </a>
       
@@ -97,7 +97,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              LeNet-5-28×28 on Raspberry Pico 2040
+              Tiny FireNet CIFAR-10 on RP2350 with `NoodleBuffer
             
           </span>
         </div>
@@ -269,13 +269,238 @@
   
 
 
-<h1 id="lenet-5-2828-on-raspberry-pico-2040">LeNet-5-28×28 on Raspberry Pico 2040</h1>
-<p>Repository: https://github.com/auralius/noodle/tree/main/examples/lenet-5-esp32 </p>
-<p>Select the <code>[env:rpi_pico]</code> environment. </p>
-<p>In the <code>test</code> folder, there is a Python script, named <code>mnist-sender.py</code>. This Python scripts reads a line from the <a href="https://drive.google.com/file/d/10fZ4Mr9-2oMtgNPC9zn2d6VBxjyGsiWU/view?usp=sharing">MNIST dataset</a> (<span class="arithmatex">\(28 \times 28=784\)</span> bytes) and streams the data to the Pico.
-Raspberry Pico uses RP2040 microcontroller which is powered by dual ARM Cortex-M0+ cores and <strong>lacks a hardware Floating Point Unit (FPU)</strong>. </p>
-<p><img alt="" src="../attachments/bench-pico.png" /></p>
-<p>The inference time stays consistently at ~1 second.</p>
+<h1 id="tiny-firenet-cifar-10-on-rp2350-with-noodlebuffer">Tiny FireNet CIFAR-10 on RP2350 with `NoodleBuffer</h1>
+<p><img alt="" src="../attachments/tiny-firenet.png" /></p>
+<h2 id="1-motivation">1. Motivation</h2>
+<p>This experiment evaluates a small CNN classifier for CIFAR-10 on an RP2350-based board using <code>NoodleBuffer</code> abstraction in Noodle. The tested model is a Tiny FireNet-style CNN inspired by SqueezeNet-style fire modules. The input is a CIFAR-10 RGB image of size <code>32 × 32 × 3</code>, and the output is a 10-class softmax prediction.</p>
+<hr />
+<h2 id="2-model-design">2. Model Design</h2>
+<p>The model follows a compact FireNet structure:</p>
+<pre><code class="language-text">Input RGB              3 × 32 × 32
+
+Stem Conv3×3           24 × 32 × 32
+MaxPool                24 × 16 × 16
+
+Fire1 squeeze1×1       12 × 16 × 16
+Fire1 expand1×1        24 × 16 × 16
+Fire1 expand3×3        24 × 16 × 16
+Fire1 concat           48 × 16 × 16
+
+Fire2 squeeze1×1       24 × 16 × 16
+Fire2 expand1×1        32 × 16 × 16
+Fire2 expand3×3        32 × 16 × 16
+Fire2 concat           64 × 16 × 16
+MaxPool                64 × 8 × 8
+
+Fire3 squeeze1×1       32 × 8 × 8
+Fire3 expand1×1        48 × 8 × 8
+Fire3 expand3×3        48 × 8 × 8
+Fire3 concat           96 × 8 × 8
+
+Global Average Pool    96
+Dense + Softmax        10
+</code></pre>
+<p>The model uses three Fire modules. Each Fire module contains:</p>
+<pre><code class="language-text">input
+  └── squeeze 1×1 convolution
+          ├── expand 1×1 convolution
+          └── expand 3×3 convolution
+  └── concatenate expand outputs
+</code></pre>
+<p>This structure is attractive for microcontrollers because the squeeze layer reduces the number of channels before the more expensive expand layers.</p>
+<hr />
+<h2 id="3-input-and-tensor-layout">3. Input and Tensor Layout</h2>
+<p>The host sends CIFAR-10 images through serial as HWC RGB bytes:</p>
+<pre><code class="language-text">[y][x][r,g,b]
+</code></pre>
+<p>For example, the payload size is:</p>
+<pre><code class="language-text">32 × 32 × 3 = 3072 bytes
+</code></pre>
+<p>Inside the MCU, the image is converted into CHW float format:</p>
+<pre><code class="language-text">[c][y][x]
+</code></pre>
+<p>Each byte is normalized to <code>[0, 1]</code>:</p>
+<pre><code class="language-cpp">x[0 * IMG_PIXELS + chw0] = (float)src[hwc + 0] * (1.0f / 255.0f);
+x[1 * IMG_PIXELS + chw0] = (float)src[hwc + 1] * (1.0f / 255.0f);
+x[2 * IMG_PIXELS + chw0] = (float)src[hwc + 2] * (1.0f / 255.0f);
+</code></pre>
+<p>This is important because the serial protocol uses image-friendly HWC RGB order, while the current Noodle convolution implementation uses CHW tensor order.</p>
+<hr />
+<h2 id="4-how-noodlebuffer-is-useful">4. How <code>NoodleBuffer</code> Is Useful</h2>
+<p>Earlier Noodle examples often used fixed-size arrays for intermediate tensors. That approach is simple, but it makes memory usage rigid. Every tensor buffer must be manually sized in advance, and overestimating buffer sizes wastes SRAM.</p>
+<p>The new <code>NoodleBuffer</code> design changes this behavior. Instead of declaring all tensor arrays manually, the program declares reusable tensor buffers:</p>
+<pre><code class="language-cpp">static NoodleBuffer X;
+static NoodleBuffer A;
+static NoodleBuffer B;
+static NoodleBuffer S;
+static NoodleBuffer E1;
+static NoodleBuffer E3;
+</code></pre>
+<p>A buffer grows when a larger tensor is required:</p>
+<pre><code class="language-cpp">float *x = noodle_buffer_require(dst, required_elements);
+</code></pre>
+<p>Once grown, the buffer keeps its capacity and is reused by later layers. This creates a predictable grow-only memory pattern:</p>
+<pre><code class="language-text">small tensor  -&gt; buffer grows
+larger tensor -&gt; buffer grows again
+smaller tensor -&gt; buffer reuses existing capacity
+</code></pre>
+<p>This is very useful for embedded inference because it makes peak tensor residency explicit.</p>
+<hr />
+<h2 id="5-buffer-roles">5. Buffer Roles</h2>
+<p>The FireNet implementation uses six <code>NoodleBuffer</code> objects:</p>
+<table>
+<thead>
+<tr>
+<th>Buffer</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X</code></td>
+<td>Input tensor</td>
+</tr>
+<tr>
+<td><code>A</code></td>
+<td>Main ping-pong tensor buffer</td>
+</tr>
+<tr>
+<td><code>B</code></td>
+<td>Main ping-pong tensor buffer</td>
+</tr>
+<tr>
+<td><code>S</code></td>
+<td>Fire-module squeeze output</td>
+</tr>
+<tr>
+<td><code>E1</code></td>
+<td>Fire-module expand 1×1 output</td>
+</tr>
+<tr>
+<td><code>E3</code></td>
+<td>Fire-module expand 3×3 output</td>
+</tr>
+</tbody>
+</table>
+<p>The scratch buffers <code>S</code>, <code>E1</code>, and <code>E3</code> are needed because the Fire module must keep multiple tensors alive at the same time:</p>
+<pre><code class="language-text">S must remain alive while both expand branches are computed.
+E1 and E3 must remain alive until concat finishes.
+</code></pre>
+<p>This is different from a simple sequential CNN, where two ping-pong buffers are often enough.</p>
+<hr />
+<h2 id="6-correct-tensor-flow">6. Correct Tensor Flow</h2>
+<p>The correct tensor flow is:</p>
+<pre><code class="language-text">X -&gt; A        Stem convolution
+A -&gt; B        Pool1
+
+B -&gt; A        Fire1
+A -&gt; B        Fire2
+B -&gt; A        Pool2
+A -&gt; B        Fire3
+
+B             GAP
+B -&gt; A        Dense + Softmax
+</code></pre>
+<hr />
+<h2 id="7-measured-memory-usage">7. Measured Memory Usage</h2>
+<p>After the buffers reached their maximum sizes, the measured <code>NoodleBuffer</code> capacities were:</p>
+<table>
+<thead>
+<tr>
+<th>Buffer</th>
+<th style="text-align: right;">Size in bytes</th>
+<th>Corresponding tensor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X</code></td>
+<td style="text-align: right;">12,288</td>
+<td><code>3 × 32 × 32 × 4</code></td>
+</tr>
+<tr>
+<td><code>A</code></td>
+<td style="text-align: right;">98,304</td>
+<td><code>24 × 32 × 32 × 4</code></td>
+</tr>
+<tr>
+<td><code>B</code></td>
+<td style="text-align: right;">65,536</td>
+<td><code>64 × 16 × 16 × 4</code></td>
+</tr>
+<tr>
+<td><code>S</code></td>
+<td style="text-align: right;">24,576</td>
+<td><code>24 × 16 × 16 × 4</code></td>
+</tr>
+<tr>
+<td><code>E1</code></td>
+<td style="text-align: right;">32,768</td>
+<td><code>32 × 16 × 16 × 4</code></td>
+</tr>
+<tr>
+<td><code>E3</code></td>
+<td style="text-align: right;">32,768</td>
+<td><code>32 × 16 × 16 × 4</code></td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td style="text-align: right;"><strong>266,240</strong></td>
+<td><strong>≈260 KB</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The measured remaining free RAM after buffer growth was approximately:</p>
+<pre><code class="language-text">159,431 bytes ≈ 155 KB
+</code></pre>
+<p>Therefore, the current RP2350 FireNet implementation requires approximately:</p>
+<pre><code class="language-text">Tensor buffer memory: 266,240 bytes ≈ 260 KB
+Remaining RAM:        159,431 bytes ≈ 155 KB
+</code></pre>
+<hr />
+<h2 id="8-inference-result">8. Inference Result</h2>
+<p>After fixing the Pool2 tensor-flow bug, a 10-image CIFAR-10 smoke test produced:</p>
+<pre><code class="language-text">Accuracy: 8/10 = 80.00%
+Mean inference: 2.085803 s
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-text">PRED 3 2.086086 0.665115 cat        OK
+PRED 8 2.085790 0.842198 ship       OK
+PRED 8 2.085797 0.935005 ship       OK
+PRED 0 2.085736 0.814907 airplane   OK
+PRED 6 2.085793 0.929317 frog       OK
+PRED 6 2.085766 0.965863 frog       OK
+PRED 1 2.085783 0.557270 automobile OK
+PRED 2 2.085754 0.589441 bird       NO
+PRED 3 2.085751 0.784107 cat        OK
+PRED 9 2.085771 0.574728 truck      NO
+</code></pre>
+<p>The two incorrect predictions were plausible CIFAR-10 confusions:</p>
+<pre><code class="language-text">frog       -&gt; bird
+automobile -&gt; truck
+</code></pre>
+<hr />
+<h2 id="9-discussion">9. Discussion</h2>
+<p>The experiment shows that <code>NoodleBuffer</code> makes memory behavior easier to observe and explain. Instead of manually reasoning about all intermediate arrays, we can inspect the actual capacity reached by each logical buffer.</p>
+<p>The final memory profile also explains the hardware boundary:</p>
+<pre><code class="language-text">RP2350: feasible fully in SRAM
+Smaller MCUs: likely require tensor externalization
+</code></pre>
+<p>For example, a total tensor-buffer requirement of about 260 KB is acceptable on RP2350, but it is far beyond AVR-class boards and too large for many STM32F103-class boards if kept fully in SRAM.</p>
+<p>This supports the broader Noodle idea: the same operator abstraction can be extended from RAM-backed tensors to file-backed or external-memory-backed tensors. <code>NoodleBuffer</code> is therefore a useful stepping stone toward selective tensor residency.</p>
+<hr />
+<h2 id="10-conclusion">10. Conclusion</h2>
+<p>The RP2350 Tiny FireNet CIFAR-10 experiment demonstrates that the new grow-only <code>NoodleBuffer</code> abstraction works well for SRAM-backed CNN inference.</p>
+<p>The main conclusions are:</p>
+<ol>
+<li><code>NoodleBuffer</code> makes intermediate tensor memory measurable and predictable.</li>
+<li>Each buffer grows only to the largest tensor it needs to hold.</li>
+<li>The Tiny FireNet CIFAR-10 model requires about <strong>266,240 bytes</strong>, or <strong>260 KB</strong>, of tensor-buffer memory.</li>
+<li>The RP2350 still has about <strong>155 KB</strong> free after the buffers reach their peak capacity.</li>
+<li>A tensor routing error in Pool2 initially caused poor accuracy, but after correcting the flow from <code>B -&gt; A</code>, the model produced sensible predictions.</li>
+<li>The corrected model achieved <strong>8/10 accuracy</strong> in a small smoke test, with mean inference time of about <strong>2.086 s per image</strong>.</li>
+</ol>
+<p>Overall, this experiment confirms that <code>NoodleBuffer</code> is a practical abstraction for managing tensor residency in Noodle. It also gives a clear baseline for deciding when future models can remain fully SRAM-backed and when selective externalization to SD card, flash, or other storage becomes necessary.</p>
 
 
 

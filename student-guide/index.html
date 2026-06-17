@@ -540,15 +540,8 @@ Use P = n only when you intentionally want explicit n-pixel padding.
 </code></pre>
 <hr />
 <h2 id="4-required-files">4. Required Files</h2>
-<p>Place these files in one project folder:</p>
-<pre><code class="language-text">project/
-├── main.cpp
-├── noodle.h
-├── noodle.cpp
-├── noodle_serial.h
-├── noodle_serial.cpp
-├── model_exporter.py
-├── Auto_Encoder.ipynb
+<p>The <code>wXX.h</code> and <code>bXX.h</code> files are generated after training and exporting the model.. Place these generated files accordingly to the embedded project folder:</p>
+<pre><code class="language-text">generated_weights
 ├── w01.h
 ├── b01.h
 ├── w02.h
@@ -558,14 +551,12 @@ Use P = n only when you intentionally want explicit n-pixel padding.
 ├── w04.h
 └── b04.h
 </code></pre>
-<p>The <code>wXX.h</code> and <code>bXX.h</code> files are generated after training and exporting the model.</p>
 <h3 id="important-note-about-older-maincpp-examples">Important note about older <code>main.cpp</code> examples</h3>
-<p>Some older Noodle examples allocate one permanent tensor for every layer output, such as <code>X</code>, <code>Z1</code>, <code>Z2</code>, <code>Z3</code>, and <code>Y</code>. Other older examples use manually allocated ping-pong arrays such as <code>BUF_A</code>, <code>BUF_B</code>, and a separate temporary buffer such as <code>TEMP2</code>.</p>
-<p>For this guide, we use the newer and cleaner <code>NoodleBuffer</code> API:</p>
+<p>Here, we use  <code>NoodleBuffer</code> API:</p>
 <pre><code class="language-cpp">static NoodleBuffer A;
 static NoodleBuffer B;
 </code></pre>
-<p><code>NoodleBuffer</code> is a grow-only tensor buffer. It starts empty, grows when a layer needs more storage, and then reuses that memory for later layers. The user does not need to manually compute the maximum activation size, allocate intermediate arrays, or call <code>noodle_setup_temp_buffers()</code> for normal memory-to-memory examples.</p>
+<p><code>NoodleBuffer</code> is <strong>a grow-only tensor buffer</strong>. It starts empty, grows when a layer needs more storage, and then reuses that memory for later layers__. The user does not need to manually compute the maximum activation size, allocate intermediate arrays, or call <code>noodle_setup_temp_buffers()</code> for normal memory-to-memory examples.</p>
 <p>The important idea remains the same:</p>
 <pre><code class="language-text">A stores the current tensor
 B stores the next tensor

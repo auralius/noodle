@@ -1,0 +1,541 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://auralius.github.io/noodle/squeezenet/">
+      
+      
+      
+      
+      <link rel="icon" href="../attachments/noodle.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Squeezenet - Noodle - The Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4af4bdda.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#noodle-squeezenet-11-imagenet-demo-on-esp32-s3-n16r8" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Noodle - The Documentation" class="md-header__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Noodle - The Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Squeezenet
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Noodle - The Documentation" class="md-nav__button md-logo" aria-label="Noodle - The Documentation" data-md-component="logo">
+      
+  <img src="../attachments/noodle.png" alt="logo">
+
+    </a>
+    Noodle - The Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/auralius/noodle/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../doxygen/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API References
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<p><img alt="" src="../attachments/squeezenet-1.1.png" /></p>
+<p><a href="https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/squeezenet1_1/releases/v0.56.0/squeezenet1_1-tflite-float.zip">TFLITE File</a></p>
+<h1 id="noodle-squeezenet-11-imagenet-demo-on-esp32-s3-n16r8">Noodle SqueezeNet-1.1 ImageNet Demo on ESP32-S3 N16R8</h1>
+<p>This note summarizes the SqueezeNet-1.1 ImageNet classifier implemented with the Noodle framework. The example is intended as a stress test for large activation tensors, Fire modules, tensor concatenation, and grow-only <code>NoodleBuffer</code> behavior on an ESP32-S3 module with PSRAM.</p>
+<h2 id="1-target-hardware">1. Target Hardware</h2>
+<p>The main target board is an ESP32-S3 N16R8-class module with:</p>
+<ul>
+<li>16 MB flash</li>
+<li>8 MB PSRAM</li>
+<li>224 × 224 RGB image input</li>
+<li>Serial image transfer from a host computer</li>
+<li>Noodle inference running on-device</li>
+</ul>
+<p>The experiment uses PSRAM for large activation buffers. Internal heap is still important for runtime objects, small buffers, and system overhead.</p>
+<h2 id="2-model-overview">2. Model Overview</h2>
+<p>The workload is based on a SqueezeNet-1.1 ImageNet classifier. The model processes a full ImageNet-sized input:</p>
+<pre><code class="language-text">Input image: 224 × 224 × 3
+</code></pre>
+<p>The network exercises the following operations:</p>
+<ul>
+<li>convolution</li>
+<li>max pooling</li>
+<li>Fire modules</li>
+<li>squeeze convolution</li>
+<li>expand 1 × 1 branch</li>
+<li>expand 3 × 3 branch</li>
+<li>tensor concatenation</li>
+<li>global average pooling</li>
+<li>softmax classification</li>
+</ul>
+<p>This makes it a useful benchmark for Noodle because the network is not purely sequential. The Fire modules introduce branch-like tensor roles, which stress buffer reuse and memory visibility.</p>
+<p>The following code listing show its Noodle implementation.</p>
+<pre><code class="language-cpp">// Encoder
+ConvMem L01;
+L01.K = 3; L01.P = 65535; L01.S = 1; L01.OP = 0; L01.O = 16;
+L01.weight = w01; L01.bias = b01; L01.act = ACT_RELU;
+
+ConvMem L02;
+L02.K = 3; L02.P = 65535; L02.S = 1; L02.OP = 0; L02.O = 16;
+L02.weight = w02; L02.bias = b02; L02.act = ACT_RELU;
+
+ConvMem L03;
+L03.K = 3; L03.P = 65535; L03.S = 2; L03.OP = 0; L03.O = 32;
+L03.weight = w03; L03.bias = b03; L03.act = ACT_RELU;
+
+ConvMem L04;
+L04.K = 3; L04.P = 65535; L04.S = 1; L04.OP = 0; L04.O = 32;
+L04.weight = w04; L04.bias = b04; L04.act = ACT_RELU;
+
+ConvMem L05;
+L05.K = 3; L05.P = 65535; L05.S = 2; L05.OP = 0; L05.O = 64;
+L05.weight = w05; L05.bias = b05; L05.act = ACT_RELU;
+
+ConvMem L06;
+L06.K = 3; L06.P = 65535; L06.S = 1; L06.OP = 0; L06.O = 64;
+L06.weight = w06; L06.bias = b06; L06.act = ACT_RELU;
+
+// Decoder
+ConvMem L07;
+L07.K = 3; L07.P = 65535; L07.S = 2; L07.OP = 1; L07.O = 32;
+L07.weight = w07; L07.bias = b07; L07.act = ACT_RELU;
+
+ConvMem L08;
+L08.K = 3; L08.P = 65535; L08.S = 1; L08.OP = 0; L08.O = 32;
+L08.weight = w08; L08.bias = b08; L08.act = ACT_RELU;
+
+ConvMem L09;
+L09.K = 3; L09.P = 65535; L09.S = 2; L09.OP = 1; L09.O = 16;
+L09.weight = w09; L09.bias = b09; L09.act = ACT_RELU;
+
+ConvMem L10;
+L10.K = 3; L10.P = 65535; L10.S = 1; L10.OP = 0; L10.O = 16;
+L10.weight = w10; L10.bias = b10; L10.act = ACT_RELU;
+
+ConvMem L11;
+L11.K = 3; L11.P = 65535; L11.S = 1; L11.OP = 0; L11.O = 1;
+L11.weight = w11; L11.bias = b11; L11.act = ACT_NONE;
+
+Pool no_pool;
+no_pool.M = 1;
+no_pool.T = 1;
+
+NoodleTensor *in = &amp;A;
+NoodleTensor *out = &amp;B;
+
+if (!noodle_conv2d(in, out, L01, no_pool)) return 0;       // 28 x 28 x 16
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L02, no_pool)) return 0;       // 28 x 28 x 16
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L03, no_pool)) return 0;       // 14 x 14 x 32
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L04, no_pool)) return 0;       // 14 x 14 x 32
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L05, no_pool)) return 0;       // 7 x 7 x 64
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L06, no_pool)) return 0;       // 7 x 7 x 64
+swap_tensors(in, out);
+
+if (!noodle_conv_transpose2d(in, out, L07)) return 0;      // 14 x 14 x 32
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L08, no_pool)) return 0;       // 14 x 14 x 32
+swap_tensors(in, out);
+
+if (!noodle_conv_transpose2d(in, out, L09)) return 0;      // 28 x 28 x 16
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L10, no_pool)) return 0;       // 28 x 28 x 16
+swap_tensors(in, out);
+
+if (!noodle_conv2d(in, out, L11, no_pool)) return 0;       // 28 x 28 x 1
+swap_tensors(in, out);
+
+if (in-&gt;rank != 2 || in-&gt;C != 1 || in-&gt;W != IMG_W || !in-&gt;buffer.data) {
+return 0;
+}
+
+noodle_sigmoid(&amp;in-&gt;buffer, IMG_SIZE);
+
+Y = in;
+</code></pre>
+<h2 id="3-fire-module-structure">3. Fire Module Structure</h2>
+<p>A Fire module has one squeeze stage and two expand branches:</p>
+<p><img alt="" src="../attachments/fire.png" /></p>
+<p>In Noodle, this naturally maps to explicit logical buffers, for example:</p>
+<pre><code class="language-cpp">NoodleBuffer A;    // main activation buffer
+NoodleBuffer B;    // main activation buffer
+NoodleBuffer S;    // squeeze output
+NoodleBuffer E1;   // expand 1 × 1 output
+NoodleBuffer E3;   // expand 3 × 3 output
+</code></pre>
+<p>The main activation path can still use A/B ping-pong execution, while temporary branch tensors use role-specific buffers inside each Fire module.</p>
+<h2 id="4-why-squeezenet-is-a-good-noodle-stress-test">4. Why SqueezeNet Is a Good Noodle Stress Test</h2>
+<p>Simple sequential models naturally match two-buffer ping-pong execution:</p>
+<pre><code class="language-text">A → B → A → B → ...
+</code></pre>
+<p>SqueezeNet is more difficult because Fire modules require several intermediate tensors to exist within a block. For example, the squeeze output and both expand outputs may be needed before concatenation can produce the final Fire-module output.</p>
+<p>This makes SqueezeNet useful for evaluating:</p>
+<ul>
+<li>whether Noodle can run a larger CNN on PSRAM-backed microcontrollers,</li>
+<li>how large grow-only buffers become after warm-up,</li>
+<li>whether buffer capacities stabilize across repeated inference,</li>
+<li>how explicit NoodleBuffer roles compare with TFLM tensor-arena planning.</li>
+</ul>
+<h2 id="5-noodlebuffer-execution-behavior">5. NoodleBuffer Execution Behavior</h2>
+<p>NoodleBuffer uses grow-only allocation. During the first inference, each buffer expands when an operator requires more storage. Once a buffer has grown to its largest required capacity, later inference runs reuse the same memory.</p>
+<p>The normal firmware pattern is therefore:</p>
+<pre><code class="language-text">first inference:
+  buffers grow progressively
+
+subsequent inference:
+  existing capacities are reused
+  no repeated allocation/free cycle is needed
+</code></pre>
+<p>This is important for MCU firmware because inference typically runs inside a continuous loop. In such a loop, freeing and reallocating activation buffers after every image would add overhead and may increase heap fragmentation risk.</p>
+<h2 id="6-measured-noodlebuffer-memory-result">6. Measured NoodleBuffer Memory Result</h2>
+<p>For the SqueezeNet-1.1 ImageNet workload, NoodleBuffer reached a stable peak capacity of:</p>
+<pre><code class="language-text">7,047,488 bytes ≈ 6.72 MiB
+</code></pre>
+<p>The buffer set grew during the first inference and then stabilized. In repeated inference without resetting the microcontroller, the same buffer capacities were reused without additional growth.</p>
+<p>Representative memory state after stabilization:</p>
+<pre><code class="language-text">Free PSRAM:              868,596 bytes
+Largest PSRAM block:     786,420 bytes
+PSRAM fragmentation:       9.46%
+
+Free internal heap:      311,044 bytes
+Largest internal block:  286,708 bytes
+Internal fragmentation:    7.82%
+</code></pre>
+<p>These numbers indicate that the workload fits in the ESP32-S3 PSRAM configuration, but also that the model is close to the practical memory limit for this grow-only explicit-buffer style.</p>
+<h2 id="7-runtime-result">7. Runtime Result</h2>
+<p>Across five repeated runs, the prediction remained deterministic and the average inference time was approximately:</p>
+<pre><code class="language-text">124.905 s per image
+</code></pre>
+<p>This is slow compared with optimized TinyML runtimes, but it demonstrates that Noodle can execute a large ImageNet-scale CNN using explicit tensor storage on a low-cost microcontroller platform.</p>
+<h2 id="8-comparison-with-tensorflow-lite-micro">8. Comparison with TensorFlow Lite Micro</h2>
+<p>TensorFlow Lite Micro uses a tensor arena. The user reserves a fixed arena, and TFLM internally plans tensor placement inside that arena.</p>
+<p>For the same SqueezeNet-1.1 workload, TFLM executed successfully with:</p>
+<pre><code class="language-text">Reserved tensor arena:       4 MiB = 4,194,304 bytes
+Recorded arena allocation:   3,934,376 bytes
+Unused headroom:               259,928 bytes
+</code></pre>
+<p>This means the 4 MiB arena was the memory region provided to TFLM, while 3,934,376 bytes was the recorded arena allocation actually used by TFLM.</p>
+<p>The comparison is:</p>
+<pre><code class="language-text">NoodleBuffer stable capacity: 7,047,488 bytes
+TFLM recorded arena usage:    3,934,376 bytes
+</code></pre>
+<p>NoodleBuffer therefore used about 1.79× more visible activation/buffer capacity than the TFLM recorded arena allocation for this branched network.</p>
+<h2 id="9-why-tflm-uses-less-memory-here">9. Why TFLM Uses Less Memory Here</h2>
+<p>The difference is expected. TFLM sees the entire computational graph and can perform graph-level tensor-lifetime planning. If two tensors are not alive at the same time, their arena regions can be reused.</p>
+<p>NoodleBuffer, in contrast, exposes tensor roles directly. Each visible buffer grows to the largest size required by its role and remains allocated after warm-up. This makes memory behavior transparent and stable, but less compact for branched networks such as SqueezeNet.</p>
+<p>In short:</p>
+<pre><code class="language-text">TFLM:
+  more compact for graph-structured branched models
+  automatic tensor-lifetime planning
+  less user visibility into individual tensor roles
+
+NoodleBuffer:
+  more explicit and inspectable
+  stable after warm-up
+  easier to reason about per tensor role
+  less compact for branched models without lifetime planning
+</code></pre>
+<h2 id="10-interpretation">10. Interpretation</h2>
+<p>The SqueezeNet experiment should not be framed as Noodle beating TFLM. Instead, it shows a design trade-off.</p>
+<p>TFLM is stronger when the full graph is known and the runtime can perform automatic lifetime planning. This is especially useful for Fire modules and other branched architectures.</p>
+<p>Noodle is useful when the goal is explicit tensor placement, direct control, external-memory experimentation, and understandable layer-by-layer execution. It makes the memory roles visible, which is valuable for teaching, debugging, and research on constrained MCU inference.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["toc.integrate"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
