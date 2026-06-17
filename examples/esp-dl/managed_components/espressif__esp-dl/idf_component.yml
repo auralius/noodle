@@ -1,0 +1,32 @@
+dependencies:
+  espressif/dl_fft: '>=0.3.1'
+  espressif/esp-dsp: ==1.8.0
+  espressif/esp_new_jpeg: ^1
+  idf:
+    matches:
+    - if: target in ["esp32", "esp32c2", "esp32c3", "esp32c6", "esp32p4", "esp32s2",
+        "esp32s3"]
+      version: '>=5.3'
+    - if: target == esp32c5
+      version: '>=5.5'
+    - if: target == esp32s31
+      version: '>=6.0'
+description: esp-dl is a lightweight and efficient neural network inference framework
+  designed specifically for ESP series chips.
+license: MIT
+repository: git://github.com/espressif/esp-dl.git
+repository_info:
+  commit_sha: 38ffca649493827267adf2efaabc934adcbaebfa
+  path: esp-dl
+targets:
+- esp32
+- esp32c2
+- esp32c3
+- esp32c5
+- esp32c6
+- esp32p4
+- esp32s2
+- esp32s3
+- esp32s31
+url: https://github.com/espressif/esp-dl/tree/master/esp-dl
+version: 3.3.5

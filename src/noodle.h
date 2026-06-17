@@ -58,6 +58,7 @@ typedef unsigned char byte;  ///< Arduino-compatible byte alias for non-Arduino 
 #include "noodle_config.h"
 #include "noodle_fs.h"
 #include "noodle_buffer.h"
+#include "noodle_tensor.h"
 
 #if defined(__AVR__)
 #include <avr/pgmspace.h>
@@ -119,6 +120,7 @@ struct Conv {
   const char *bias_fn   = nullptr;  ///< Bias filename.
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
+  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
 };
 
 /**
@@ -141,6 +143,7 @@ struct ConvFile {
   const char *bias_fn   = nullptr;  ///< Bias filename.
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
+  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
 };
 
 /**
@@ -165,6 +168,7 @@ struct ConvMem {
   const float *bias   = nullptr;    ///< Pointer to packed bias values, or nullptr.
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
+  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
 };
 
 /**
@@ -184,6 +188,7 @@ struct ConvProgmem {
   const float *bias   = nullptr;    ///< PROGMEM pointer to biases, or nullptr.
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
+  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
 };
 
 /**
@@ -218,6 +223,7 @@ struct FCN {
   const char *weight_fn = nullptr;  ///< Weight filename with `[O][I]` values.
   const char *bias_fn   = nullptr;  ///< Bias filename with one scalar per output.
   Activation act = ACT_RELU;        ///< Activation applied after each output.
+  uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
 };
 
 /**
@@ -228,6 +234,7 @@ struct FCNFile {
   const char *weight_fn = nullptr;  ///< Weight filename with `[O][I]` values.
   const char *bias_fn   = nullptr;  ///< Bias filename with one scalar per output.
   Activation act = ACT_RELU;        ///< Activation applied after each output.
+  uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
 };
 
 /**
@@ -238,6 +245,7 @@ struct FCNMem {
   const float *weight = nullptr;    ///< Pointer to row-major `[O][I]` weights.
   const float *bias   = nullptr;    ///< Pointer to output biases, or nullptr.
   Activation act = ACT_RELU;        ///< Activation applied after each output.
+  uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
 };
 
 /**
@@ -252,6 +260,7 @@ struct FCNProgmem {
   uint32_t weight_far = 0;  ///< Far flash address of row-major `[O][I]` weights.
   uint32_t bias_far   = 0;  ///< Far flash address of biases, or 0 for zero bias.
   uint8_t act         = ACT_RELU;  ///< Activation mode using Activation values.
+  uint16_t O          = 0;         ///< Optional output count for tensor wrappers.
 };
 
 // ============================================================
@@ -801,6 +810,328 @@ uint16_t noodle_fcn(const char *in_fn,
                     const char *out_fn,
                     const FCNFile &fcn,
                     CBFPtr progress_cb = NULL);
+
+
+// ============================================================
+// Public NoodleTensor layer API
+// ============================================================
+
+/**
+ * @name NoodleTensor layers
+ *
+ * These wrappers keep the existing raw kernels untouched. They read input
+ * channel and width metadata from NoodleTensor, grow the output tensor as
+ * needed, call the existing NoodleBuffer/raw layer, and update output shape.
+ *
+ * For Conv/ConvMem/ConvProgmem and FCN/FCNFile/FCNMem/FCNProgmem, set the
+ * optional `.O` field before calling these wrappers. The progress callback is
+ * intentionally not exposed here; use the older NoodleBuffer/raw overloads for
+ * progress reporting or special instrumentation.
+ */
+
+/**
+ * @brief Run 2D convolution on NoodleTensor input using file-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-2 packed `[I][W][W]` tensor. @p conv must provide a
+ * nonzero `O`; on success @p output becomes rank-2 `[O][Wout][Wout]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv File-backed convolution parameters.
+ * @param pool Pooling parameters.
+ * @return Output width after pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_conv2d(NoodleTensor *input,
+                       NoodleTensor *output,
+                       const Conv &conv,
+                       const Pool &pool);
+
+/**
+ * @brief Run 2D convolution on NoodleTensor input using memory-backed parameters.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-2 packed `[I][W][W]` tensor. @p conv must provide a
+ * nonzero `O`; on success @p output becomes rank-2 `[O][Wout][Wout]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv Memory-backed convolution parameters.
+ * @param pool Pooling parameters.
+ * @return Output width after pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_conv2d(NoodleTensor *input,
+                       NoodleTensor *output,
+                       const ConvMem &conv,
+                       const Pool &pool);
+
+/**
+ * @brief Run 2D convolution on NoodleTensor input using near-PROGMEM parameters.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-2 packed `[I][W][W]` tensor. @p conv must provide a
+ * nonzero `O`; on success @p output becomes rank-2 `[O][Wout][Wout]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv Near-PROGMEM convolution parameters.
+ * @param pool Pooling parameters.
+ * @return Output width after pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_conv2d(NoodleTensor *input,
+                       NoodleTensor *output,
+                       const ConvProgmem &conv,
+                       const Pool &pool);
+
+/**
+ * @brief Run 2D transpose convolution on NoodleTensor input.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-2 packed `[I][W][W]` tensor. @p conv must provide a
+ * nonzero `O`; on success @p output becomes rank-2 `[O][Wout][Wout]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv Memory-backed transpose convolution parameters.
+ * @return Output width, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_conv_transpose2d(NoodleTensor *input,
+                                 NoodleTensor *output,
+                                 const ConvMem &conv);
+
+/**
+ * @brief Run 1D convolution on NoodleTensor input without pooling.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-1 packed `[I][W]` tensor. @p conv must provide a nonzero
+ * `O`; on success @p output becomes rank-1 `[O][Wout]`.
+ *
+ * @param input Rank-1 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv Memory-backed 1D convolution parameters.
+ * @return Output length before pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_conv1d(NoodleTensor *input,
+                       NoodleTensor *output,
+                       const ConvMem &conv);
+
+/**
+ * @brief Run 1D convolution on NoodleTensor input with pooling.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-1 packed `[I][W]` tensor. @p conv must provide a nonzero
+ * `O`; on success @p output becomes rank-1 `[O][Wout]`.
+ *
+ * @param input Rank-1 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv Memory-backed 1D convolution parameters.
+ * @param pool Pooling parameters applied after bias and activation.
+ * @return Output length after pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_conv1d(NoodleTensor *input,
+                       NoodleTensor *output,
+                       const ConvMem &conv,
+                       const Pool &pool);
+
+/**
+ * @brief Run depthwise 2D convolution on NoodleTensor input using file parameters.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-2 packed `[C][W][W]` tensor. On success @p output keeps
+ * the same channel count and becomes rank-2 `[C][Wout][Wout]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv File-backed depthwise parameters.
+ * @param pool Pooling parameters.
+ * @return Output width after pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_dwconv2d(NoodleTensor *input,
+                         NoodleTensor *output,
+                         const Conv &conv,
+                         const Pool &pool);
+
+/**
+ * @brief Run depthwise 2D convolution on NoodleTensor input using memory parameters.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-2 packed `[C][W][W]` tensor. On success @p output keeps
+ * the same channel count and becomes rank-2 `[C][Wout][Wout]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv Memory-backed depthwise parameters.
+ * @param pool Pooling parameters.
+ * @return Output width after pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_dwconv2d(NoodleTensor *input,
+                         NoodleTensor *output,
+                         const ConvMem &conv,
+                         const Pool &pool);
+
+/**
+ * @brief Run depthwise 2D convolution on NoodleTensor input using PROGMEM parameters.
+ * @ingroup noodle_public
+ *
+ * Input must be a rank-2 packed `[C][W][W]` tensor. On success @p output keeps
+ * the same channel count and becomes rank-2 `[C][Wout][Wout]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param conv Near-PROGMEM depthwise parameters.
+ * @param pool Pooling parameters.
+ * @return Output width after pooling, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_dwconv2d(NoodleTensor *input,
+                         NoodleTensor *output,
+                         const ConvProgmem &conv,
+                         const Pool &pool);
+
+/**
+ * @brief Apply 2D pooling to a rank-2 NoodleTensor.
+ * @ingroup noodle_public
+ *
+ * Input must be packed `[C][W][W]`. On success @p output becomes rank-2
+ * `[C][Wout][Wout]` and uses the compile-time `NOODLE_POOL_MODE`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param K Pool window size.
+ * @param S Pool stride.
+ * @return Output width, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_pool2d(NoodleTensor *input,
+                       NoodleTensor *output,
+                       uint16_t K,
+                       uint16_t S);
+
+/**
+ * @brief Apply global average pooling in place to a rank-2 NoodleTensor.
+ * @ingroup noodle_public
+ *
+ * On success the tensor changes from packed `[C][W][W]` to rank-1 `[C][1]`.
+ *
+ * @param inout Rank-2 tensor updated in place.
+ * @return Channel count, or 0 on invalid input.
+ */
+uint16_t noodle_gap(NoodleTensor *inout);
+
+/**
+ * @brief Reduce each channel in place with the NoodleBuffer max-pooling helper.
+ * @ingroup noodle_public
+ *
+ * On success the tensor changes from rank-2 channel data to rank-1 `[C][1]`.
+ *
+ * @param inout Rank-2 tensor updated in place.
+ * @return Channel count, or 0 on invalid input.
+ */
+uint16_t noodle_gmp(NoodleTensor *inout);
+
+/**
+ * @brief Flatten a rank-2 NoodleTensor into a rank-1 vector.
+ * @ingroup noodle_public
+ *
+ * Reads packed `[C][W][W]`, writes HWC-like flat order into @p output, and marks
+ * @p output as rank-1 `[N][1]`.
+ *
+ * @param input Rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @return Number of floats written, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_flat(NoodleTensor *input, NoodleTensor *output);
+
+/**
+ * @brief Concatenate two rank-2 NoodleTensors by channel.
+ * @ingroup noodle_public
+ *
+ * Inputs must have the same width. On success @p output becomes rank-2
+ * `[(A->C + B->C)][W][W]`.
+ *
+ * @param A First rank-2 input tensor.
+ * @param B Second rank-2 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @return Combined channel count, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_concat(NoodleTensor *A, NoodleTensor *B, NoodleTensor *output);
+
+/**
+ * @brief Run a fully connected layer on a rank-1 NoodleTensor.
+ * @ingroup noodle_public
+ *
+ * @p fcn must provide a nonzero `O`; on success @p output becomes rank-1
+ * `[O][1]`.
+ *
+ * @param input Rank-1 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param fcn Memory-backed FCN parameters.
+ * @return Output count, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_fcn(NoodleTensor *input,
+                    NoodleTensor *output,
+                    const FCNMem &fcn);
+
+/**
+ * @brief Run a fully connected layer on a rank-1 NoodleTensor from files.
+ * @ingroup noodle_public
+ *
+ * @p fcn must provide a nonzero `O`; on success @p output becomes rank-1
+ * `[O][1]`.
+ *
+ * @param input Rank-1 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param fcn File-backed FCN parameters.
+ * @return Output count, or 0 on invalid input/allocation failure.
+ */
+uint16_t noodle_fcn(NoodleTensor *input,
+                    NoodleTensor *output,
+                    const FCNFile &fcn);
+
+/**
+ * @brief Run a fully connected layer on a rank-1 NoodleTensor from far PROGMEM.
+ * @ingroup noodle_public
+ *
+ * @p fcn must provide a nonzero `O`; on success @p output becomes rank-1
+ * `[O][1]`.
+ *
+ * @param input Rank-1 input tensor.
+ * @param output Output tensor grown and reshaped on success.
+ * @param fcn Far-PROGMEM FCN parameters.
+ * @return Output count on AVR, or 0 on invalid input/allocation failure/non-AVR.
+ */
+uint16_t noodle_fcn(NoodleTensor *input,
+                    NoodleTensor *output,
+                    const FCNProgmem &fcn);
+
+/**
+ * @brief Apply softmax in place over a rank-1 NoodleTensor.
+ * @ingroup noodle_public
+ *
+ * @param input_output Rank-1 tensor updated in place.
+ * @return Number of vector elements, or 0 on invalid input.
+ */
+uint16_t noodle_soft_max(NoodleTensor *input_output);
+
+/**
+ * @brief Apply sigmoid in place over a NoodleTensor's logical elements.
+ * @ingroup noodle_public
+ *
+ * The tensor shape is unchanged.
+ *
+ * @param input_output Tensor updated in place.
+ * @return Number of logical elements, or 0 on invalid input.
+ */
+uint16_t noodle_sigmoid(NoodleTensor *input_output);
+
+/**
+ * @brief Apply ReLU in place over a NoodleTensor's logical elements.
+ * @ingroup noodle_public
+ *
+ * The tensor shape is unchanged.
+ *
+ * @param input_output Tensor updated in place.
+ * @return Number of logical elements, or 0 on invalid input.
+ */
+uint16_t noodle_relu(NoodleTensor *input_output);
 
 // ============================================================
 // Public NoodleBuffer RAM-to-RAM layer API

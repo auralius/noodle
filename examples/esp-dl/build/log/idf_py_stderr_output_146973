@@ -1,0 +1,72 @@
+Command: cmake -G Ninja -B /home/auralius/works/noodle/examples/esp-dl/build -DPYTHON_DEPS_CHECKED=1 -DPYTHON=/home/auralius/.espressif/python_env/idf6.1_py3.13_env/bin/python -DESP_PLATFORM=1 -DIDF_TARGET=esp32s3 -DCCACHE_ENABLE=False /home/auralius/works/noodle/examples/esp-dl
+Configuration Report                                                                                                                                                                     
+ ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+   Parser Version: 1                                                                                                                                                                     
+   Verbosity: default                                                                                                                                                                    
+   Defaults policy: sdkconfig                                                                                                                                                            
+   Status: Finished with notifications                                                                                                                                                   
+                                                                                                                                                                                         
+  Disabled Symbols/Choices With User-Set Value                                                                                                                                           
+   ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   
+    * ESP_DEFAULT_CPU_FREQ_MHZ (defined at /home/auralius/esp/esp-idf/components/esp_system/./port/soc/esp32s3/Kconfig.cpu:19) with user-set value 240 from /tmp/kconfgen_tmpm3mi24bq    
+   ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────   
+ ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── 
+CMake Warning at /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:106 (message):
+  Private include directory
+  '/home/auralius/esp/esp-idf/components/esp_wifi/wifi_apps/roaming_app/include'
+  belongs to component esp_wifi but is being used by component
+  wpa_supplicant.  It is recommended to define the component dependency for
+  wpa_supplicant on the component esp_wifi, i.e.  'idf_component_register(...
+  PRIV_REQUIRES esp_wifi)' in the CMakeLists.txt of wpa_supplicant, and
+  specify the included directory as idf_component_register(...
+  PRIV_INCLUDE_DIRS <dir relative to component>) in the CMakeLists.txt of
+  component esp_wifi.
+Call Stack (most recent call first):
+  /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:130 (__component_validation_check_include_dirs)
+  /home/auralius/esp/esp-idf/CMakeLists.txt:342 (__component_validation_run_checks)
+
+
+CMake Warning at /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:106 (message):
+  Private include directory
+  '/home/auralius/esp/esp-idf/components/esp_wifi/wifi_apps/roaming_app/src'
+  belongs to component esp_wifi but is being used by component
+  wpa_supplicant.  It is recommended to define the component dependency for
+  wpa_supplicant on the component esp_wifi, i.e.  'idf_component_register(...
+  PRIV_REQUIRES esp_wifi)' in the CMakeLists.txt of wpa_supplicant, and
+  specify the included directory as idf_component_register(...
+  PRIV_INCLUDE_DIRS <dir relative to component>) in the CMakeLists.txt of
+  component esp_wifi.
+Call Stack (most recent call first):
+  /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:130 (__component_validation_check_include_dirs)
+  /home/auralius/esp/esp-idf/CMakeLists.txt:342 (__component_validation_run_checks)
+
+
+CMake Warning at /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:106 (message):
+  Private include directory
+  '/home/auralius/esp/esp-idf/components/wpa_supplicant/src' belongs to
+  component wpa_supplicant but is being used by component esp_wifi.  It is
+  recommended to define the component dependency for esp_wifi on the
+  component wpa_supplicant, i.e.  'idf_component_register(...  PRIV_REQUIRES
+  wpa_supplicant)' in the CMakeLists.txt of esp_wifi, and specify the
+  included directory as idf_component_register(...  PRIV_INCLUDE_DIRS <dir
+  relative to component>) in the CMakeLists.txt of component wpa_supplicant.
+Call Stack (most recent call first):
+  /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:130 (__component_validation_check_include_dirs)
+  /home/auralius/esp/esp-idf/CMakeLists.txt:342 (__component_validation_run_checks)
+
+
+CMake Warning at /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:106 (message):
+  Private include directory
+  '/home/auralius/esp/esp-idf/components/wpa_supplicant/esp_supplicant/src'
+  belongs to component wpa_supplicant but is being used by component
+  esp_wifi.  It is recommended to define the component dependency for
+  esp_wifi on the component wpa_supplicant, i.e.  'idf_component_register(...
+  PRIV_REQUIRES wpa_supplicant)' in the CMakeLists.txt of esp_wifi, and
+  specify the included directory as idf_component_register(...
+  PRIV_INCLUDE_DIRS <dir relative to component>) in the CMakeLists.txt of
+  component wpa_supplicant.
+Call Stack (most recent call first):
+  /home/auralius/esp/esp-idf/tools/cmake/component_validation.cmake:130 (__component_validation_check_include_dirs)
+  /home/auralius/esp/esp-idf/CMakeLists.txt:342 (__component_validation_run_checks)
+
+

@@ -1,0 +1,2 @@
+source /home/auralius/works/noodle/examples/esp-dl/build/gdbinit/symbols
+source /home/auralius/works/noodle/examples/esp-dl/build/gdbinit/connect

@@ -1,0 +1,5 @@
+--flash-mode dio --flash-freq 80m --flash-size 16MB
+0x0 bootloader/bootloader.bin
+0x8000 partition_table/partition-table.bin
+0xe000 ota_data_initial.bin
+0x10000 $<TARGET_PROPERTY:__idf_build_target,EXECUTABLE_NAME>.bin

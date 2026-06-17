@@ -1,22 +1,29 @@
+// TFLite Micro DeepSeq-AE-28 denoising benchmark.
+// Clean serial protocol + safe memory query command.
+// Target: ESP32 / ESP32-S3 class boards using Arduino framework.
+//
+// Main image protocol:
+//   PC -> ESP32: IMG + 784 uint8 pixels, chunked
+//   ESP32 -> PC: OUT <microseconds> + 784 uint8 pixels + READY
+//
+// Extra memory query protocol, safe between images:
+//   PC -> ESP32: MEM
+//   ESP32 -> PC: MEM <fields...> + READY
+//
+// IMPORTANT:
+//   Do not print debug/memory text between OUT and the 784-byte binary image.
+//   Keep all memory printing in setup or in the separate MEM command.
+
 #include <Arduino.h>
+
 #if defined(ARDUINO_ARCH_ESP32)
 #include "esp_heap_caps.h"
 #endif
-
-// TensorFlow Lite Micro.
-// This sketch is written for the Arduino framework on ESP32-class boards.
-//
-// Library note:
-// Use an Arduino-compatible TensorFlow Lite Micro library.
-// If your installed library uses slightly different include paths, adjust
-// only the include section below.
 
 #include "tensorflow/lite/micro/all_ops_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 
-// Some Arduino TFLM packages do not provide tensorflow/lite/version.h.
-// TFLITE_SCHEMA_VERSION is normally 3 for TFLite flatbuffer schema.
 #ifndef TFLITE_SCHEMA_VERSION
 #define TFLITE_SCHEMA_VERSION 3
 #endif
@@ -28,8 +35,6 @@ static constexpr uint16_t IMG_W = 28;
 static constexpr uint16_t IMG_H = 28;
 static constexpr uint16_t IMG_SIZE = IMG_W * IMG_H;
 
-// Optional: set to 1 for extra tensor debug prints.
-// Keep 0 for Python plotting/benchmarking.
 #ifndef AE_VERBOSE
 #define AE_VERBOSE 0
 #endif
@@ -41,10 +46,9 @@ static uint8_t TX_BYTES[IMG_SIZE];
 // TFLite Micro globals
 // ============================================================
 
-// Start large for the beginner benchmark.
-// If AllocateTensors() fails, increase this value.
-// If it succeeds with large unused memory, students can reduce it later.
-static constexpr size_t TENSOR_ARENA_SIZE = 96 * 1024;
+// model_data.h reports g_model_len = 42668 bytes.
+// Start with 96 KiB arena. Later reduce this to find minimum working arena.
+static constexpr size_t TENSOR_ARENA_SIZE = 128 * 1024;
 
 static uint8_t *tensor_arena = nullptr;
 
@@ -53,9 +57,6 @@ static tflite::MicroInterpreter *interpreter = nullptr;
 static TfLiteTensor *input = nullptr;
 static TfLiteTensor *output = nullptr;
 
-// AllOpsResolver is beginner-friendly because it avoids missing-op errors.
-// After the benchmark works, replace this with MicroMutableOpResolver and
-// register only the required ops to reduce flash usage.
 static tflite::AllOpsResolver resolver;
 
 // ============================================================
@@ -71,6 +72,17 @@ struct RuntimeMemorySnapshot {
   uint32_t psram_largest;
 };
 
+static float fragmentation_percent(uint32_t free_bytes, uint32_t largest_block) {
+  if (free_bytes == 0) return 0.0f;
+
+  float frag = 100.0f * (1.0f - ((float)largest_block / (float)free_bytes));
+
+  if (frag < 0.0f) frag = 0.0f;
+  if (frag > 100.0f) frag = 100.0f;
+
+  return frag;
+}
+
 static RuntimeMemorySnapshot read_runtime_memory() {
   RuntimeMemorySnapshot m{0, 0, 0, 0, 0, 0};
 
@@ -83,39 +95,38 @@ static RuntimeMemorySnapshot read_runtime_memory() {
       (uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
 
   m.psram_free =
-      (uint32_t)heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
+      (uint32_t)heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   m.psram_min =
-      (uint32_t)heap_caps_get_minimum_free_size(MALLOC_CAP_SPIRAM);
+      (uint32_t)heap_caps_get_minimum_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   m.psram_largest =
-      (uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM);
+      (uint32_t)heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
 #endif
 
   return m;
 }
 
-static void print_runtime_memory_pair(const char *tag,
-                                      const RuntimeMemorySnapshot &before,
-                                      const RuntimeMemorySnapshot &after) {
+static void print_memory_state(const char *tag) {
 #if defined(ARDUINO_ARCH_ESP32)
+  RuntimeMemorySnapshot m = read_runtime_memory();
+
+  const float heap_frag = fragmentation_percent(m.heap_free, m.heap_largest);
+  const float psram_frag = fragmentation_percent(m.psram_free, m.psram_largest);
+
   Serial.printf(
-      "MEM %s "
-      "heap_before=%u heap_after=%u heap_min_before=%u heap_min_after=%u "
-      "heap_largest_before=%u heap_largest_after=%u "
-      "psram_before=%u psram_after=%u psram_min_before=%u psram_min_after=%u "
-      "psram_largest_before=%u psram_largest_after=%u\n",
+      "MEM %s arena=%u model=%u "
+      "heap=%u heap_min=%u heap_largest=%u heap_frag=%.2f%% "
+      "psram=%u psram_min=%u psram_largest=%u psram_frag=%.2f%%\n",
       tag,
-      (unsigned)before.heap_free,
-      (unsigned)after.heap_free,
-      (unsigned)before.heap_min,
-      (unsigned)after.heap_min,
-      (unsigned)before.heap_largest,
-      (unsigned)after.heap_largest,
-      (unsigned)before.psram_free,
-      (unsigned)after.psram_free,
-      (unsigned)before.psram_min,
-      (unsigned)after.psram_min,
-      (unsigned)before.psram_largest,
-      (unsigned)after.psram_largest);
+      (unsigned)TENSOR_ARENA_SIZE,
+      (unsigned)g_model_len,
+      (unsigned)m.heap_free,
+      (unsigned)m.heap_min,
+      (unsigned)m.heap_largest,
+      heap_frag,
+      (unsigned)m.psram_free,
+      (unsigned)m.psram_min,
+      (unsigned)m.psram_largest,
+      psram_frag);
 #else
   Serial.print(F("MEM "));
   Serial.print(tag);
@@ -197,17 +208,21 @@ static bool tensor_is_28x28x1_float(const TfLiteTensor *t) {
 // ============================================================
 
 static void setup_tflm() {
+  print_memory_state("before_arena_alloc");
+
   tensor_arena = (uint8_t *)alloc_bytes(TENSOR_ARENA_SIZE);
 
   if (!tensor_arena) {
-    Serial.println(F("ERROR tensor_arena allocation failed"));
+    Serial.println(F("ERR_ARENA_ALLOC"));
     while (true) delay(1000);
   }
+
+  print_memory_state("after_arena_alloc");
 
   model = tflite::GetModel(g_model);
 
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    Serial.printf("ERROR model schema=%d expected=%d\n",
+    Serial.printf("ERR_MODEL_SCHEMA got=%d expected=%d\n",
                   model->version(), TFLITE_SCHEMA_VERSION);
     while (true) delay(1000);
   }
@@ -222,10 +237,12 @@ static void setup_tflm() {
 
   TfLiteStatus status = interpreter->AllocateTensors();
   if (status != kTfLiteOk) {
-    Serial.println(F("ERROR AllocateTensors failed"));
+    Serial.println(F("ERR_ALLOCATE_TENSORS"));
     Serial.println(F("Try increasing TENSOR_ARENA_SIZE."));
     while (true) delay(1000);
   }
+
+  print_memory_state("after_allocate_tensors");
 
   input = interpreter->input(0);
   output = interpreter->output(0);
@@ -234,21 +251,18 @@ static void setup_tflm() {
   print_tensor_info("output", output);
 
   if (!tensor_is_28x28x1_float(input)) {
-    Serial.println(F("ERROR input tensor is not float32 [1,28,28,1]"));
+    Serial.println(F("ERR_INPUT_TENSOR_NOT_FLOAT32_1x28x28x1"));
     while (true) delay(1000);
   }
 
   if (!tensor_is_28x28x1_float(output)) {
-    Serial.println(F("ERROR output tensor is not float32 [1,28,28,1]"));
+    Serial.println(F("ERR_OUTPUT_TENSOR_NOT_FLOAT32_1x28x28x1"));
     while (true) delay(1000);
   }
 
-  Serial.println(F("TFLite Micro setup OK"));
+  Serial.println(F("TFLM setup OK"));
   Serial.printf("Model bytes: %u\n", (unsigned)g_model_len);
   Serial.printf("Tensor arena bytes: %u\n", (unsigned)TENSOR_ARENA_SIZE);
-
-  // No setup memory print here. Some host scripts expect setup to stay quiet
-  // except for READY/protocol lines.
 }
 
 // ============================================================
@@ -256,18 +270,11 @@ static void setup_tflm() {
 // ============================================================
 
 static void process_one_image() {
-  // RX_BYTES -> input tensor.
   bytes_to_float_image_0_1(RX_BYTES, input->data.f, IMG_SIZE);
 
-  // Read memory before/after inference, but print it only after the normal
-  // OUT + image-byte protocol is finished. This avoids confusing the sender.
-  const RuntimeMemorySnapshot mem_before = read_runtime_memory();
-
-  uint32_t t0 = micros();
+  const uint32_t t0 = micros();
   TfLiteStatus status = interpreter->Invoke();
-  uint32_t dt = micros() - t0;
-
-  const RuntimeMemorySnapshot mem_after = read_runtime_memory();
+  const uint32_t dt = micros() - t0;
 
   if (status != kTfLiteOk) {
     Serial.println(F("ERR_INVOKE"));
@@ -275,17 +282,33 @@ static void process_one_image() {
     return;
   }
 
-  // output tensor -> TX_BYTES.
   float_image_to_bytes_0_255(output->data.f, TX_BYTES, IMG_SIZE);
 
-  // Keep the original benchmark protocol first:
-  // OUT <time_us>
-  // 784 binary image bytes
+  // No debug prints after this point.
+  // The sender expects OUT line followed immediately by exactly 784 binary bytes.
   NoodleSerial::send_output_image(TX_BYTES, IMG_SIZE, dt);
+}
 
-  // Print memory after the image payload so the Python sender is not waiting
-  // for binary bytes while receiving ASCII debug lines.
-  print_runtime_memory_pair("inference", mem_before, mem_after);
+// ============================================================
+// Command dispatcher
+// ============================================================
+
+static bool read_exact_command3(char cmd[4]) {
+  cmd[0] = 0;
+  cmd[1] = 0;
+  cmd[2] = 0;
+  cmd[3] = 0;
+
+  // Non-blocking command read.
+  // Only consume bytes when a complete 3-byte command is already available.
+  if (Serial.available() < 3) return false;
+
+  const size_t n = Serial.readBytes(cmd, 3);
+  return n == 3;
+}
+
+static bool cmd_is(const char cmd[4], char a, char b, char c) {
+  return cmd[0] == a && cmd[1] == b && cmd[2] == c;
 }
 
 // ============================================================
@@ -297,7 +320,7 @@ void setup() {
   NoodleSerial::clear_input();
 
   Serial.println();
-  Serial.println(F("BOOT TFLM DENOISING BENCHMARK OK"));
+  Serial.println(F("BOOT TFLM DEEPSEQ_AE28 MEM"));
 
 #if defined(ARDUINO_ARCH_ESP32)
   Serial.printf("Flash size: %u\n", ESP.getFlashChipSize());
@@ -305,24 +328,45 @@ void setup() {
   Serial.printf("PSRAM size: %u\n", ESP.getPsramSize());
 #endif
 
+  print_memory_state("boot");
+
   setup_tflm();
+
+  print_memory_state("ready");
 
   NoodleSerial::print_ready();
 }
 
 void loop() {
-  // Keep the same host protocol as the Noodle benchmark:
-  // READY -> IMG -> RDYIMG -> ACK chunks -> OUT <time_us> -> image bytes.
-  if (!NoodleSerial::wait_for_img_header()) {
-    NoodleSerial::print_ready();
-    delay(20);
+  // Supported commands:
+  //   IMG : followed by chunked 784-byte image payload
+  //   MEM : text-only memory query, safe between images
+  char cmd[4];
+
+  if (!read_exact_command3(cmd)) {
+    // Stay quiet while idle. Do not spam READY.
+    delay(5);
     return;
   }
 
-  if (!NoodleSerial::recv_image_chunked(RX_BYTES, IMG_SIZE)) {
+  if (cmd_is(cmd, 'M', 'E', 'M')) {
+    print_memory_state("query");
     NoodleSerial::print_ready();
     return;
   }
 
-  process_one_image();
+  if (cmd_is(cmd, 'I', 'M', 'G')) {
+    // Header has already been consumed here, so directly receive chunks.
+    if (!NoodleSerial::recv_image_chunked(RX_BYTES, IMG_SIZE)) {
+      NoodleSerial::print_ready();
+      return;
+    }
+
+    process_one_image();
+    return;
+  }
+
+  Serial.printf("ERR_BAD_CMD %c%c%c\n", cmd[0], cmd[1], cmd[2]);
+  NoodleSerial::clear_input();
+  NoodleSerial::print_ready();
 }
