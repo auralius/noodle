@@ -18,7 +18,7 @@ START_INDEX = 0
 RANDOM      = False
 
 TIMEOUT_S        = 20.0
-SHOW_PLOT_EACH   = False
+SHOW_PLOT_EACH   = True
 PAUSE_BETWEEN_S  = 0.0
 PLOT_EVERY       = 1
 

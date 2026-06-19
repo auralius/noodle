@@ -1,6 +1,11 @@
 #include <Arduino.h>
 #include <math.h>
 #include <stdint.h>
+
+// Enable this only when the exported wXX.h arrays are int8_t / NoodleWeight q8 weights.
+// Bias arrays bXX remain float.
+// #define NOODLE_USE_Q8_WEIGHTS
+
 #include "noodle.h"
 
 // ------------------------------------------------------------
@@ -23,7 +28,7 @@
 #include "pneumonia/w13.h"
 #include "pneumonia/w14.h"
 
-// Biases
+// Biases stay float, even when NOODLE_USE_Q8_WEIGHTS is enabled.
 #include "pneumonia/b01.h"
 #include "pneumonia/b02.h"
 #include "pneumonia/b03.h"
@@ -38,6 +43,99 @@
 #include "pneumonia/b12.h"
 #include "pneumonia/b13.h"
 #include "pneumonia/b14.h"
+
+// ------------------------------------------------------------
+// Manual q8 dequantization parameters
+// ------------------------------------------------------------
+// For float weights, keep all scales at 1 and zero-points at 0.
+// For q8 weights, replace these values with the exported TFLite weight scale
+// and zero point for each corresponding layer.
+
+#ifndef DQ_SCALE_01
+#define DQ_SCALE_01 1.0f
+#endif
+#ifndef DQ_SCALE_02
+#define DQ_SCALE_02 1.0f
+#endif
+#ifndef DQ_SCALE_03
+#define DQ_SCALE_03 1.0f
+#endif
+#ifndef DQ_SCALE_04
+#define DQ_SCALE_04 1.0f
+#endif
+#ifndef DQ_SCALE_05
+#define DQ_SCALE_05 1.0f
+#endif
+#ifndef DQ_SCALE_06
+#define DQ_SCALE_06 1.0f
+#endif
+#ifndef DQ_SCALE_07
+#define DQ_SCALE_07 1.0f
+#endif
+#ifndef DQ_SCALE_08
+#define DQ_SCALE_08 1.0f
+#endif
+#ifndef DQ_SCALE_09
+#define DQ_SCALE_09 1.0f
+#endif
+#ifndef DQ_SCALE_10
+#define DQ_SCALE_10 1.0f
+#endif
+#ifndef DQ_SCALE_11
+#define DQ_SCALE_11 1.0f
+#endif
+#ifndef DQ_SCALE_12
+#define DQ_SCALE_12 1.0f
+#endif
+#ifndef DQ_SCALE_13
+#define DQ_SCALE_13 1.0f
+#endif
+#ifndef DQ_SCALE_14
+#define DQ_SCALE_14 1.0f
+#endif
+
+#ifndef DQ_ZP_01
+#define DQ_ZP_01 0
+#endif
+#ifndef DQ_ZP_02
+#define DQ_ZP_02 0
+#endif
+#ifndef DQ_ZP_03
+#define DQ_ZP_03 0
+#endif
+#ifndef DQ_ZP_04
+#define DQ_ZP_04 0
+#endif
+#ifndef DQ_ZP_05
+#define DQ_ZP_05 0
+#endif
+#ifndef DQ_ZP_06
+#define DQ_ZP_06 0
+#endif
+#ifndef DQ_ZP_07
+#define DQ_ZP_07 0
+#endif
+#ifndef DQ_ZP_08
+#define DQ_ZP_08 0
+#endif
+#ifndef DQ_ZP_09
+#define DQ_ZP_09 0
+#endif
+#ifndef DQ_ZP_10
+#define DQ_ZP_10 0
+#endif
+#ifndef DQ_ZP_11
+#define DQ_ZP_11 0
+#endif
+#ifndef DQ_ZP_12
+#define DQ_ZP_12 0
+#endif
+#ifndef DQ_ZP_13
+#define DQ_ZP_13 0
+#endif
+#ifndef DQ_ZP_14
+#define DQ_ZP_14 0
+#endif
 
 // ------------------------------------------------------------
 // Serial RX protocol settings
@@ -61,8 +159,8 @@ static const uint8_t FRAME_MAGIC[4] = {'I', 'M', 'G', '0'};
 // ------------------------------------------------------------
 static const uint32_t MAX_FEAT_FLOATS = (uint32_t)64 * 64 * 6;
 
-static float *FEAT_A = nullptr;   // ping
-static float *FEAT_B = nullptr;   // pong
+static NoodleBuffer FEAT_A;   // ping, grown by NoodleBuffer
+static NoodleBuffer FEAT_B;   // pong, grown by NoodleBuffer
 static uint8_t RX_BYTES[IMG_SIZE];
 
 // ------------------------------------------------------------
@@ -100,8 +198,8 @@ static void send_layer_stat(const char *name,
 
 static void send_mem_buffers_once()
 {
-  const uint32_t feat_a_bytes = MAX_FEAT_FLOATS * sizeof(float);
-  const uint32_t feat_b_bytes = MAX_FEAT_FLOATS * sizeof(float);
+  const uint32_t feat_a_bytes = (uint32_t)noodle_buffer_capacity_bytes(&FEAT_A);
+  const uint32_t feat_b_bytes = (uint32_t)noodle_buffer_capacity_bytes(&FEAT_B);
   const uint32_t rx_bytes     = sizeof(RX_BYTES);
   const uint32_t total_bytes  = feat_a_bytes + feat_b_bytes + rx_bytes;
 
@@ -118,22 +216,38 @@ static void send_mem_buffers_once()
   Serial.println(total_bytes);
 }
 
+static inline void set_dq(ConvMem &layer, float scale, int32_t zp)
+{
+  layer.dq_scale = scale;
+  layer.dq_zp = zp;
+}
+
+static inline void set_dq(FCNMem &layer, float scale, int32_t zp)
+{
+  layer.dq_scale = scale;
+  layer.dq_zp = zp;
+}
+
 // ------------------------------------------------------------
 // Depthwise + Pointwise block
 //   DW: Cin -> Cin
 //   PW: Cin -> Cout
 // Final output lives again in 'in'.
 // ------------------------------------------------------------
-static uint16_t noodle_dw_pw_block_folded(float *in,
-                                          float *out,
+static uint16_t noodle_dw_pw_block_folded(NoodleBuffer *in,
+                                          NoodleBuffer *out,
                                           uint16_t W_in,
                                           uint16_t Cin,
                                           uint16_t Cout,
                                           uint16_t stride_dw,
-                                          const float *w_dw,
+                                          const NoodleWeight *w_dw,
                                           const float *b_dw,
-                                          const float *w_pw,
+                                          float dq_scale_dw,
+                                          int32_t dq_zp_dw,
+                                          const NoodleWeight *w_pw,
                                           const float *b_pw,
+                                          float dq_scale_pw,
+                                          int32_t dq_zp_pw,
                                           const char *name_dw,
                                           const char *name_pw)
 {
@@ -148,6 +262,7 @@ static uint16_t noodle_dw_pw_block_folded(float *in,
   dw.weight = w_dw;
   dw.bias   = b_dw;
   dw.act    = ACT_RELU;
+  set_dq(dw, dq_scale_dw, dq_zp_dw);
 
   const unsigned long t_dw0 = micros();
   uint16_t W_mid = noodle_dwconv_float(in, Cin, out, W_in, dw, none, nullptr);
@@ -162,6 +277,7 @@ static uint16_t noodle_dw_pw_block_folded(float *in,
   pw.weight = w_pw;
   pw.bias   = b_pw;
   pw.act    = ACT_RELU;
+  set_dq(pw, dq_scale_pw, dq_zp_pw);
 
   const unsigned long t_pw0 = micros();
   uint16_t W_out = noodle_conv_float(out, Cin, Cout, in, W_mid, pw, none, nullptr);
@@ -174,11 +290,12 @@ static uint16_t noodle_dw_pw_block_folded(float *in,
 
 static void alloc_buffers()
 {
-  FEAT_A = (float *)malloc(MAX_FEAT_FLOATS * sizeof(float));
-  FEAT_B = (float *)malloc(MAX_FEAT_FLOATS * sizeof(float));
+  noodle_buffer_init(&FEAT_A);
+  noodle_buffer_init(&FEAT_B);
 
-  if (!FEAT_A || !FEAT_B) {
-    Serial.println(F("ERROR: malloc failed (out of RAM)"));
+  if (!noodle_buffer_require(&FEAT_A, MAX_FEAT_FLOATS) ||
+      !noodle_buffer_require(&FEAT_B, MAX_FEAT_FLOATS)) {
+    Serial.println(F("ERROR: NoodleBuffer allocation failed (out of RAM)"));
     while (true) delay(1000);
   }
 }
@@ -201,42 +318,50 @@ void predict()
   stem.weight = w01;
   stem.bias   = b01;
   stem.act    = ACT_RELU;
+  set_dq(stem, DQ_SCALE_01, DQ_ZP_01);
 
   FCNMem head{};
   head.weight = w14;
   head.bias   = b14;
   head.act    = ACT_NONE;
+  set_dq(head, DQ_SCALE_14, DQ_ZP_14);
 
   const unsigned long t_stem0 = micros();
-  uint16_t W = noodle_conv_float(FEAT_A, 1, 6, FEAT_B, IMG_W, stem, none, nullptr);
+  uint16_t W = noodle_conv_float(&FEAT_A, 1, 6, &FEAT_B, IMG_W, stem, none, nullptr);
   const uint32_t t_stem_us = (uint32_t)(micros() - t_stem0);
   send_layer_stat("stem", t_stem_us, 64, 1, W, 6);
 
-  float *in  = FEAT_B;
-  float *out = FEAT_A;
+  NoodleBuffer *in  = &FEAT_B;
+  NoodleBuffer *out = &FEAT_A;
 
   W = noodle_dw_pw_block_folded(in, out, W, 6, 6, 1,
-                                w02, b02, w03, b03,
+                                w02, b02, DQ_SCALE_02, DQ_ZP_02,
+                                w03, b03, DQ_SCALE_03, DQ_ZP_03,
                                 "b1_dw", "b1_pw");
 
   W = noodle_dw_pw_block_folded(in, out, W, 6, 6, 1,
-                                w04, b04, w05, b05,
+                                w04, b04, DQ_SCALE_04, DQ_ZP_04,
+                                w05, b05, DQ_SCALE_05, DQ_ZP_05,
                                 "b2_dw", "b2_pw");
 
   W = noodle_dw_pw_block_folded(in, out, W, 6, 24, 2,
-                                w06, b06, w07, b07,
+                                w06, b06, DQ_SCALE_06, DQ_ZP_06,
+                                w07, b07, DQ_SCALE_07, DQ_ZP_07,
                                 "b3_dw", "b3_pw");
 
   W = noodle_dw_pw_block_folded(in, out, W, 24, 24, 1,
-                                w08, b08, w09, b09,
+                                w08, b08, DQ_SCALE_08, DQ_ZP_08,
+                                w09, b09, DQ_SCALE_09, DQ_ZP_09,
                                 "b4_dw", "b4_pw");
 
   W = noodle_dw_pw_block_folded(in, out, W, 24, 24, 2,
-                                w10, b10, w11, b11,
+                                w10, b10, DQ_SCALE_10, DQ_ZP_10,
+                                w11, b11, DQ_SCALE_11, DQ_ZP_11,
                                 "b5_dw", "b5_pw");
 
   W = noodle_dw_pw_block_folded(in, out, W, 24, 12, 1,
-                                w12, b12, w13, b13,
+                                w12, b12, DQ_SCALE_12, DQ_ZP_12,
+                                w13, b13, DQ_SCALE_13, DQ_ZP_13,
                                 "b6_dw", "b6_pw");
 
   {
@@ -280,7 +405,7 @@ void predict()
 
   {
     const unsigned long t_sig0 = micros();
-    out[0] = noodle_sigmoidf(out[0]);
+    out->data[0] = noodle_sigmoidf(out->data[0]);
     const uint32_t t_sig_us = (uint32_t)(micros() - t_sig0);
 
     const uint32_t bytes = (uint32_t)1 * sizeof(float);
@@ -296,7 +421,7 @@ void predict()
   }
 
   const float et = (float)(micros() - t0) * 1e-6f;
-  const float p_pneumonia = out[0];
+  const float p_pneumonia = out->data[0];
   const uint16_t pred = (p_pneumonia >= 0.5f) ? 1 : 0;
 
   Serial.print(F("PRED "));
@@ -334,7 +459,7 @@ void loop()
   }
 
   Serial.println(F("GOT_FRAME"));
-  bytes_to_float_image(RX_BYTES, FEAT_A, IMG_SIZE);
+  bytes_to_float_image(RX_BYTES, FEAT_A.data, IMG_SIZE);
   predict();
 }
 
@@ -419,4 +544,3 @@ static void bytes_to_float_image(const uint8_t *src, float *dst, size_t n)
   for (size_t i = 0; i < n; i++) dst[i] = (float)src[i];
 #endif
 }
-
