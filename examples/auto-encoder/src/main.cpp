@@ -51,6 +51,10 @@ static constexpr uint16_t IMG_SIZE = IMG_W * IMG_W;
 //
 // With two grow-only ping-pong tensors, expected visible A+B capacity:
 //   2 x 12544 floats = 25088 floats = 100352 bytes.
+//
+// The global arena uses its library default initial capacity (normally 64
+// bytes) and grows automatically. The MEM output reports its actual physical
+// capacity, used bytes, and remaining headroom.
 static constexpr uint32_t PEAK_FLOATS = 28UL * 28UL * 16UL;
 
 static uint8_t RX_BYTES[IMG_SIZE];
@@ -97,11 +101,21 @@ static void print_memory_state(const char *tag) {
   const float heap_frag = fragmentation_percent(heap_free, heap_largest);
   const float psram_frag = fragmentation_percent(psram_free, psram_largest);
 
+  const size_t arena_capacity_bytes =
+      noodle_buffer_arena_capacity_bytes();
+  const size_t arena_used_bytes =
+      noodle_buffer_arena_used_bytes();
+  const size_t arena_headroom_bytes =
+      (arena_capacity_bytes >= arena_used_bytes)
+          ? (arena_capacity_bytes - arena_used_bytes)
+          : 0;
+
   Serial.printf(
       "MEM %s "
       "A_cap=%lu A_C=%u A_W=%u A_rank=%u "
       "B_cap=%lu B_C=%u B_W=%u B_rank=%u "
       "total=%lu bytes=%lu "
+      "arena_capacity=%lu arena_used=%lu arena_headroom=%lu "
       "heap=%u heap_largest=%u heap_frag=%.2f%% "
       "psram=%u psram_largest=%u psram_frag=%.2f%%\n",
       tag,
@@ -115,6 +129,9 @@ static void print_memory_state(const char *tag) {
       B.rank,
       (unsigned long)(A.buffer.capacity + B.buffer.capacity),
       (unsigned long)((A.buffer.capacity + B.buffer.capacity) * sizeof(float)),
+      (unsigned long)arena_capacity_bytes,
+      (unsigned long)arena_used_bytes,
+      (unsigned long)arena_headroom_bytes,
       (unsigned int)heap_free,
       (unsigned int)heap_largest,
       heap_frag,

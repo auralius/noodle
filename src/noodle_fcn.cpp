@@ -22,7 +22,7 @@ uint16_t noodle_fcn(const int8_t *input,
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
-      h += (float)input[j] * noodle_read_float(fw);
+      h += (float)input[j] * noodle_read_weight(fw, fcn.dq_scale, fcn.dq_zp);
     if ((h < 0.0) && (fcn.act == ACT_RELU)) h = 0.0;
     noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
@@ -52,7 +52,7 @@ uint16_t noodle_fcn(const byte *input,
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
-      h += (float)input[j] * noodle_read_float(fw);
+      h += (float)input[j] * noodle_read_weight(fw, fcn.dq_scale, fcn.dq_zp);
     if ((h < 0.0) && (fcn.act == ACT_RELU)) h = 0.0;
     noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
@@ -81,7 +81,7 @@ uint16_t noodle_fcn(const byte *input,
   for (uint16_t k = 0; k < n_outputs; k++) {
     output[k] = noodle_read_float(fb);
     for (uint16_t j = 0; j < n_inputs; j++)
-      output[k] += (float)input[j] * noodle_read_float(fw);
+      output[k] += (float)input[j] * noodle_read_weight(fw, fcn.dq_scale, fcn.dq_zp);
     if ((fcn.act == ACT_RELU) && (output[k] < 0.f)) output[k] = 0.0f;
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -130,7 +130,7 @@ uint16_t noodle_fcn(const float *input,
                             ? (uint16_t)NOODLE_FCN_BLOCK
                             : remain;
 
-      if (noodle_read_float_block(fw, wbuf, nb) != nb) {
+      if (noodle_read_weight_block(fw, wbuf, nb, fcn.dq_scale, fcn.dq_zp) != nb) {
         fw.close();
         fb.close();
         return 0;
@@ -195,7 +195,7 @@ uint16_t noodle_fcn(const float *input,
                             ? (uint16_t)NOODLE_FCN_BLOCK
                             : remain;
 
-      if (noodle_read_float_block(fw, wbuf, nb) != nb) {
+      if (noodle_read_weight_block(fw, wbuf, nb, fcn.dq_scale, fcn.dq_zp) != nb) {
         fw.close();
         fb.close();
         fo.close();
@@ -240,7 +240,7 @@ uint16_t noodle_fcn(const char *in_fn,
     output[j] = noodle_read_float(fb);
     noodle_rewind_file(fi);
     for (uint16_t k = 0; k < n_inputs; k++)
-      output[j] += noodle_read_float(fi) * noodle_read_float(fw);
+      output[j] += noodle_read_float(fi) * noodle_read_weight(fw, fcn.dq_scale, fcn.dq_zp);
     if ((output[j] < 0.0) && (fcn.act == ACT_RELU)) output[j] = 0.0;
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -271,7 +271,7 @@ uint16_t noodle_fcn(const int8_t *input,
   for (uint16_t j = 0; j < n_outputs; j++) {
     output[j] = noodle_read_float(fb);
     for (uint16_t k = 0; k < n_inputs; k++)
-      output[j] += (float)input[k] * noodle_read_float(fw);
+      output[j] += (float)input[k] * noodle_read_weight(fw, fcn.dq_scale, fcn.dq_zp);
     if ((output[j] < 0.0) && (fcn.act == ACT_RELU)) output[j] = 0.0;
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
@@ -304,7 +304,7 @@ uint16_t noodle_fcn(const char *in_fn,
     float h = noodle_read_float(fb);
     noodle_rewind_file(fi);
     for (uint16_t k = 0; k < n_inputs; k++)
-      h += noodle_read_float(fi) * noodle_read_float(fw);
+      h += noodle_read_float(fi) * noodle_read_weight(fw, fcn.dq_scale, fcn.dq_zp);
     if ((h < 0.0) && (fcn.act == ACT_RELU)) h = 0.0;
     noodle_write_float(fo, h);
     if (progress_cb) progress_cb(progress);
@@ -332,7 +332,7 @@ uint16_t noodle_fcn(const float *input,
   for (uint16_t k = 0; k < n_outputs; k++) {
     float h = fcn.bias ? fcn.bias[k] : 0.0f;
     for (uint16_t j = 0; j < n_inputs; j++)
-      h += input[j] * fcn.weight[l++];  // <-- was ++l
+      h += input[j] * noodle_read_weight_mem(fcn.weight, l++, fcn.dq_scale, fcn.dq_zp);  // <-- was ++l
     if ((fcn.act == ACT_RELU) && (h < 0.f)) h = 0.f;
     output[k] = h;
     if (progress_cb) progress_cb(progress);
@@ -363,11 +363,11 @@ uint16_t noodle_fcn(const float *input,
     float h = 0.0f;
 
     if (fcn.bias_far != 0) {
-      h = pgm_read_float_far(fcn.bias_far + (uint32_t)k * sizeof(float));
+      h = noodle_pgm_float_address(fcn.bias_far + (uint32_t)k * sizeof(float));
     }
 
     for (uint16_t j = 0; j < n_inputs; j++) {
-      const float w = pgm_read_float_far(
+      const float w = noodle_pgm_float_address(
         fcn.weight_far + l * sizeof(float)
       );
       h += input[j] * w;

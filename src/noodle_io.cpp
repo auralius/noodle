@@ -201,6 +201,20 @@ byte noodle_read_byte(NDL_File &f) {
 #endif
 }
 
+
+int8_t noodle_read_q8(NDL_File &f) {
+#if NOODLE_FILE_FORMAT == NOODLE_FILE_FORMAT_BIN
+  int8_t v = 0;
+  const size_t n = noodle_read_raw(f, &v, sizeof(v));
+  return (n == sizeof(v)) ? v : (int8_t)0;
+#else
+  char s[20];
+  size_t n = noodle_read_bytes_until(f, '\n', (char *)s, sizeof(s));
+  s[n] = '\0';
+  return (int8_t)atoi(s);
+#endif
+}
+
 void noodle_write_float(NDL_File &f,
                         float d) {
 #if NOODLE_FILE_FORMAT == NOODLE_FILE_FORMAT_BIN
@@ -218,6 +232,63 @@ void noodle_write_byte(NDL_File &f,
 #else
   f.println(d);
 #endif
+}
+
+
+void noodle_write_q8(NDL_File &f, int8_t d) {
+#if NOODLE_FILE_FORMAT == NOODLE_FILE_FORMAT_BIN
+  noodle_write_raw(f, &d, sizeof(d));
+#else
+  f.println((int)d);
+#endif
+}
+
+float noodle_read_weight(NDL_File &f, float dq_scale, int32_t dq_zp) {
+#if defined(NOODLE_USE_Q8_WEIGHTS)
+  const int8_t q = noodle_read_q8(f);
+  return dq_scale * ((float)q - (float)dq_zp);
+#else
+  (void)dq_scale; (void)dq_zp;
+  return noodle_read_float(f);
+#endif
+}
+
+size_t noodle_read_weight_block(NDL_File &f, float *dst, size_t n_weights, float dq_scale, int32_t dq_zp) {
+#if defined(NOODLE_USE_Q8_WEIGHTS)
+  for (size_t i = 0; i < n_weights; i++) {
+    dst[i] = noodle_read_weight(f, dq_scale, dq_zp);
+  }
+  return n_weights;
+#else
+  (void)dq_scale; (void)dq_zp;
+  return noodle_read_float_block(f, dst, n_weights);
+#endif
+}
+
+float noodle_read_weight_mem(const NoodleWeight *w, uint32_t idx, float dq_scale, int32_t dq_zp) {
+#if defined(NOODLE_USE_Q8_WEIGHTS)
+  const int8_t q = w ? w[idx] : 0;
+  return dq_scale * ((float)q - (float)dq_zp);
+#else
+  (void)dq_scale; (void)dq_zp;
+  return w ? w[idx] : 0.0f;
+#endif
+}
+
+void noodle_copy_weight_mem(const NoodleWeight *src, uint32_t start, float *dst, uint32_t n, float dq_scale, int32_t dq_zp) {
+  if (!dst) return;
+  for (uint32_t i = 0; i < n; i++) {
+    dst[i] = noodle_read_weight_mem(src, start + i, dq_scale, dq_zp);
+  }
+}
+
+void noodle_grid_weight_from_file(NDL_File &fi, float *buffer, uint16_t K, float dq_scale, int32_t dq_zp) {
+  for (uint16_t i = 0; i < K; i++) {
+    const uint16_t row = i * K;
+    for (uint16_t j = 0; j < K; j++) {
+      buffer[row + j] = noodle_read_weight(fi, dq_scale, dq_zp);
+    }
+  }
 }
 
 void noodle_delete_file(const char *fn) {

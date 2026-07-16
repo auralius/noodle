@@ -7,6 +7,13 @@
 #endif
 
 
+// Weight storage selection
+// When NOODLE_USE_Q8_WEIGHTS is defined, file-backed and memory-backed
+// Conv/FCN weight arrays are stored as signed int8 values. Noodle dequantizes
+// each weight to float during computation using: w = dq_scale * (q - dq_zp).
+// Activations, accumulation, biases, and outputs remain float.
+// Leave undefined for the original float32 weight storage.
+
 
 // File scalar format selection
 // TEXT: ASCII numeric values, one scalar per line.
@@ -80,4 +87,17 @@
    * the firmware.
    */
   #define NOODLE_MAX_K 5
+#endif
+
+// Hidden global NoodleBuffer arena.
+// The first noodle_buffer_init() lazily allocates this many bytes.
+// Logical float buffers still start at zero capacity and grow transparently.
+#ifndef NOODLE_BUFFER_ARENA_INITIAL_BYTES
+  #ifdef NOODLE_BUFFER_ARENA_INITIAL_FLOATS
+    // Backward compatibility with existing build flags.
+    #define NOODLE_BUFFER_ARENA_INITIAL_BYTES \
+      ((NOODLE_BUFFER_ARENA_INITIAL_FLOATS) * sizeof(float))
+  #else
+    #define NOODLE_BUFFER_ARENA_INITIAL_BYTES 64u
+  #endif
 #endif

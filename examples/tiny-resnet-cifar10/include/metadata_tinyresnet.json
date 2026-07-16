@@ -1,0 +1,229 @@
+{
+  "model": "TinyResNet_CIFAR10",
+  "input_shape": [
+    32,
+    32,
+    3
+  ],
+  "classes": [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck"
+  ],
+  "conv_layout": "Cout,Cin,KH,KW",
+  "dense_layout": "Cout,Cin",
+  "layers": [
+    {
+      "weight": "w01",
+      "bias": "b01",
+      "source_conv": "stem_conv",
+      "source_bn": "stem_bn",
+      "kernel_shape_keras": [
+        3,
+        3,
+        3,
+        16
+      ],
+      "activation": "relu"
+    },
+    {
+      "weight": "w02",
+      "bias": "b02",
+      "source_conv": "s1_b1_conv1",
+      "source_bn": "s1_b1_bn1",
+      "kernel_shape_keras": [
+        3,
+        3,
+        16,
+        16
+      ],
+      "activation": "relu"
+    },
+    {
+      "weight": "w03",
+      "bias": "b03",
+      "source_conv": "s1_b1_conv2",
+      "source_bn": "s1_b1_bn2",
+      "kernel_shape_keras": [
+        3,
+        3,
+        16,
+        16
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w04",
+      "bias": "b04",
+      "source_conv": "s1_b2_conv1",
+      "source_bn": "s1_b2_bn1",
+      "kernel_shape_keras": [
+        3,
+        3,
+        16,
+        16
+      ],
+      "activation": "relu"
+    },
+    {
+      "weight": "w05",
+      "bias": "b05",
+      "source_conv": "s1_b2_conv2",
+      "source_bn": "s1_b2_bn2",
+      "kernel_shape_keras": [
+        3,
+        3,
+        16,
+        16
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w06",
+      "bias": "b06",
+      "source_conv": "s2_b1_conv1",
+      "source_bn": "s2_b1_bn1",
+      "kernel_shape_keras": [
+        3,
+        3,
+        16,
+        32
+      ],
+      "activation": "relu"
+    },
+    {
+      "weight": "w07",
+      "bias": "b07",
+      "source_conv": "s2_b1_conv2",
+      "source_bn": "s2_b1_bn2",
+      "kernel_shape_keras": [
+        3,
+        3,
+        32,
+        32
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w08",
+      "bias": "b08",
+      "source_conv": "s2_b1_proj_conv",
+      "source_bn": "s2_b1_proj_bn",
+      "kernel_shape_keras": [
+        1,
+        1,
+        16,
+        32
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w09",
+      "bias": "b09",
+      "source_conv": "s2_b2_conv1",
+      "source_bn": "s2_b2_bn1",
+      "kernel_shape_keras": [
+        3,
+        3,
+        32,
+        32
+      ],
+      "activation": "relu"
+    },
+    {
+      "weight": "w10",
+      "bias": "b10",
+      "source_conv": "s2_b2_conv2",
+      "source_bn": "s2_b2_bn2",
+      "kernel_shape_keras": [
+        3,
+        3,
+        32,
+        32
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w11",
+      "bias": "b11",
+      "source_conv": "s3_b1_conv1",
+      "source_bn": "s3_b1_bn1",
+      "kernel_shape_keras": [
+        3,
+        3,
+        32,
+        64
+      ],
+      "activation": "relu"
+    },
+    {
+      "weight": "w12",
+      "bias": "b12",
+      "source_conv": "s3_b1_conv2",
+      "source_bn": "s3_b1_bn2",
+      "kernel_shape_keras": [
+        3,
+        3,
+        64,
+        64
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w13",
+      "bias": "b13",
+      "source_conv": "s3_b1_proj_conv",
+      "source_bn": "s3_b1_proj_bn",
+      "kernel_shape_keras": [
+        1,
+        1,
+        32,
+        64
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w14",
+      "bias": "b14",
+      "source_conv": "s3_b2_conv1",
+      "source_bn": "s3_b2_bn1",
+      "kernel_shape_keras": [
+        3,
+        3,
+        64,
+        64
+      ],
+      "activation": "relu"
+    },
+    {
+      "weight": "w15",
+      "bias": "b15",
+      "source_conv": "s3_b2_conv2",
+      "source_bn": "s3_b2_bn2",
+      "kernel_shape_keras": [
+        3,
+        3,
+        64,
+        64
+      ],
+      "activation": "linear"
+    },
+    {
+      "weight": "w16",
+      "bias": "b16",
+      "source_dense": "fc",
+      "dense_shape_keras": [
+        64,
+        10
+      ],
+      "activation": "softmax_after_dense"
+    }
+  ]
+}

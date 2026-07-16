@@ -280,6 +280,72 @@ uint16_t noodle_relu(float *input_output,
   return n;
 }
 
+uint32_t noodle_activation(float *input_output,
+                           uint32_t count,
+                           Activation act) {
+  if (!input_output || count == 0) return 0;
+
+  switch (act) {
+    case ACT_NONE:
+      return count;
+
+    case ACT_RELU:
+      for (uint32_t i = 0; i < count; ++i) {
+        if (input_output[i] < 0.0f) input_output[i] = 0.0f;
+      }
+      return count;
+
+    case ACT_SOFTMAX: {
+      float max_val = input_output[0];
+      for (uint32_t i = 1; i < count; ++i) {
+        if (input_output[i] > max_val) max_val = input_output[i];
+      }
+
+      float sum = 0.0f;
+      for (uint32_t i = 0; i < count; ++i) {
+        input_output[i] = expf(input_output[i] - max_val);
+        sum += input_output[i];
+      }
+      if (sum == 0.0f) return 0;
+
+      const float inv_sum = 1.0f / sum;
+      for (uint32_t i = 0; i < count; ++i) {
+        input_output[i] *= inv_sum;
+      }
+      return count;
+    }
+
+    default:
+      return 0;
+  }
+}
+
+uint32_t noodle_add(const float *a,
+                    const float *b,
+                    float *output,
+                    uint32_t count,
+                    Activation act) {
+  if (!a || !b || !output || count == 0) return 0;
+
+  for (uint32_t i = 0; i < count; ++i) {
+    output[i] = a[i] + b[i];
+  }
+  return noodle_activation(output, count, act);
+}
+
+uint32_t noodle_mul(const float *a,
+                    const float *b,
+                    float *output,
+                    uint32_t count,
+                    Activation act) {
+  if (!a || !b || !output || count == 0) return 0;
+
+  for (uint32_t i = 0; i < count; ++i) {
+    output[i] = a[i] * b[i];
+  }
+  return noodle_activation(output, count, act);
+}
+
 // ===== NoodleBuffer convenience wrappers =====
 
 void noodle_find_max(NoodleBuffer *input,
@@ -434,4 +500,45 @@ uint16_t noodle_relu(NoodleBuffer *input_output,
                      uint16_t n) {
   if (!input_output || !input_output->data) return 0;
   return noodle_relu(input_output->data, n);
+}
+
+uint32_t noodle_activation(NoodleBuffer *input_output,
+                           uint32_t count,
+                           Activation act) {
+  if (!input_output || !input_output->data || count == 0) return 0;
+  return noodle_activation(input_output->data, count, act);
+}
+
+uint32_t noodle_add(NoodleBuffer *a,
+                    NoodleBuffer *b,
+                    NoodleBuffer *output,
+                    uint32_t count,
+                    Activation act) {
+  if (!a || !b || !output || !a->data || !b->data || count == 0) return 0;
+  if (!noodle_buffer_require(output, count)) return 0;
+
+  // Growing output may relocate the packed arena, so reacquire all pointers.
+  const float *a_data = a->data;
+  const float *b_data = b->data;
+  float *out_data = output->data;
+  if (!a_data || !b_data || !out_data) return 0;
+
+  return noodle_add(a_data, b_data, out_data, count, act);
+}
+
+uint32_t noodle_mul(NoodleBuffer *a,
+                    NoodleBuffer *b,
+                    NoodleBuffer *output,
+                    uint32_t count,
+                    Activation act) {
+  if (!a || !b || !output || !a->data || !b->data || count == 0) return 0;
+  if (!noodle_buffer_require(output, count)) return 0;
+
+  // Growing output may relocate the packed arena, so reacquire all pointers.
+  const float *a_data = a->data;
+  const float *b_data = b->data;
+  float *out_data = output->data;
+  if (!a_data || !b_data || !out_data) return 0;
+
+  return noodle_mul(a_data, b_data, out_data, count, act);
 }

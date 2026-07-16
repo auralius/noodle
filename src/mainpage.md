@@ -82,7 +82,7 @@ Implementation files:
 - `noodle_io.cpp`: filesystem initialization and scalar/tensor file I/O.
 - `noodle_memory.cpp`: raw buffer helpers, slicing, and global convolution
   scratch-buffer management.
-- `noodle_buffer.cpp`: grow-only `NoodleBuffer` allocation helpers.
+- `noodle_buffer.cpp`: transparent packed global arena used by all `NoodleBuffer` objects.
 - `noodle_conv.cpp`: public Conv1D, Conv2D, Conv2DTranspose, and PROGMEM Conv2D
   wrappers, including `NoodleBuffer` wrappers for 2D/transpose convolution.
 - `noodle_dw.cpp`: public depthwise-convolution wrappers, including
@@ -296,8 +296,20 @@ For application tensors, raw-pointer overloads expect the caller to provide
 correctly sized input and output arrays. `NoodleBuffer` overloads are the
 grow-only alternative: initialize a descriptor with `noodle_buffer_init()`, pass
 it to supported convolution calls, and free it with `noodle_buffer_free()` when
-the tensor storage is no longer needed. A `NoodleBuffer` owns only memory
-allocated by Noodle and tracks capacity in float elements.
+the tensor storage is no longer needed.
+
+All `NoodleBuffer` descriptors transparently share one hidden packed arena; no
+arena object or setup call is required. The first initialized descriptor lazily
+creates a small arena. When one logical buffer grows, Noodle moves the complete
+packed suffix after it with `memmove()`. If total capacity is insufficient, the
+arena enlarges itself with `realloc()` and refreshes every descriptor's public
+`data` pointer. Existing application code therefore keeps the same API while
+using one physical tensor allocation.
+
+A raw pointer copied from `buf.data` can become stale after a later buffer-growth
+operation. Layer wrappers already size their output first and then read current
+buffer pointers. Application code should similarly read `buf.data` again after
+calling `noodle_buffer_require()` on any buffer.
 
 ## Quick Start
 
@@ -336,7 +348,8 @@ if (!noodle_fs_init()) {
 
 Noodle allocates convolution scratch space automatically. For layer inputs and
 outputs, either provide raw arrays with enough room for the expected tensor
-shape, or use `NoodleBuffer` for grow-only Noodle-owned tensor storage.
+shape, or use `NoodleBuffer` for transparent grow-only tensor storage inside the
+hidden global packed arena. No arena declaration or arena setup call is needed.
 
 @code{.cpp}
 NoodleBuffer feat_a;
@@ -348,6 +361,7 @@ noodle_buffer_init(&feat_b);
 float *input = noodle_buffer_require(&feat_a, W * W);
 // Fill input with one packed [1][W][W] feature map.
 // Later, pass &feat_a and &feat_b to NoodleBuffer convolution overloads.
+// The old usage is unchanged; both descriptors silently share one arena.
 
 // At shutdown or when the tensors are no longer needed:
 noodle_buffer_free(&feat_a);
@@ -355,9 +369,9 @@ noodle_buffer_free(&feat_b);
 noodle_temp_buffers_free();
 @endcode
 
-The global scratch buffers and shared file handles mean Noodle calls are not
-re-entrant. In RTOS-based systems, treat a Noodle pipeline as a single-threaded
-worker unless you add external serialization.
+The global tensor arena, global scratch buffers, and shared file handles mean
+Noodle calls are not re-entrant. In RTOS-based systems, treat a Noodle pipeline
+as a single-threaded worker unless you add external serialization.
 
 ### 3. Construct A Processing Pipeline
 

@@ -116,6 +116,21 @@ size_t noodle_write_raw(NDL_File &f, const void *src, size_t n);
  */
 size_t noodle_read_float_block(NDL_File &f, float *dst, size_t n_floats);
 
+/** @brief Read q8/f32 weight from file and return float according to NOODLE_USE_Q8_WEIGHTS. */
+float noodle_read_weight(NDL_File &f, float dq_scale, int32_t dq_zp);
+
+/** @brief Read a block of q8/f32 weights and return dequantized float values. */
+size_t noodle_read_weight_block(NDL_File &f, float *dst, size_t n_weights, float dq_scale, int32_t dq_zp);
+
+/** @brief Read one memory-backed q8/f32 weight and return float. */
+float noodle_read_weight_mem(const NoodleWeight *w, uint32_t idx, float dq_scale, int32_t dq_zp);
+
+/** @brief Copy memory-backed q8/f32 weights into a float buffer. */
+void noodle_copy_weight_mem(const NoodleWeight *src, uint32_t start, float *dst, uint32_t n, float dq_scale, int32_t dq_zp);
+
+/** @brief Read a KxK q8/f32 weight grid into a float buffer. */
+void noodle_grid_weight_from_file(NDL_File &fi, float *buffer, uint16_t K, float dq_scale, int32_t dq_zp);
+
 /**
  * @brief Compute a dot product with a small unrolled loop.
  * @ingroup noodle_internal
@@ -800,7 +815,7 @@ uint16_t noodle_fcn(const float *input, uint16_t n_inputs,
                     const FCNMem &fcn, CBFPtr progress_cb);
 
 /**
- * @brief Float-input fully connected layer with far-PROGMEM parameters.
+ * @brief Float-input fully connected layer with integer-addressed AVR PROGMEM parameters.
  * @ingroup noodle_internal
  */
 uint16_t noodle_fcn(const float *input, uint16_t n_inputs,
@@ -996,6 +1011,42 @@ uint16_t noodle_logit(float *input_output, uint16_t n);
  * @return @p n.
  */
 uint16_t noodle_relu(float *input_output, uint16_t n);
+
+/**
+ * @brief Apply an activation in place to a raw vector.
+ * @ingroup noodle_internal
+ * @param input_output Vector updated in place.
+ * @param count Number of vector elements.
+ * @param act Activation to apply.
+ * @return @p count, or 0 on invalid input or unsupported activation.
+ */
+uint32_t noodle_activation(float *input_output, uint32_t count, Activation act);
+
+/**
+ * @brief Add two raw vectors element by element and optionally activate.
+ * @ingroup noodle_internal
+ * @param a First input vector.
+ * @param b Second input vector.
+ * @param output Destination vector.
+ * @param count Number of elements.
+ * @param act Optional activation applied to the result.
+ * @return @p count, or 0 on invalid input or unsupported activation.
+ */
+uint32_t noodle_add(const float *a, const float *b, float *output,
+                    uint32_t count, Activation act);
+
+/**
+ * @brief Multiply two raw vectors element by element and optionally activate.
+ * @ingroup noodle_internal
+ * @param a First input vector.
+ * @param b Second input vector.
+ * @param output Destination vector.
+ * @param count Number of elements.
+ * @param act Optional activation applied to the result.
+ * @return @p count, or 0 on invalid input or unsupported activation.
+ */
+uint32_t noodle_mul(const float *a, const float *b, float *output,
+                    uint32_t count, Activation act);
 
 /**
  * @brief Backward-compatible raw alias for noodle_bn2d().

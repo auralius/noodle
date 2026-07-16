@@ -45,7 +45,7 @@ uint16_t noodle_conv1d(const char *in_fn,
         in_buffer[i] = noodle_read_float(fi);
       }
       for (uint16_t k = 0; k < conv.K; k++) {
-        kernel[k] = noodle_read_float(fw);
+        kernel[k] = noodle_read_weight(fw, conv.dq_scale, conv.dq_zp);
       }
 
       V = noodle_do_conv1d(in_buffer, kernel, W, conv.K, out_buffer, conv.P, conv.S);
@@ -106,7 +106,7 @@ uint16_t noodle_conv1d(const char *in_fn,
         in_buffer[i] = noodle_read_float(fi);
       }
       for (uint16_t k = 0; k < conv.K; k++) {
-        kernel[k] = noodle_read_float(fw);
+        kernel[k] = noodle_read_weight(fw, conv.dq_scale, conv.dq_zp);
       }
 
       V = noodle_do_conv1d(in_buffer, kernel, W, conv.K, out_buffer, conv.P, conv.S);
@@ -163,7 +163,8 @@ uint16_t noodle_conv1d(const char *in_fn,
     noodle_rewind_file(fi);
 
     for (uint16_t I = 0; I < n_inputs; I++) {
-      const float *kptr = conv.weight + (O * n_inputs + I) * conv.K; // Conv1D stride
+      float kptr[NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K, kptr, conv.K, conv.dq_scale, conv.dq_zp); // Conv1D stride
 
       for (uint16_t i = 0; i < W; i++) {
         in_buffer[i] = noodle_read_float(fi);
@@ -221,9 +222,10 @@ uint16_t noodle_conv1d(float *in,
       // input is compact CHW with stride W
       in_buffer = in + (size_t)I * W;
 
-      const float *kernel = conv.weight + (size_t)(O * n_inputs + I) * conv.K;
+      float kernel[NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K, kernel, conv.K, conv.dq_scale, conv.dq_zp);
 
-      V = noodle_do_conv1d(in_buffer, (float *)kernel, W, conv.K, out_buffer, conv.P, conv.S);
+      V = noodle_do_conv1d(in_buffer, kernel, W, conv.K, out_buffer, conv.P, conv.S);
 
       if (progress_cb) progress_cb(progress);
       progress += progress_step;
@@ -287,9 +289,10 @@ uint16_t noodle_conv1d(float *in,
       float *in_buffer = in + (size_t)I * W;
 
       // Weight layout is [O][I][K].
-      const float *kernel = conv.weight + (size_t)(O * n_inputs + I) * conv.K;
+      float kernel[NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K, kernel, conv.K, conv.dq_scale, conv.dq_zp);
 
-      V = noodle_do_conv1d(in_buffer, (float *)kernel, W, conv.K, conv_buffer, conv.P, conv.S);
+      V = noodle_do_conv1d(in_buffer, kernel, W, conv.K, conv_buffer, conv.P, conv.S);
 
       if (progress_cb) progress_cb(progress);
       progress += progress_step;
@@ -351,10 +354,11 @@ uint16_t noodle_conv1d(float *in,
 
     for (uint16_t I = 0; I < n_inputs; I++) {
       const float *in_buffer = in + I * W;
-      const float *kernel    = conv.weight + (O * n_inputs + I) * conv.K;
+      float kernel[NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K, kernel, conv.K, conv.dq_scale, conv.dq_zp);
 
       // Accumulate into out_buffer
-      V = noodle_do_conv1d((float *)in_buffer, (float *)kernel, W, conv.K, out_buffer, conv.P, conv.S);
+      V = noodle_do_conv1d((float *)in_buffer, kernel, W, conv.K, out_buffer, conv.P, conv.S);
 
       if (progress_cb) progress_cb(progress);
       progress += progress_step;
@@ -412,11 +416,12 @@ uint16_t noodle_conv1d(const char *in_fn,
         in_buffer[i] = noodle_read_float(fi);
       }
 
-      const float *kernel = conv.weight + (O * n_inputs + I) * conv.K;
+      float kernel[NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K, kernel, conv.K, conv.dq_scale, conv.dq_zp);
 
       // Accumulate into output channel buffer
       V = noodle_do_conv1d(in_buffer,
-                           (float *)kernel,   // noodle_do_conv1d expects float*
+                           kernel,
                            W,
                            conv.K,
                            out_buffer,
@@ -487,7 +492,7 @@ uint16_t noodle_conv_byte(const char *in_fn,
     noodle_rewind_file(fi); // rewind input file for each output channel
     for (uint16_t I = 0; I < n_inputs; I++) {
       noodle_grid_from_file(fi, in_buffer, W);
-      noodle_grid_from_file(fw, (float *)kernel, conv.K);
+      noodle_grid_weight_from_file(fw, (float *)kernel, conv.K, conv.dq_scale, conv.dq_zp);
       noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
       if (progress_cb) progress_cb(progress);
       progress += progress_step;
@@ -552,7 +557,7 @@ uint16_t noodle_conv_float(const char *in_fn,
     noodle_rewind_file(fi); // rewind input file for each output channel
     for (uint16_t I = 0; I < n_inputs; I++) {
       noodle_grid_from_file(fi, in_buffer, W);
-      noodle_grid_from_file(fw, (float *)kernel, conv.K);
+      noodle_grid_weight_from_file(fw, (float *)kernel, conv.K, conv.dq_scale, conv.dq_zp);
       noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
       if (progress_cb){ 
         progress_cb(progress);
@@ -625,11 +630,11 @@ uint16_t noodle_conv_float(const char *in_fn,
 
       // ConvMem weight layout:
       // [O][I][K][K]
-      const float *kernel =
-          conv.weight + (uint32_t)(O * n_inputs + I) * conv.K * conv.K;
+      float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K * conv.K, (float *)kernel, (uint32_t)conv.K * conv.K, conv.dq_scale, conv.dq_zp);
 
       noodle_do_conv(in_buffer,
-                     kernel,
+                     (float *)kernel,
                      conv.K,
                      W,
                      out_buffer,
@@ -707,7 +712,7 @@ uint16_t noodle_conv_float(const char *in_fn,
 
     for (uint16_t I = 0; I < n_inputs; I++) {
       noodle_grid_from_file(fi, in_buffer, W);
-      noodle_grid_from_file(fw, (float *)kernel, conv.K);
+      noodle_grid_weight_from_file(fw, (float *)kernel, conv.K, conv.dq_scale, conv.dq_zp);
       noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
       if (progress_cb) {
         progress_cb(progress);
@@ -770,7 +775,7 @@ uint16_t noodle_conv_float(float *input,
 
     for (uint16_t I = 0; I < n_inputs; I++) {
       float *in_buffer = noodle_slice(input, W, I);
-      noodle_grid_from_file(fw, (float *)kernel, conv.K);
+      noodle_grid_weight_from_file(fw, (float *)kernel, conv.K, conv.dq_scale, conv.dq_zp);
       noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
 
       if (progress_cb) {
@@ -825,9 +830,10 @@ uint16_t noodle_conv_float(float *input,
 
     // Accumulate over input channels
     for (uint16_t I = 0; I < n_inputs; I++) {
-      const float *kernel = conv.weight + (uint32_t)(O * n_inputs + I) * conv.K * conv.K;
+      float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K * conv.K, (float *)kernel, (uint32_t)conv.K * conv.K, conv.dq_scale, conv.dq_zp);
       float *in_plane = noodle_slice(input, W, I);  // expects CHW in memory
-      noodle_do_conv(in_plane, kernel, conv.K, W, out_buffer, conv.P, conv.S);
+      noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
       if (progress_cb) {
         progress_cb(progress);
         progress += progress_step;
@@ -888,7 +894,7 @@ uint16_t noodle_conv_float(float *input,
 
     for (uint16_t I = 0; I < n_inputs; I++) {
       in_buffer = noodle_slice(input, W, I);
-      noodle_grid_from_file(fw, (float *)kernel, conv.K);
+      noodle_grid_weight_from_file(fw, (float *)kernel, conv.K, conv.dq_scale, conv.dq_zp);
       noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
       if (progress_cb) {
         progress_cb(progress);
@@ -938,9 +944,10 @@ uint16_t noodle_conv_float(float *input,
     const float bias = (conv.bias != nullptr) ? conv.bias[O] : 0.0f;
 
     for (uint16_t I = 0; I < n_inputs; I++) {
-      const float *kernel = conv.weight + (uint32_t)(O * n_inputs + I) * conv.K * conv.K;
+      float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, (uint32_t)(O * n_inputs + I) * conv.K * conv.K, (float *)kernel, (uint32_t)conv.K * conv.K, conv.dq_scale, conv.dq_zp);
       in_buffer = noodle_slice(input, W, I);
-      noodle_do_conv(in_buffer, kernel, conv.K, W, out_buffer, conv.P, conv.S);
+      noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
       if (progress_cb) {
         progress_cb(progress);
         progress += progress_step;
@@ -996,10 +1003,10 @@ uint16_t noodle_conv_transpose_float(float *input,
     for (uint16_t I = 0; I < n_inputs; I++) {
       float *in_plane = noodle_slice(input, W, I);
 
-      const float *kernel =
-          conv.weight + ((uint32_t)O * n_inputs + I) * conv.K * conv.K;
+      float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
+      noodle_copy_weight_mem(conv.weight, ((uint32_t)O * n_inputs + I) * conv.K * conv.K, (float *)kernel, (uint32_t)conv.K * conv.K, conv.dq_scale, conv.dq_zp);
 
-      noodle_do_conv_transpose(in_plane, kernel, conv.K, W, out_plane, conv.P, conv.S, conv.OP);
+      noodle_do_conv_transpose(in_plane, (float *)kernel, conv.K, W, out_plane, conv.P, conv.S, conv.OP);
 
       if (progress_cb) {
         progress_cb(progress);

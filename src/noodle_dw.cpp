@@ -48,7 +48,7 @@ uint16_t noodle_dwconv_float(const char *in_fn,
   for (uint16_t C = 0; C < n_channels; C++) {
     noodle_grid_from_file(fi, in_buffer, W);
     const float bias = noodle_read_float(fb);
-    noodle_grid_from_file(fw, (float *)kernel, conv.K);
+    noodle_grid_weight_from_file(fw, (float *)kernel, conv.K, conv.dq_scale, conv.dq_zp);
 
     noodle_reset_buffer(out_buffer, Vconv * Vconv);
     noodle_do_conv(in_buffer, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
@@ -108,7 +108,7 @@ uint16_t noodle_dwconv_float(float *input,
     float *in_plane = noodle_slice(input, W, C);
 
     const float bias = noodle_read_float(fb);
-    noodle_grid_from_file(fw, (float *)kernel, conv.K);
+    noodle_grid_weight_from_file(fw, (float *)kernel, conv.K, conv.dq_scale, conv.dq_zp);
 
     // temp_buff2 holds one pre-pooling output plane.
     noodle_reset_buffer(out_buffer, Vconv * Vconv);
@@ -152,11 +152,12 @@ uint16_t noodle_dwconv_float(float *input,
     float *in_plane = noodle_slice(input, W, C);
 
     const float bias = (conv.bias != nullptr) ? conv.bias[C] : 0.0f;
-    const float *kernel = conv.weight + (uint32_t)C * conv.K * conv.K;
+    float kernel[NOODLE_MAX_K][NOODLE_MAX_K];
+    noodle_copy_weight_mem(conv.weight, (uint32_t)C * conv.K * conv.K, (float *)kernel, (uint32_t)conv.K * conv.K, conv.dq_scale, conv.dq_zp);
 
     // temp_buff2 holds one pre-pooling output plane.
     noodle_reset_buffer(out_buffer, Vconv * Vconv);
-    noodle_do_conv(in_plane, kernel, conv.K, W, out_buffer, conv.P, conv.S);
+    noodle_do_conv(in_plane, (float *)kernel, conv.K, W, out_buffer, conv.P, conv.S);
 
     noodle_do_bias_act(out_buffer, bias, Vconv, conv.act);
     float *out_plane = noodle_slice(output, Wo, C);

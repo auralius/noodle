@@ -6,8 +6,10 @@
  * Noodle provides compact convolution, depthwise convolution, transpose
  * convolution, fully connected, pooling, activation, batch-normalization, and
  * tensor-layout helpers. The public RAM-to-RAM layer functions use
- * NoodleBuffer so tensor storage can grow automatically. Raw float pointers are
- * kept for small math utilities, simple file utilities, and private
+ * NoodleBuffer so tensor storage can grow automatically inside one hidden
+ * packed global arena. Existing NoodleBuffer usage needs no arena declaration
+ * or setup call. Raw float pointers are kept for small math utilities, simple
+ * file utilities, and private
  * implementation helpers declared in noodle_internal.h.
  *
  * Unless a function says otherwise, feature maps use channel-first packed
@@ -23,8 +25,10 @@
  * Text mode stores one scalar at a time; binary mode stores raw scalar bytes in
  * the same packed order.
  *
- * Internal convolution scratch buffers are allocated and grown on demand by
- * default. The legacy noodle_setup_temp_buffers() overloads can still install
+ * Application NoodleBuffer objects share one transparent arena that starts
+ * small, enlarges with realloc(), and shifts packed suffixes when an earlier
+ * logical buffer grows. Internal convolution scratch buffers are allocated and
+ * grown on demand by default. The legacy noodle_setup_temp_buffers() overloads can still install
  * fixed caller-owned buffers; when they are used, Noodle treats those pointers
  * as external memory with unknown capacity and never resizes or frees them.
  */
@@ -60,8 +64,27 @@ typedef unsigned char byte;  ///< Arduino-compatible byte alias for non-Arduino 
 #include "noodle_buffer.h"
 #include "noodle_tensor.h"
 
+#if defined(NOODLE_USE_Q8_WEIGHTS)
+typedef int8_t NoodleWeight;
+#else
+typedef float NoodleWeight;
+#endif
+
 #if defined(__AVR__)
 #include <avr/pgmspace.h>
+
+/**
+ * @brief Obtain an integer program-memory address on any supported AVR.
+ *
+ * Use this macro when filling FCNProgmem fields. ATmega2560-class devices use
+ * pgm_get_far_address(), while Uno-class devices use their ordinary near
+ * program-memory address.
+ */
+#if defined(RAMPZ)
+#define NOODLE_PGM_ADDRESS(symbol) ((uint32_t)pgm_get_far_address(symbol))
+#else
+#define NOODLE_PGM_ADDRESS(symbol) ((uint32_t)(uintptr_t)(symbol))
+#endif
 #endif
 
 /**
@@ -81,6 +104,32 @@ static inline float noodle_pgm_float(const float *p, uint32_t idx) {
   return pgm_read_float_near(p + idx);
 #else
   return p[idx];
+#endif
+}
+
+/**
+ * @brief Read a float from an integer AVR program-memory address.
+ * @ingroup noodle_public
+ *
+ * Large-flash AVR devices such as the ATmega2560 provide RAMPZ and require
+ * far reads for addresses that may lie above 64 KiB. Small AVR devices such
+ * as the ATmega328P have no RAMPZ register; all flash addresses are near and
+ * are read with pgm_read_float_near(). Keeping this choice in one helper lets
+ * FCNProgmem compile on both Uno-class and Mega2560-class boards.
+ *
+ * @param address Byte address in AVR program memory.
+ * @return Float stored at @p address, or 0.0f on non-AVR targets.
+ */
+static inline float noodle_pgm_float_address(uint32_t address) {
+#if defined(__AVR__)
+  #if defined(RAMPZ)
+    return pgm_read_float_far(address);
+  #else
+    return pgm_read_float_near((uint16_t)address);
+  #endif
+#else
+  (void)address;
+  return 0.0f;
 #endif
 }
 
@@ -121,6 +170,8 @@ struct Conv {
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
   uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
+  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
 };
 
 /**
@@ -144,6 +195,8 @@ struct ConvFile {
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
   uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
+  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
 };
 
 /**
@@ -164,11 +217,13 @@ struct ConvMem {
   uint16_t S  = 1;       ///< Convolution stride.
   uint16_t OP = 0;       ///< User-computed output padding for transpose convolution.
 
-  const float *weight = nullptr;    ///< Pointer to packed weight values.
-  const float *bias   = nullptr;    ///< Pointer to packed bias values, or nullptr.
+  const NoodleWeight *weight = nullptr; ///< Pointer to packed weight values.
+  const float *bias   = nullptr;        ///< Pointer to packed bias values, or nullptr.
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
   uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
+  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
 };
 
 /**
@@ -189,6 +244,8 @@ struct ConvProgmem {
 
   Activation act = ACT_RELU;        ///< Activation applied after adding bias.
   uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
+  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
 };
 
 /**
@@ -224,6 +281,8 @@ struct FCN {
   const char *bias_fn   = nullptr;  ///< Bias filename with one scalar per output.
   Activation act = ACT_RELU;        ///< Activation applied after each output.
   uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
+  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
 };
 
 /**
@@ -235,6 +294,8 @@ struct FCNFile {
   const char *bias_fn   = nullptr;  ///< Bias filename with one scalar per output.
   Activation act = ACT_RELU;        ///< Activation applied after each output.
   uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
+  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
 };
 
 /**
@@ -242,19 +303,23 @@ struct FCNFile {
  * @ingroup noodle_public
  */
 struct FCNMem {
-  const float *weight = nullptr;    ///< Pointer to row-major `[O][I]` weights.
-  const float *bias   = nullptr;    ///< Pointer to output biases, or nullptr.
+  const NoodleWeight *weight = nullptr; ///< Pointer to row-major `[O][I]` weights.
+  const float *bias   = nullptr;        ///< Pointer to output biases, or nullptr.
   Activation act = ACT_RELU;        ///< Activation applied after each output.
   uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
+  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
 };
 
 /**
- * @brief Far-PROGMEM fully connected parameter bundle for AVR.
+ * @brief Integer-addressed PROGMEM fully connected parameters for AVR.
  * @ingroup noodle_public
  *
- * `weight_far` and `bias_far` are far flash addresses such as values produced by
- * pgm_get_far_address(). On non-AVR targets, FCNProgmem overloads compile but
- * return 0.
+ * Initialize `weight_far` and `bias_far` with NOODLE_PGM_ADDRESS(symbol).
+ * On large-flash AVR devices this produces a far address; on small AVR devices
+ * such as the ATmega328P it produces an ordinary near address. The implementation
+ * selects near or far reads from the target architecture.
+ * On non-AVR targets, FCNProgmem overloads compile but return 0.
  */
 struct FCNProgmem {
   uint32_t weight_far = 0;  ///< Far flash address of row-major `[O][I]` weights.
@@ -387,12 +452,28 @@ float noodle_read_float(NDL_File &f);
 byte noodle_read_byte(NDL_File &f);
 
 /**
+ * @brief Read a signed q8 scalar using `NOODLE_FILE_FORMAT`.
+ * @ingroup noodle_public
+ * @param f Open input file.
+ * @return Parsed or decoded int8 value.
+ */
+int8_t noodle_read_q8(NDL_File &f);
+
+/**
  * @brief Write a byte using `NOODLE_FILE_FORMAT`.
  * @ingroup noodle_public
  * @param f Open output file.
  * @param d Value to write.
  */
 void noodle_write_byte(NDL_File &f, byte d);
+
+/**
+ * @brief Write a signed q8 scalar using `NOODLE_FILE_FORMAT`.
+ * @ingroup noodle_public
+ * @param f Open output file.
+ * @param d Signed int8 value to write.
+ */
+void noodle_write_q8(NDL_File &f, int8_t d);
 
 // ============================================================
 // Legacy/manual scratch buffers
@@ -1678,6 +1759,59 @@ uint16_t noodle_logit(NoodleBuffer *input_output, uint16_t n);
  * @return @p n, or 0 when @p input_output has no data.
  */
 uint16_t noodle_relu(NoodleBuffer *input_output, uint16_t n);
+
+/**
+ * @brief Apply an activation in place to a NoodleBuffer vector.
+ * @ingroup noodle_public
+ *
+ * Supports ACT_NONE, ACT_RELU, and ACT_SOFTMAX. ACT_NONE leaves the buffer
+ * unchanged. ACT_SOFTMAX is applied across all @p count elements.
+ *
+ * @param input_output Vector buffer updated in place.
+ * @param count Number of vector elements.
+ * @param act Activation to apply.
+ * @return @p count, or 0 on invalid input or unsupported activation.
+ */
+uint32_t noodle_activation(NoodleBuffer *input_output, uint32_t count,
+                           Activation act);
+
+/**
+ * @brief Add two equally sized vectors element by element.
+ * @ingroup noodle_public
+ *
+ * Grows @p output to @p count floats, computes `output[i] = a[i] + b[i]`,
+ * and then applies @p act. The output may alias either input.
+ *
+ * @param a First input buffer.
+ * @param b Second input buffer.
+ * @param output Destination buffer grown as needed.
+ * @param count Number of elements in each vector.
+ * @param act Optional activation applied to the result.
+ * @return @p count, or 0 on invalid input, allocation failure, or unsupported
+ * activation.
+ */
+uint32_t noodle_add(NoodleBuffer *a, NoodleBuffer *b,
+                    NoodleBuffer *output, uint32_t count,
+                    Activation act = ACT_NONE);
+
+/**
+ * @brief Multiply two equally sized vectors element by element.
+ * @ingroup noodle_public
+ *
+ * Grows @p output to @p count floats, computes `output[i] = a[i] * b[i]`,
+ * and then applies @p act. The output may alias either input.
+ *
+ * @param a First input buffer.
+ * @param b Second input buffer.
+ * @param output Destination buffer grown as needed.
+ * @param count Number of elements in each vector.
+ * @param act Optional activation applied to the result.
+ * @return @p count, or 0 on invalid input, allocation failure, or unsupported
+ * activation.
+ */
+uint32_t noodle_mul(NoodleBuffer *a, NoodleBuffer *b,
+                    NoodleBuffer *output, uint32_t count,
+                    Activation act = ACT_NONE);
 
 /**
  * @brief Find the maximum value and its index in a NoodleBuffer vector.

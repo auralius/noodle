@@ -1,6 +1,6 @@
 /**
  * @file noodle_buffer.h
- * @brief Grow-only float buffers used by NoodleBuffer convolution overloads.
+ * @brief Transparent grow-only float buffers backed by one byte-addressed packed arena.
  * @ingroup noodle_public
  */
 
@@ -8,82 +8,89 @@
 #define NOODLE_BUFFER_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief Grow-only float buffer managed by Noodle.
+ * @brief Grow-only float buffer managed transparently by Noodle.
  * @ingroup noodle_public
  *
- * NoodleBuffer is intentionally simple:
- * - data is either NULL or memory allocated by Noodle.
- * - capacity is expressed in float elements, not bytes.
- * - the buffer grows when required, but never shrinks automatically.
- * - memory is released only when noodle_buffer_free() is called.
+ * All initialized NoodleBuffer objects are movable slices of one hidden global
+ * byte-addressed arena. The public API remains float-oriented for compatibility:
+ * capacity and noodle_buffer_require() use float elements. Arena placement is
+ * tracked internally in bytes so the allocator can later support other element
+ * types and alignment rules.
  *
- * External/user-owned memory should remain as a raw float pointer and should not
- * be stored inside NoodleBuffer.
+ * @warning A raw pointer copied from data can become stale after any later call
+ * to noodle_buffer_require(), because the arena or another logical buffer may
+ * move. Read buf->data again after sizing operations.
  */
-typedef struct {
-  float *data;
-  size_t capacity;
+typedef struct NoodleBuffer {
+  float *data;                         ///< Current float storage pointer, or NULL.
+  size_t capacity;                    ///< Retained logical capacity in floats.
+
+  size_t _arena_offset_bytes;         ///< Internal byte offset in the global arena.
+  struct NoodleBuffer *_arena_prev;   ///< Internal packed-order predecessor.
+  struct NoodleBuffer *_arena_next;   ///< Internal packed-order successor.
+  uint32_t _arena_cookie;             ///< Internal registration marker.
 } NoodleBuffer;
 
-/**
- * @brief Initialize a NoodleBuffer.
- * @ingroup noodle_public
- *
- * Sets the data pointer to NULL and the capacity to zero. Call this before the
- * first use of a stack- or static-allocated NoodleBuffer.
- *
- * @param buf Buffer descriptor to initialize. Passing NULL is allowed.
- */
+/** @brief Initialize and register a NoodleBuffer. */
 void noodle_buffer_init(NoodleBuffer *buf);
 
 /**
  * @brief Ensure that a buffer can hold at least required_floats floats.
- *
- * If the buffer is NULL, this allocates it.
- * If the buffer is already large enough, this reuses it.
- * If the buffer is too small, this allocates a larger block first, then frees
- * the old block only after the new allocation succeeds.
- *
- * @param buf Buffer descriptor.
- * @param required_floats Required capacity in float elements.
  * @return Pointer to usable float storage, or NULL on failure.
- * @ingroup noodle_public
  */
 float *noodle_buffer_require(NoodleBuffer *buf, size_t required_floats);
 
-/**
- * @brief Release a NoodleBuffer.
- * @ingroup noodle_public
- *
- * This frees the internal data pointer and resets the descriptor.
- *
- * @param buf Buffer descriptor to release. Passing NULL is allowed.
- */
+/** @brief Release and unregister a NoodleBuffer. */
 void noodle_buffer_free(NoodleBuffer *buf);
 
-/**
- * @brief Return the buffer capacity in float elements.
- * @ingroup noodle_public
- *
- * @param buf Buffer descriptor to inspect.
- * @return Capacity in float elements, or 0 when @p buf is NULL.
- */
+/** @brief Return the buffer capacity in float elements. */
 size_t noodle_buffer_capacity(const NoodleBuffer *buf);
 
-/**
- * @brief Return the buffer capacity in bytes.
- * @ingroup noodle_public
- *
- * @param buf Buffer descriptor to inspect.
- * @return Capacity in bytes, or 0 when @p buf is NULL.
- */
+/** @brief Return the buffer capacity in bytes. */
 size_t noodle_buffer_capacity_bytes(const NoodleBuffer *buf);
+
+/**
+ * @name Optional hidden-arena diagnostics
+ * @{ */
+
+/**
+ * @brief Return physical arena capacity as an equivalent number of floats.
+ * @note Prefer noodle_buffer_arena_capacity_bytes() for new code.
+ */
+size_t noodle_buffer_arena_capacity(void);
+
+/**
+ * @brief Return packed arena usage as an equivalent number of floats.
+ * @note Prefer noodle_buffer_arena_used_bytes() for new code.
+ */
+size_t noodle_buffer_arena_used(void);
+
+/** @brief Return the physical global-arena capacity in bytes. */
+size_t noodle_buffer_arena_capacity_bytes(void);
+
+/** @brief Return the packed logical arena usage in bytes. */
+size_t noodle_buffer_arena_used_bytes(void);
+
+/** @brief Return the number of currently registered NoodleBuffer objects. */
+size_t noodle_buffer_arena_buffer_count(void);
+
+/** @brief Return the number of successful physical arena allocations/resizes. */
+size_t noodle_buffer_arena_realloc_count(void);
+
+/** @brief Return the number of packed suffix moves. */
+size_t noodle_buffer_arena_move_count(void);
+
+/** @brief Return the cumulative bytes moved while compacting packed suffixes. */
+size_t noodle_buffer_arena_moved_bytes(void);
+
+/** @} */
 
 #ifdef __cplusplus
 }
