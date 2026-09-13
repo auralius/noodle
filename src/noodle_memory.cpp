@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_memory.cpp
  * @brief Noodle memory access management helpers.
@@ -114,3 +116,5 @@ void noodle_setup_temp_buffers(void *b2) {
   temp_buff2 = b2;
   temp_buff2_capacity = NOODLE_TEMP_EXTERNAL_CAPACITY_UNKNOWN;
 }
+
+#endif  // !NOODLE_USE_INT8

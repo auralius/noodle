@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_dw.cpp
  * @brief Depthwise convolution operators.
@@ -368,3 +370,5 @@ uint16_t noodle_dwconv_float(NoodleBuffer *input,
 
   return noodle_dwconv_float(input->data, C, out, W, conv, pool, progress_cb);
 }
+
+#endif  // !NOODLE_USE_INT8

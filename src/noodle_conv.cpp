@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_conv.cpp
  * @brief Public convolution layer wrappers: Conv1D, Conv2D, and ConvTranspose2D.
@@ -1330,3 +1332,5 @@ uint16_t noodle_conv1d(NoodleBuffer *input,
   if (!out) return 0;
   return noodle_conv1d(input->data, n_inputs, out, n_outputs, W, conv, pool, progress_cb);
 }
+
+#endif  // !NOODLE_USE_INT8

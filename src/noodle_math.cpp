@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_math.cpp
  * @brief Reusable math and numeric helper primitives.
@@ -542,3 +544,5 @@ uint32_t noodle_mul(NoodleBuffer *a,
 
   return noodle_mul(a_data, b_data, out_data, count, act);
 }
+
+#endif  // !NOODLE_USE_INT8

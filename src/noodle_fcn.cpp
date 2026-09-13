@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_fcn.cpp
  * @brief Fully connected layers.
@@ -527,3 +529,5 @@ uint16_t noodle_fcn(const char *in_fn,
   if (!out) return 0;
   return noodle_fcn(in_fn, n_inputs, n_outputs, out, fcn, progress_cb);
 }
+
+#endif  // !NOODLE_USE_INT8

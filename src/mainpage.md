@@ -486,3 +486,10 @@ the matching refactored `.cpp` file; shared private pieces are declared in
 - `P`: padding.
 - `S`: stride.
 - `OP`: user-computed output padding for transpose convolution.
+
+## Compile-time INT8 mode
+
+Float32 remains the default. Define `NOODLE_USE_INT8` project-wide to select
+signed-int8 tensors and weights, int32 biases, integer accumulation, and
+TFLite-compatible per-channel requantization while retaining the same
+`NoodleTensor` layer names. See `NOODLE_INT8.md`.

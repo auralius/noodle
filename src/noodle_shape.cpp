@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_shape.cpp
  * @brief Tensor-to-vector transforms: flatten, reshape, GAP, and GMP.
@@ -220,3 +222,4 @@ uint16_t noodle_pool2d(NoodleBuffer *input,
 
   return Wo;
 }
+#endif  // !NOODLE_USE_INT8

@@ -39,16 +39,16 @@ static NoodleBufferGlobalArena g_noodle_buffer_arena = {
   NULL, 0, 0, 0, NULL, NULL, 0, 0, 0
 };
 
-static int noodle_buffer_float_bytes(size_t n_floats, size_t *bytes_out) {
+static int noodle_buffer_element_bytes(size_t n_elements, size_t *bytes_out) {
   if (!bytes_out) return 0;
-  if (n_floats > ((size_t)-1) / sizeof(float)) return 0;
-  *bytes_out = n_floats * sizeof(float);
+  if (n_elements > ((size_t)-1) / sizeof(NoodleData)) return 0;
+  *bytes_out = n_elements * sizeof(NoodleData);
   return 1;
 }
 
-static float *noodle_buffer_pointer_at(size_t offset_bytes) {
+static NoodleData *noodle_buffer_pointer_at(size_t offset_bytes) {
   if (!g_noodle_buffer_arena.data) return NULL;
-  return (float *)(void *)(g_noodle_buffer_arena.data + offset_bytes);
+  return (NoodleData *)(void *)(g_noodle_buffer_arena.data + offset_bytes);
 }
 
 static void noodle_buffer_refresh_all_pointers(void) {
@@ -160,22 +160,22 @@ void noodle_buffer_init(NoodleBuffer *buf) {
   noodle_buffer_register(buf);
 }
 
-float *noodle_buffer_require(NoodleBuffer *buf, size_t required_floats) {
-  if (!buf || required_floats == 0) return NULL;
+NoodleData *noodle_buffer_require(NoodleBuffer *buf, size_t required_elements) {
+  if (!buf || required_elements == 0) return NULL;
 
   if (!noodle_buffer_is_registered(buf)) {
     noodle_buffer_arena_ensure_started();
     noodle_buffer_register(buf);
   }
 
-  if (buf->capacity >= required_floats) {
+  if (buf->capacity >= required_elements) {
     return buf->data;
   }
 
   size_t required_buffer_bytes = 0;
   size_t current_buffer_bytes = 0;
-  if (!noodle_buffer_float_bytes(required_floats, &required_buffer_bytes) ||
-      !noodle_buffer_float_bytes(buf->capacity, &current_buffer_bytes)) {
+  if (!noodle_buffer_element_bytes(required_elements, &required_buffer_bytes) ||
+      !noodle_buffer_element_bytes(buf->capacity, &current_buffer_bytes)) {
     return NULL;
   }
 
@@ -207,7 +207,7 @@ float *noodle_buffer_require(NoodleBuffer *buf, size_t required_floats) {
   noodle_buffer_update_following_offsets(
       buf->_arena_next, delta_bytes, 1);
 
-  buf->capacity = required_floats;
+  buf->capacity = required_elements;
   buf->data = noodle_buffer_pointer_at(buf->_arena_offset_bytes);
   g_noodle_buffer_arena.used_bytes = required_total_bytes;
 
@@ -224,7 +224,7 @@ void noodle_buffer_free(NoodleBuffer *buf) {
   }
 
   size_t released_bytes = 0;
-  if (!noodle_buffer_float_bytes(buf->capacity, &released_bytes)) {
+  if (!noodle_buffer_element_bytes(buf->capacity, &released_bytes)) {
     return;
   }
 
@@ -287,16 +287,16 @@ size_t noodle_buffer_capacity(const NoodleBuffer *buf) {
 
 size_t noodle_buffer_capacity_bytes(const NoodleBuffer *buf) {
   size_t bytes = 0;
-  if (!buf || !noodle_buffer_float_bytes(buf->capacity, &bytes)) return 0;
+  if (!buf || !noodle_buffer_element_bytes(buf->capacity, &bytes)) return 0;
   return bytes;
 }
 
 size_t noodle_buffer_arena_capacity(void) {
-  return g_noodle_buffer_arena.capacity_bytes / sizeof(float);
+  return g_noodle_buffer_arena.capacity_bytes / sizeof(NoodleData);
 }
 
 size_t noodle_buffer_arena_used(void) {
-  return g_noodle_buffer_arena.used_bytes / sizeof(float);
+  return g_noodle_buffer_arena.used_bytes / sizeof(NoodleData);
 }
 
 size_t noodle_buffer_arena_capacity_bytes(void) {

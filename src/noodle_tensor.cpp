@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_tensor.cpp
  * @brief Lightweight tensor metadata helpers and tensor-level wrapper API.
@@ -359,3 +361,5 @@ uint16_t noodle_relu(NoodleTensor *input_output) {
   if (!input_output || !input_output->buffer.data) return 0;
   return noodle_relu(&input_output->buffer, (uint16_t)noodle_tensor_size(input_output));
 }
+
+#endif  // !NOODLE_USE_INT8

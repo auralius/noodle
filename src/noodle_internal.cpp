@@ -1,3 +1,5 @@
+#include "noodle_config.h"
+#if !defined(NOODLE_USE_INT8)
 /**
  * @file noodle_internal.cpp
  * @brief Private shared globals and helpers for Noodle implementation files.
@@ -6,16 +8,6 @@
 #include "noodle_internal.h"
 
 
-#if defined(NOODLE_USE_SDFAT)
-SdFat NOODLE_FS;  // define the SdFat object declared in noodle_fs.h
-#endif
-
-// File handles and temp buffers (backend-agnostic)
-NDL_File fw, fb, fo, fi;
-void *temp_buff1 = NULL;
-void *temp_buff2 = NULL;
-size_t temp_buff1_capacity = 0;
-size_t temp_buff2_capacity = 0;
 
 // ===== Convolution private helpers moved from noodle_conv.cpp =====
 
@@ -628,3 +620,5 @@ void noodle_copy_kernel_progmem(const float *w,
     kernel[i] = noodle_pgm_float(w, base + i);
   }
 }
+
+#endif  // !NOODLE_USE_INT8

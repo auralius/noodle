@@ -60,15 +60,10 @@ typedef unsigned char byte;  ///< Arduino-compatible byte alias for non-Arduino 
 #endif
 
 #include "noodle_config.h"
+#include "noodle_types.h"
 #include "noodle_fs.h"
 #include "noodle_buffer.h"
 #include "noodle_tensor.h"
-
-#if defined(NOODLE_USE_Q8_WEIGHTS)
-typedef int8_t NoodleWeight;
-#else
-typedef float NoodleWeight;
-#endif
 
 #if defined(__AVR__)
 #include <avr/pgmspace.h>
@@ -133,6 +128,57 @@ static inline float noodle_pgm_float_address(uint32_t address) {
 #endif
 }
 
+/** Read signed int8 data from normal memory or near AVR PROGMEM. */
+static inline int8_t noodle_pgm_i8(const int8_t *p, uint32_t idx) {
+#if defined(__AVR__)
+  return (int8_t)pgm_read_byte_near(p + idx);
+#else
+  return p[idx];
+#endif
+}
+
+/** Read int32 data from normal memory or near AVR PROGMEM. */
+static inline int32_t noodle_pgm_i32(const int32_t *p, uint32_t idx) {
+#if defined(__AVR__)
+  return (int32_t)pgm_read_dword_near(p + idx);
+#else
+  return p[idx];
+#endif
+}
+
+/** Read signed int8 from an integer AVR program-memory byte address. */
+static inline int8_t noodle_pgm_i8_address(uint32_t address) {
+#if defined(__AVR__)
+  #if defined(RAMPZ)
+    return (int8_t)pgm_read_byte_far(address);
+  #else
+    return (int8_t)pgm_read_byte_near((uint16_t)address);
+  #endif
+#else
+  (void)address;
+  return 0;
+#endif
+}
+
+/** Read int32 from an integer AVR program-memory byte address. */
+static inline int32_t noodle_pgm_i32_address(uint32_t address) {
+#if defined(__AVR__)
+  #if defined(RAMPZ)
+    uint32_t v = 0;
+    v |= (uint32_t)pgm_read_byte_far(address + 0u);
+    v |= (uint32_t)pgm_read_byte_far(address + 1u) << 8;
+    v |= (uint32_t)pgm_read_byte_far(address + 2u) << 16;
+    v |= (uint32_t)pgm_read_byte_far(address + 3u) << 24;
+    return (int32_t)v;
+  #else
+    return (int32_t)pgm_read_dword_near((uint16_t)address);
+  #endif
+#else
+  (void)address;
+  return 0;
+#endif
+}
+
 // ============================================================
 // Public types
 // ============================================================
@@ -168,10 +214,22 @@ struct Conv {
   const char *weight_fn = nullptr;  ///< Weight filename.
   const char *bias_fn   = nullptr;  ///< Bias filename.
 
-  Activation act = ACT_RELU;        ///< Activation applied after adding bias.
-  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
-  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
-  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  Activation act = ACT_RELU;
+  uint16_t O = 0;
+#if defined(NOODLE_USE_INT8)
+  const char *multiplier_fn = nullptr;  ///< int32 per-output-channel multiplier file.
+  const char *shift_fn = nullptr;       ///< int32 per-output-channel shift file.
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+  uint16_t depth_multiplier = 1;
+#else
+  float dq_scale = 1.0f;
+  int32_t dq_zp = 0;
+#endif
 };
 
 /**
@@ -193,10 +251,22 @@ struct ConvFile {
   const char *weight_fn = nullptr;  ///< Weight filename.
   const char *bias_fn   = nullptr;  ///< Bias filename.
 
-  Activation act = ACT_RELU;        ///< Activation applied after adding bias.
-  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
-  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
-  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  Activation act = ACT_RELU;
+  uint16_t O = 0;
+#if defined(NOODLE_USE_INT8)
+  const char *multiplier_fn = nullptr;  ///< int32 per-output-channel multiplier file.
+  const char *shift_fn = nullptr;       ///< int32 per-output-channel shift file.
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+  uint16_t depth_multiplier = 1;
+#else
+  float dq_scale = 1.0f;
+  int32_t dq_zp = 0;
+#endif
 };
 
 /**
@@ -217,13 +287,27 @@ struct ConvMem {
   uint16_t S  = 1;       ///< Convolution stride.
   uint16_t OP = 0;       ///< User-computed output padding for transpose convolution.
 
-  const NoodleWeight *weight = nullptr; ///< Pointer to packed weight values.
-  const float *bias   = nullptr;        ///< Pointer to packed bias values, or nullptr.
+  const NoodleWeight *weight = nullptr;
+  const NoodleBias *bias = nullptr;
+#if defined(NOODLE_USE_INT8)
+  const int32_t *multiplier = nullptr;
+  const int32_t *shift = nullptr;
+#endif
 
-  Activation act = ACT_RELU;        ///< Activation applied after adding bias.
-  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
-  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
-  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  Activation act = ACT_RELU;
+  uint16_t O = 0;
+#if defined(NOODLE_USE_INT8)
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+  uint16_t depth_multiplier = 1;
+#else
+  float dq_scale = 1.0f;
+  int32_t dq_zp = 0;
+#endif
 };
 
 /**
@@ -239,13 +323,27 @@ struct ConvProgmem {
   uint16_t S  = 1;       ///< Convolution stride.
   uint16_t OP = 0;       ///< Reserved output padding field for layout parity.
 
-  const float *weight = nullptr;    ///< PROGMEM pointer to packed weights.
-  const float *bias   = nullptr;    ///< PROGMEM pointer to biases, or nullptr.
+  const NoodleWeight *weight = nullptr;
+  const NoodleBias *bias = nullptr;
+#if defined(NOODLE_USE_INT8)
+  const int32_t *multiplier = nullptr;
+  const int32_t *shift = nullptr;
+#endif
 
-  Activation act = ACT_RELU;        ///< Activation applied after adding bias.
-  uint16_t O = 0;                   ///< Optional output channel count for tensor wrappers.
-  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
-  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  Activation act = ACT_RELU;
+  uint16_t O = 0;
+#if defined(NOODLE_USE_INT8)
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+  uint16_t depth_multiplier = 1;
+#else
+  float dq_scale = 1.0f;
+  int32_t dq_zp = 0;
+#endif
 };
 
 /**
@@ -279,10 +377,21 @@ typedef void (*CBFPtr)(float progress);
 struct FCN {
   const char *weight_fn = nullptr;  ///< Weight filename with `[O][I]` values.
   const char *bias_fn   = nullptr;  ///< Bias filename with one scalar per output.
-  Activation act = ACT_RELU;        ///< Activation applied after each output.
-  uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
-  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
-  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  Activation act = ACT_RELU;
+  uint16_t O = 0;
+#if defined(NOODLE_USE_INT8)
+  const char *multiplier_fn = nullptr;
+  const char *shift_fn = nullptr;
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+#else
+  float dq_scale = 1.0f;
+  int32_t dq_zp = 0;
+#endif
 };
 
 /**
@@ -292,10 +401,21 @@ struct FCN {
 struct FCNFile {
   const char *weight_fn = nullptr;  ///< Weight filename with `[O][I]` values.
   const char *bias_fn   = nullptr;  ///< Bias filename with one scalar per output.
-  Activation act = ACT_RELU;        ///< Activation applied after each output.
-  uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
-  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
-  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  Activation act = ACT_RELU;
+  uint16_t O = 0;
+#if defined(NOODLE_USE_INT8)
+  const char *multiplier_fn = nullptr;
+  const char *shift_fn = nullptr;
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+#else
+  float dq_scale = 1.0f;
+  int32_t dq_zp = 0;
+#endif
 };
 
 /**
@@ -303,12 +423,25 @@ struct FCNFile {
  * @ingroup noodle_public
  */
 struct FCNMem {
-  const NoodleWeight *weight = nullptr; ///< Pointer to row-major `[O][I]` weights.
-  const float *bias   = nullptr;        ///< Pointer to output biases, or nullptr.
-  Activation act = ACT_RELU;        ///< Activation applied after each output.
-  uint16_t O = 0;                   ///< Optional output count for tensor wrappers.
-  float dq_scale = 1.0f;            ///< Dequantization scale for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
-  int32_t dq_zp  = 0;               ///< Dequantization zero point for q8 weights when NOODLE_USE_Q8_WEIGHTS is enabled.
+  const NoodleWeight *weight = nullptr;
+  const NoodleBias *bias = nullptr;
+#if defined(NOODLE_USE_INT8)
+  const int32_t *multiplier = nullptr;
+  const int32_t *shift = nullptr;
+#endif
+  Activation act = ACT_RELU;
+  uint16_t O = 0;
+#if defined(NOODLE_USE_INT8)
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+#else
+  float dq_scale = 1.0f;
+  int32_t dq_zp = 0;
+#endif
 };
 
 /**
@@ -322,10 +455,23 @@ struct FCNMem {
  * On non-AVR targets, FCNProgmem overloads compile but return 0.
  */
 struct FCNProgmem {
-  uint32_t weight_far = 0;  ///< Far flash address of row-major `[O][I]` weights.
-  uint32_t bias_far   = 0;  ///< Far flash address of biases, or 0 for zero bias.
-  uint8_t act         = ACT_RELU;  ///< Activation mode using Activation values.
-  uint16_t O          = 0;         ///< Optional output count for tensor wrappers.
+#if defined(NOODLE_USE_INT8)
+  uint32_t weight_far = 0;
+  uint32_t bias_far = 0;
+  uint32_t multiplier_far = 0;
+  uint32_t shift_far = 0;
+  float input_scale = 1.0f;
+  float output_scale = 1.0f;
+  int32_t input_zero_point = 0;
+  int32_t output_zero_point = 0;
+  int32_t activation_min = -128;
+  int32_t activation_max = 127;
+#else
+  uint32_t weight_far = 0;
+  uint32_t bias_far = 0;
+#endif
+  uint8_t act = ACT_RELU;
+  uint16_t O = 0;
 };
 
 // ============================================================
@@ -474,6 +620,24 @@ void noodle_write_byte(NDL_File &f, byte d);
  * @param d Signed int8 value to write.
  */
 void noodle_write_q8(NDL_File &f, int8_t d);
+
+#if defined(NOODLE_USE_INT8)
+/** Convert a positive real requantization multiplier to TFLite-style Q31 form. */
+bool noodle_quantize_multiplier(double real_multiplier,
+                                int32_t *multiplier,
+                                int32_t *shift);
+/** Quantize one float to the signed-int8 affine tensor domain. */
+int32_t noodle_quantize_float(float value, float scale, int32_t zero_point);
+/** Dequantize one signed-int8 tensor value. */
+float noodle_dequantize_int8(int8_t value, float scale, int32_t zero_point);
+void noodle_quantize_array(const float *src, int8_t *dst, size_t n,
+                           float scale, int32_t zero_point);
+void noodle_dequantize_array(const int8_t *src, float *dst, size_t n,
+                             float scale, int32_t zero_point);
+/** Quantized integer corresponding to real zero, useful for fused ReLU. */
+int32_t noodle_activation_min_relu(float output_scale,
+                                   int32_t output_zero_point);
+#endif
 
 // ============================================================
 // Legacy/manual scratch buffers

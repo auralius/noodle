@@ -1,5 +1,22 @@
 #pragma once
 
+// Numerical mode selection. Existing applications remain float32 by default.
+// Define NOODLE_USE_INT8 before including noodle.h for a full-integer build.
+#if defined(NOODLE_USE_FLOAT32) && defined(NOODLE_USE_INT8)
+  #error "Choose only one Noodle numerical mode"
+#endif
+#if !defined(NOODLE_USE_FLOAT32) && !defined(NOODLE_USE_INT8)
+  #define NOODLE_USE_FLOAT32
+#endif
+#if defined(NOODLE_USE_INT8) && defined(NOODLE_USE_Q8_WEIGHTS)
+  #error "NOODLE_USE_Q8_WEIGHTS is a legacy float-activation mode; do not combine it with NOODLE_USE_INT8"
+#endif
+#if defined(NOODLE_USE_INT8)
+  #pragma message "Noodle numerical mode = INT8"
+#else
+  #pragma message "Noodle numerical mode = FLOAT32"
+#endif
+
 // Filesystem backend selection (exactly one)
 // If the user didn't pick anything (including NONE), pick a default.
 #if !defined(NOODLE_USE_SD_MMC) && !defined(NOODLE_USE_SDFAT) && !defined(NOODLE_USE_FFAT) && !defined(NOODLE_USE_LITTLEFS) && !defined(NOODLE_USE_NONE)
@@ -91,7 +108,7 @@
 
 // Hidden global NoodleBuffer arena.
 // The first noodle_buffer_init() lazily allocates this many bytes.
-// Logical float buffers still start at zero capacity and grow transparently.
+// Logical buffers start at zero capacity and grow transparently.
 #ifndef NOODLE_BUFFER_ARENA_INITIAL_BYTES
   #ifdef NOODLE_BUFFER_ARENA_INITIAL_FLOATS
     // Backward compatibility with existing build flags.

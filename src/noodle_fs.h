@@ -110,7 +110,7 @@
     bool seek(uint32_t) { return false; }
     size_t println(uint8_t v) { (void)v; return 0; }
     size_t println(float v) { (void)v; return 0; }
-    size_t println(float v, int base) { (void)v; return 0; }
+    size_t println(float v, int base) { (void)v; (void)base; return 0; }
   };
 
   /**
