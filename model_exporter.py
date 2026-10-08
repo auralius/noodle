@@ -470,10 +470,18 @@ def export_tflite(tflite_path, out_dir):
         import tensorflow as tf
     except ImportError as e:
         raise RuntimeError('Install TensorFlow to load .tflite models (pip install tensorflow).') from e
-    # Prevent XNNPACK/default delegates from replacing original CONV ops with DELEGATE.
-    interpreter = tf.lite.Interpreter(model_path=str(tflite_path),
-                                      experimental_preserve_all_tensors=True)
-    return export_interpreter(interpreter,out_dir)
+    # Read the original TFLite graph, not a host-optimized execution graph.
+    # An implicit XNNPACK delegate can replace FULLY_CONNECTED/CONV_2D with
+    # a DELEGATE op, hiding the original parameter tensors from the op walk.
+    # Passing preserve_all_tensors alone does not reliably prevent this in all
+    # TensorFlow versions. Select the no-default-delegates resolver explicitly.
+    resolver = tf.lite.experimental.OpResolverType.BUILTIN_WITHOUT_DEFAULT_DELEGATES
+    interpreter = tf.lite.Interpreter(
+        model_path=str(tflite_path),
+        experimental_op_resolver_type=resolver,
+        experimental_preserve_all_tensors=True,
+    )
+    return export_interpreter(interpreter, out_dir)
 
 
 def main(argv=None):
