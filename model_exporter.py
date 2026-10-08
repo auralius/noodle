@@ -1,1125 +1,496 @@
+#!/usr/bin/env python3
+"""TFLite-only Noodle parameter exporter; detects FP32 or full INT8 automatically.
+
+Usage: python model_exporter.py model.tflite output_directory/
+Parameter exporter only: reconstruct the operator graph in Noodle firmware.
+"""
+
+import argparse
+import json
 import os
+import shutil
+import tempfile
+from pathlib import Path
+
 import numpy as np
-import tensorflow as tf
 
-def to_two_digit_string(n: int) -> str:
-    return f"{n:02d}"
+# Supported weighted op types have their parameter arrays extracted.
+WEIGHTED_OPS = {"CONV_2D", "DEPTHWISE_CONV_2D", "FULLY_CONNECTED", "TRANSPOSE_CONV"}
+# Listed in the manifest but NOT turned into firmware code by this tool.
+METADATA_ONLY_OPS = {"MAX_POOL_2D", "AVERAGE_POOL_2D", "RESHAPE", "SOFTMAX", "RELU", "RELU6", "LOGISTIC", "TANH", "SQUEEZE"}
 
-def format_c_array(array: np.ndarray) -> str:
-    """Format a 1D numpy array into a C-style array string."""
-    lines = []
-    line = []
-    for i, val in enumerate(array):
-        line.append(f"{float(val):.6e}f")
-        if (i + 1) % 8 == 0:
-            lines.append("  " + ", ".join(line))
-            line = []
-    if line:
-        lines.append("  " + ", ".join(line))
-    return ",\n".join(lines)
 
-def _is_nd(w, n: int) -> bool:
-    return hasattr(w, "shape") and len(w.shape) == n
+def _i8_quant(tensor_detail, *, per_channel=False, channels=None, axis=None):
+    """Validate TFLite quantization metadata, returning scales and zero-points."""
+    q = tensor_detail.get("quantization_parameters", {})
+    scales = np.asarray(q.get("scales", []), dtype=np.float64).reshape(-1)
+    zps = np.asarray(q.get("zero_points", []), dtype=np.int64).reshape(-1)
+    if not len(scales) or len(zps) != len(scales):
+        raise ValueError(f"{tensor_detail.get('name')}: missing quantization scales/zero-points")
+    if not np.all(np.isfinite(scales)) or not np.all(scales > 0):
+        raise ValueError(f"{tensor_detail.get('name')}: invalid quantization scales")
+    if per_channel:
+        if len(scales) not in (1, int(channels)):
+            raise ValueError(f"{tensor_detail.get('name')}: expected 1 or {channels} weight scales, found {len(scales)}")
+        if len(scales) > 1 and int(q.get("quantized_dimension", -1)) != int(axis):
+            raise ValueError(f"{tensor_detail.get('name')}: quantized_dimension must be {axis} for Noodle output-channel order")
+        if len(scales) == 1:
+            scales = np.repeat(scales, int(channels))
+            zps = np.repeat(zps, int(channels))
+    elif len(scales) != 1:
+        raise ValueError(f"{tensor_detail.get('name')}: activation must have per-tensor quantization")
+    return scales, zps
 
-def _is_1d(w) -> bool:
-    return _is_nd(w, 1)
+def _i8_requantize(real_multiplier):
+    """Bit-equivalent multiplier encoding to noodle_quantize_multiplier()."""
+    import math
+    x = float(real_multiplier)
+    if not math.isfinite(x) or x < 0:
+        raise ValueError(f"Invalid requantization scale: {x}")
+    if x == 0:
+        return 0, 0
+    q, exponent = math.frexp(x)
+    fixed = int(math.floor(q * (1 << 31) + 0.5))  # C++ llround for nonnegative values
+    if fixed == 1 << 31:
+        fixed >>= 1
+        exponent += 1
+    if exponent < -31:
+        return 0, 0
+    if exponent > 30:
+        raise ValueError(f"Requantization exponent {exponent} exceeds Noodle range")
+    return fixed, exponent
 
-def _same_len_1d(ws) -> bool:
-    """All 1D and identical length."""
-    if not all(_is_1d(x) for x in ws):
-        return False
-    L = int(ws[0].shape[0])
-    return all(int(x.shape[0]) == L for x in ws)
+def _write_i8_parameter(out_dir, prefix, idx, values, ctype, *, notes=()):
+    """Emit raw LE .bin, decimal .txt, and C/C++ .h using current Noodle layout."""
+    dtype = {'int8_t': np.dtype('i1'), 'int32_t': np.dtype('<i4')}[ctype]
+    a = np.asarray(values, dtype=dtype).reshape(-1)
+    name = f"{prefix}{idx:02d}"
+    a.tofile(os.path.join(out_dir, f"{name}.bin"))
+    np.savetxt(os.path.join(out_dir, f"{name}.txt"), a, fmt="%d")
+    with open(os.path.join(out_dir, f"{name}.h"), "w", encoding="utf-8") as f:
+        f.write('#pragma once\n#include <stdint.h>\n#include "noodle_export_storage.h"\n\n')
+        for note in notes:
+            f.write('// ' + str(note).replace('\n', ' ') + '\n')
+        f.write(f'static const {ctype} {name}[] NOODLE_EXPORT_STORAGE = {{\n')
+        ints = a.tolist()
+        for start in range(0, len(ints), 12):
+            f.write('  ' + ', '.join(str(int(x)) for x in ints[start:start+12]))
+            f.write(',' if start+12 < len(ints) else '')
+            f.write('\n')
+        f.write('};\n')
+    return {'bin': f'{name}.bin', 'txt': f'{name}.txt', 'header': f'{name}.h', 'symbol': name, 'elements': int(a.size)}
 
-def _write_array_txt_and_h(out_dir, prefix, idx, arr_1d, header_lines=None):
-    """Write both .txt and .h for a 1D float array."""
-    if header_lines is None:
-        header_lines = []
+def _i8_tensor(interpreter, index, details, *, expected_dtype=None):
+    index = int(index)
+    if index < 0 or index not in details:
+        raise ValueError(f'Missing TFLite tensor index {index}')
+    detail = details[index]
+    if expected_dtype is not None and detail['dtype'] != np.dtype(expected_dtype).type:
+        raise ValueError(f"{detail.get('name', index)}: expected {expected_dtype}, got {detail['dtype']}")
+    return detail, np.asarray(interpreter.get_tensor(index))
 
-    arr_1d = np.asarray(arr_1d, dtype=np.float32).reshape(-1)
+def _i8_activation_q(details, index):
+    d = details[int(index)]
+    if d['dtype'] != np.int8:
+        raise ValueError(f"{d.get('name')}: INT8 export needs fully quantized int8 activations, got {d['dtype']}")
+    s, zp = _i8_quant(d)
+    if not -128 <= int(zp[0]) <= 127:
+        raise ValueError(f"{d.get('name')}: invalid signed int8 zero point")
+    return float(s[0]), int(zp[0])
 
-    fn_txt = os.path.join(out_dir, f"{prefix}{to_two_digit_string(idx)}.txt")
-    print(fn_txt)
-    np.savetxt(fn_txt, arr_1d, fmt="%.6e", newline="\n")
-
-    fn_h = fn_txt.replace(".txt", ".h")
-    print(fn_h)
-    var_name = f"{prefix}{to_two_digit_string(idx)}"
-    with open(fn_h, "w") as f:
-        f.write("#pragma once\n\n")
-        for line in header_lines:
-            f.write(line.rstrip() + "\n")
-        f.write(f"static const float {var_name}[] = {{\n")
-        f.write(format_c_array(arr_1d))
-        f.write("\n};\n")
-
-def _consume_bias_and_bn(weights, k_after_kernel, out_dir, b_idx, bn_idx):
-    """
-    After a kernel tensor, consume (in order) one of:
-      (A) bias + BN : 5 consecutive 1D vectors same length
-      (B) BN only   : 4 consecutive 1D vectors same length
-      (C) bias only : 1 consecutive 1D vector
-    Returns: (new_k, b_idx, bn_idx)
-    Where new_k is the next index to process.
-    """
-    i = k_after_kernel
-
-    # (A) bias + BN
-    if i + 4 < len(weights) and _same_len_1d(weights[i:i+5]):
-        # bias
-        b = np.float32(weights[i].flatten())
-        b_idx += 1
-        _write_array_txt_and_h(out_dir, "b", b_idx, b)
-
-        # BN packed: gamma, beta, mean, var
-        gamma = np.float32(weights[i+1].flatten())
-        beta  = np.float32(weights[i+2].flatten())
-        mean  = np.float32(weights[i+3].flatten())
-        var   = np.float32(weights[i+4].flatten())
-        packed = np.concatenate([gamma, beta, mean, var], axis=0)
-
-        bn_idx += 1
-        _write_array_txt_and_h(
-            out_dir, "bn", bn_idx, packed,
-            header_lines=[
-                "// kind=batchnorm packed",
-                "// order: gamma(C), beta(C), mean(C), var(C)",
-                f"// C={int(gamma.shape[0])}",
-            ],
-        )
-
-        return i + 5, b_idx, bn_idx
-
-    # (B) BN only
-    if i + 3 < len(weights) and _same_len_1d(weights[i:i+4]):
-        gamma = np.float32(weights[i].flatten())
-        beta  = np.float32(weights[i+1].flatten())
-        mean  = np.float32(weights[i+2].flatten())
-        var   = np.float32(weights[i+3].flatten())
-        packed = np.concatenate([gamma, beta, mean, var], axis=0)
-
-        bn_idx += 1
-        _write_array_txt_and_h(
-            out_dir, "bn", bn_idx, packed,
-            header_lines=[
-                "// kind=batchnorm packed",
-                "// order: gamma(C), beta(C), mean(C), var(C)",
-                f"// C={int(gamma.shape[0])}",
-            ],
-        )
-
-        return i + 4, b_idx, bn_idx
-
-    # (C) bias only
-    if i < len(weights) and _is_1d(weights[i]):
-        b = np.float32(weights[i].flatten())
-        b_idx += 1
-        _write_array_txt_and_h(out_dir, "b", b_idx, b)
-        return i + 1, b_idx, bn_idx
-
-    return i, b_idx, bn_idx
-
-def exporter(weights, out_dir: str):
-    """
-    Export Keras weights (from model.get_weights()) into Noodle-friendly files.
-
-    Supported tensors:
-    - 4D Conv2D:            (Kh, Kw, Cin, Cout) -> OIHW : [Cout, Cin, Kh, Kw]
-    - 4D DepthwiseConv2D:   (Kh, Kw, Cin, M)    -> CIMHW: [Cin, M, Kh, Kw]
-      NOTE: For your MobileLeNet we assume M==1 for DWConv2D; detection is therefore deterministic.
-
-    - 3D Conv1D:            (K, Cin, Cout)      -> OIC : [Cout, Cin, K]
-    - 3D DepthwiseConv1D:   (K, Cin, M)         -> CMK : [Cin, M, K]
-
-    - 2D Dense:             (Din, Dout)         -> stored as (Dout, Din) row-major (transpose then flatten)
-
-    Bias and BN:
-    - Bias/BN are consumed ONLY immediately after a kernel tensor, in order:
-        (A) bias + BN (5x 1D same length)
-        (B) BN only   (4x 1D same length)
-        (C) bias only (1x 1D)
-      This prevents bias being mis-detected as BN elsewhere.
-    """
-    if not out_dir.endswith("/"):
-        out_dir += "/"
-    os.makedirs(out_dir, exist_ok=True)
-
-    w_idx = 0
-    b_idx = 0
-    bn_idx = 0
-
-    k = 0
-    while k < len(weights):
-        w = weights[k]
-
-        # ---------- 4D: Conv2D / DWConv2D ----------
-        if _is_nd(w, 4):
-            Kh, Kw, Cin, C4 = w.shape
-
-            # Deterministic for your MobileLeNet-style DW:
-            # DepthwiseConv2D kernel is (Kh, Kw, Cin, M), and in your case M == 1.
-            if (Kh == 1 and Kw == 1):
-                kind, layout = "conv2d", "OIHW"
-            elif (C4 == 1) and (Cin >= 2) and not (Kh == 1 and Kw == 1):
-                kind, layout = "depthwise2d", "CIMHW"
-            else:
-                kind, layout = "conv2d", "OIHW"
-
-            w_idx += 1
-
-            if kind == "conv2d":
-                # (Kh, Kw, Cin, Cout) -> (Cout, Cin, Kh, Kw)
-                w_oihw = np.transpose(w, (3, 2, 0, 1)).astype(np.float32)
-                flat = w_oihw.flatten(order="C")
-                header = [
-                    f"// kind={kind}, layout={layout}",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, Cout={C4}",
-                ]
-            else:
-                # depthwise2d (assume depth_multiplier M==1 for your model):
-                # Keras: (Kh, Kw, Cin, 1) -> Noodle: (Cin, Kh, Kw)
-                if int(C4) != 1:
-                    raise ValueError(f"DepthwiseConv2D depth_multiplier != 1 (got M={int(C4)}). "
-                                    "Your firmware DW expects M==1. Update firmware/exporter.")
-
-                dw = w[:, :, :, 0]  # (Kh, Kw, Cin)
-                w_ckk = np.transpose(dw, (2, 0, 1)).astype(np.float32)  # (Cin, Kh, Kw)
-                flat = w_ckk.flatten(order="C")
-
-                header = [
-                    f"// kind=depthwise2d, layout=CKK",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, M=1, Cout={Cin}",
-                ]
-
-            _write_array_txt_and_h(out_dir, "w", w_idx, flat, header_lines=header)
-
-            # Consume optional bias+BN immediately after this kernel
-            k, b_idx, bn_idx = _consume_bias_and_bn(weights, k + 1, out_dir, b_idx, bn_idx)
-            continue
-
-        # ---------- 3D: Conv1D / DWConv1D ----------
-        if _is_nd(w, 3):
-            K1, Cin, C3 = w.shape  # C3 is Cout (conv1d) or M (dwconv1d)
-
-            # Use lookahead length if next is 1D (bias or BN gamma)
-            next_len = None
-            if k + 1 < len(weights) and _is_1d(weights[k + 1]):
-                next_len = int(weights[k + 1].shape[0])
-
-            # Decide:
-            if next_len == int(C3):
-                kind, layout = "conv1d", "OIC"
-            elif next_len == int(Cin * C3):
-                kind, layout = "depthwise1d", "CMK"
-            elif (C3 <= 4) and (Cin >= 2):
-                kind, layout = "depthwise1d", "CMK"
-            else:
-                kind, layout = "conv1d", "OIC"
-
-            w_idx += 1
-
-            if kind == "conv1d":
-                # (K, Cin, Cout) -> (Cout, Cin, K)
-                w_oik = np.transpose(w, (2, 1, 0)).astype(np.float32)
-                flat = w_oik.flatten(order="C")
-                header = [
-                    f"// kind={kind}, layout={layout}",
-                    f"// dims: K={K1}, Cin={Cin}, Cout={C3}",
-                ]
-            else:
-                # depthwise1d: (K, Cin, M) -> (Cin, M, K)
-                M = int(C3)
-                w_cmk = np.transpose(w, (1, 2, 0)).astype(np.float32)
-                flat = w_cmk.flatten(order="C")
-                header = [
-                    f"// kind={kind}, layout={layout}",
-                    f"// dims: K={K1}, Cin={Cin}, M={M}, Cout={Cin*M}",
-                ]
-
-            _write_array_txt_and_h(out_dir, "w", w_idx, flat, header_lines=header)
-
-            # Consume optional bias+BN immediately after this kernel
-            k, b_idx, bn_idx = _consume_bias_and_bn(weights, k + 1, out_dir, b_idx, bn_idx)
-            continue
-
-        # ---------- 2D: Dense ----------
-        if _is_nd(w, 2):
-            w_idx += 1
-            # Dense kernel: (Din, Dout) -> store as (Dout, Din)
-            flat = np.float32(w.transpose().flatten())
-            _write_array_txt_and_h(out_dir, "w", w_idx, flat, header_lines=["// kind=dense (stored OI)"])
-
-            # Consume optional bias immediately after this kernel
-            k, b_idx, bn_idx = _consume_bias_and_bn(weights, k + 1, out_dir, b_idx, bn_idx)
-            continue
-
-        # ---------- 1D standalone (rare): treat as bias ----------
-        if _is_1d(w):
-            b_idx += 1
-            arr = np.float32(w.flatten())
-            _write_array_txt_and_h(out_dir, "b", b_idx, arr, header_lines=["// standalone 1D (treated as bias)"])
-            k += 1
-            continue
-
-        print("Skipping unsupported tensor with shape:", getattr(w, "shape", None))
-        k += 1
-
-###############################################################################
-
-# -------------------------------------------------------------------------------------------------
-# TFLite front-end: extract weights in execution order and reuse exporter() unchanged.
-#
-# Goal: "do exactly as current model exporter but with a .tflite input".
-# - Reconstruct Keras-like kernel layouts:
-#     Conv2D:          HWIO  (Kh, Kw, Cin, Cout)
-#     DepthwiseConv2D: HWIM  (Kh, Kw, Cin, M)
-#     Dense:           (Din, Dout)
-# - Then pass the list to exporter(weights, out_dir) so flattening + channel stacking stays identical.
-#
-# Notes:
-# - BatchNorm is typically folded into Conv/DWConv in TFLite, so you will usually only see kernel+bias.
-# - This implementation targets FLOAT models (float32 weights/bias).
-# -------------------------------------------------------------------------------------------------
-
-def _tflite_get_tensor(interpreter, tensor_index: int):
-    """Return numpy tensor for a TFLite tensor index, or None if not readable."""
-    if tensor_index is None or int(tensor_index) < 0:
-        return None
-    try:
-        return interpreter.get_tensor(int(tensor_index))
-    except Exception:
-        return None
-
-def _tflite_conv2d_to_keras_hwio(w_raw: np.ndarray) -> np.ndarray:
-    """TFLite Conv2D weights are commonly OHWI: (Cout, Kh, Kw, Cin).
-    Convert to Keras HWIO: (Kh, Kw, Cin, Cout).
-    """
-    if w_raw is None or w_raw.ndim != 4:
-        raise ValueError("Conv2D kernel must be 4D")
-    return np.transpose(w_raw, (1, 2, 3, 0)).astype(np.float32)
-
-def _tflite_dwconv2d_to_keras_hwim(w_raw: np.ndarray, cin: int) -> np.ndarray:
-    """Keras DepthwiseConv2D kernel: (Kh, Kw, Cin, M)
-
-    Common TFLite layout for DEPTHWISE_CONV_2D is either:
-      - already HWIM (Kh, Kw, Cin, M), OR
-      - (1, Kh, Kw, Cout) with Cout=Cin*M
-    """
-    if w_raw is None or w_raw.ndim != 4:
-        raise ValueError("DepthwiseConv2D kernel must be 4D")
-
-    sh = tuple(int(x) for x in w_raw.shape)
-
-    # already HWIM
-    if sh[0] != 1 and sh[2] == int(cin):
-        return w_raw.astype(np.float32)
-
-    # (1, Kh, Kw, Cout) -> HWIM
-    if sh[0] == 1:
-        kh, kw, cout = sh[1], sh[2], sh[3]
-        if cin <= 0 or (cout % cin) != 0:
-            raise ValueError(f"DEPTHWISE_CONV_2D: cannot infer M from cin={cin}, cout={cout}")
-        m = cout // cin
-        w = w_raw[0, :, :, :]          # (Kh, Kw, Cout)
-        return w.reshape((kh, kw, cin, m)).astype(np.float32)
-
-    return w_raw.astype(np.float32)
-
-def _tflite_dense_to_keras_din_dout(w_raw: np.ndarray, dout_hint: int | None) -> np.ndarray:
-    """TFLite FULLY_CONNECTED weights are commonly (Dout, Din).
-    Convert to Keras Dense kernel (Din, Dout).
-    """
-    if w_raw is None or w_raw.ndim != 2:
-        raise ValueError("Dense kernel must be 2D")
-
-    if dout_hint is not None:
-        dout_hint = int(dout_hint)
-        if int(w_raw.shape[0]) == dout_hint:
-            return w_raw.transpose().astype(np.float32)
-        if int(w_raw.shape[1]) == dout_hint:
-            return w_raw.astype(np.float32)
-
-    # default: treat as (Dout, Din)
-    return w_raw.transpose().astype(np.float32)
-
-def weights_from_tflite(tflite_path: str) -> list:
-    """Extract a Keras-like weights list from a float .tflite file.
-    The returned list is compatible with exporter(weights, out_dir).
-    """
-    import tensorflow as tf
-
-    interpreter = tf.lite.Interpreter(model_path=tflite_path)
+def _export_tflite_int8_interpreter(interpreter, out_dir):
+    """Export already-converted full-INT8 TFLite model. No host requantization of weights."""
+    import json
+    from pathlib import Path
+    dest = Path(out_dir)
+    # Never silently replace an existing FP32 export (identical w01/b01 filenames).
+    if (dest / 'w01.h').exists() and not (dest / 'model_int8_manifest.json').exists():
+        raise FileExistsError(f'{dest}: existing parameters found. Use a separate INT8 output directory.')
+    dest.mkdir(parents=True, exist_ok=True)
     interpreter.allocate_tensors()
-
-    tensor_details = {d["index"]: d for d in interpreter.get_tensor_details()}
-    ops = interpreter._get_ops_details()  # execution order
-
-    out_weights = []
-
-    for op in ops:
-        op_name = op.get("op_name", "")
-
-        ins = op.get("inputs", None)
-        ins = [] if ins is None else list(ins)
-
-        if len(ins) < 2:
-            continue
-
-        # Infer Cin from input activation (NHWC)
-        in0 = int(ins[0])
-        in0_shape = tensor_details.get(in0, {}).get("shape", None)
-        cin = None
-        if in0_shape is not None and len(in0_shape) == 4:
-            cin = int(in0_shape[3])
-
-        w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
-        b_raw = _tflite_get_tensor(interpreter, int(ins[2])) if len(ins) >= 3 else None
-
-        # float-only path
-        if w_raw is None or w_raw.dtype != np.float32:
-            continue
-        if b_raw is not None and b_raw.dtype != np.float32:
-            b_raw = None
-
-        if op_name == "CONV_2D":
-            out_weights.append(_tflite_conv2d_to_keras_hwio(w_raw))
-            if b_raw is not None:
-                out_weights.append(np.float32(b_raw).reshape(-1))
-
-        elif op_name == "DEPTHWISE_CONV_2D":
-            if cin is None:
-                raise ValueError("DEPTHWISE_CONV_2D: cannot infer Cin from input shape.")
-            out_weights.append(_tflite_dwconv2d_to_keras_hwim(w_raw, cin))
-            if b_raw is not None:
-                out_weights.append(np.float32(b_raw).reshape(-1))
-
-        elif op_name == "FULLY_CONNECTED":
-            dout_hint = int(b_raw.shape[0]) if b_raw is not None else None
-            out_weights.append(_tflite_dense_to_keras_din_dout(w_raw, dout_hint))
-            if b_raw is not None:
-                out_weights.append(np.float32(b_raw).reshape(-1))
-
-        # ignore activations, reshape, etc.
-
-    return out_weights
-
-def exporter_tflite(tflite_path: str, out_dir: str):
-    """Export a float .tflite model into Noodle-friendly files using the same layout as exporter()."""
-    ws = weights_from_tflite(tflite_path)
-    exporter(ws, out_dir)
-
-def debug_tflite_ops(tflite_path):
-    itp = tf.lite.Interpreter(model_path=tflite_path)
-    itp.allocate_tensors()
-    td = {d["index"]: d for d in itp.get_tensor_details()}
-    ops = itp._get_ops_details()
-
-    allowed = {"CONV_2D", "DEPTHWISE_CONV_2D", "FULLY_CONNECTED"}
-
-    for i, op in enumerate(ops):
-        op_name = op.get("op_name", "")
-        ins = list(op.get("inputs", []))
-        if op_name not in allowed or len(ins) < 2:
-            continue
-        w = itp.get_tensor(ins[1]) if ins[1] >= 0 else None
-        b = itp.get_tensor(ins[2]) if len(ins) >= 3 and ins[2] >= 0 else None
-        print(i, op_name, "W:", (None if w is None else (w.shape, w.dtype)),
-            "B:", (None if b is None else (b.shape, b.dtype)))
-
-
-# =============================================================================
-# Keras Model front-end with Conv2DTranspose support
-# =============================================================================
-#
-# Why this front-end exists:
-# model.get_weights() alone cannot reliably distinguish Conv2D from
-# Conv2DTranspose because both are 4D tensors. Conv2D uses Keras layout
-#   (Kh, Kw, Cin, Cout)
-# while Conv2DTranspose uses
-#   (Kh, Kw, Cout, Cin)
-#
-# Therefore, for autoencoders with Conv2DTranspose, use exporter_model(model,...)
-# instead of exporter(model.get_weights(),...).
-#
-# Noodle layout for both Conv2D and Conv2DTranspose is:
-#   [O][I][Kh][Kw]  flattened in C order.
-#
-# For Conv2D:
-#   Keras (Kh, Kw, Cin, Cout) -> Noodle (Cout, Cin, Kh, Kw)
-#
-# For Conv2DTranspose:
-#   Keras (Kh, Kw, Cout, Cin) -> Noodle (Cout, Cin, Kh, Kw)
-#
-# We already validated the Conv2DTranspose export with NO spatial kernel flip.
-# =============================================================================
-
-def _write_bias_if_present(out_dir: str, b_idx: int, weights: list) -> int:
-    """Write bias if the second item in layer.get_weights() is a 1D vector."""
-    if len(weights) >= 2 and _is_1d(weights[1]):
-        b_idx += 1
-        _write_array_txt_and_h(out_dir, "b", b_idx, np.float32(weights[1].reshape(-1)))
-    return b_idx
-
-def _write_bn_from_layer(out_dir: str, bn_idx: int, weights: list) -> int:
-    """Write BatchNormalization weights as packed gamma,beta,mean,var."""
-    if len(weights) != 4 or not _same_len_1d(weights):
-        raise ValueError("BatchNormalization layer must have gamma,beta,mean,var as four same-length 1D arrays.")
-
-    gamma = np.float32(weights[0].reshape(-1))
-    beta  = np.float32(weights[1].reshape(-1))
-    mean  = np.float32(weights[2].reshape(-1))
-    var   = np.float32(weights[3].reshape(-1))
-    packed = np.concatenate([gamma, beta, mean, var], axis=0)
-
-    bn_idx += 1
-    _write_array_txt_and_h(
-        out_dir, "bn", bn_idx, packed,
-        header_lines=[
-            "// kind=batchnorm packed",
-            "// order: gamma(C), beta(C), mean(C), var(C)",
-            f"// C={int(gamma.shape[0])}",
-        ],
-    )
-    return bn_idx
-
-def exporter_model(model, out_dir: str):
-    """
-    Export a Keras model layer-by-layer into Noodle-friendly files.
-
-    Use this function for models containing Conv2DTranspose, because
-    exporter(model.get_weights(), ...) cannot infer the layer type from a
-    raw 4D weight tensor.
-
-    Supported Keras layers:
-    - Conv2D:
-        Keras  (Kh, Kw, Cin, Cout)
-        Noodle (Cout, Cin, Kh, Kw), file wXX
-
-    - Conv2DTranspose:
-        Keras  (Kh, Kw, Cout, Cin)
-        Noodle (Cout, Cin, Kh, Kw), file wXX
-        No spatial flip.
-
-    - DepthwiseConv2D with depth_multiplier=1:
-        Keras  (Kh, Kw, Cin, 1)
-        Noodle (Cin, Kh, Kw), file wXX
-
-    - Conv1D:
-        Keras  (K, Cin, Cout)
-        Noodle (Cout, Cin, K), file wXX
-
-    - Dense:
-        Keras  (Din, Dout)
-        Noodle (Dout, Din), file wXX
-
-    - BatchNormalization:
-        packed as gamma,beta,mean,var, file bnXX
-
-    Bias vectors are written as bXX immediately after the corresponding
-    weighted layer in layer traversal order.
-    """
-    if not out_dir.endswith("/"):
-        out_dir += "/"
-    os.makedirs(out_dir, exist_ok=True)
-
-    w_idx = 0
-    b_idx = 0
-    bn_idx = 0
-
-    for layer in model.layers:
-        cls = layer.__class__.__name__
-        ws = layer.get_weights()
-
-        if len(ws) == 0:
-            continue
-
-        # ---------- Conv2D ----------
-        if cls == "Conv2D":
-            W = ws[0]
-            if not _is_nd(W, 4):
-                raise ValueError(f"{layer.name}: Conv2D kernel must be 4D, got {W.shape}")
-            Kh, Kw, Cin, Cout = W.shape
-
-            w_idx += 1
-            Wn = np.transpose(W, (3, 2, 0, 1)).astype(np.float32)  # Cout,Cin,Kh,Kw
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=conv2d, layout=OIHW",
-                    f"// layer={layer.name}",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, Cout={Cout}",
-                    "// Keras: (Kh,Kw,Cin,Cout) -> Noodle: (Cout,Cin,Kh,Kw)",
-                ],
-            )
-            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
-            continue
-
-        # ---------- Conv2DTranspose ----------
-        if cls == "Conv2DTranspose":
-            W = ws[0]
-            if not _is_nd(W, 4):
-                raise ValueError(f"{layer.name}: Conv2DTranspose kernel must be 4D, got {W.shape}")
-            Kh, Kw, Cout, Cin = W.shape
-
-            w_idx += 1
-            Wn = np.transpose(W, (2, 3, 0, 1)).astype(np.float32)  # Cout,Cin,Kh,Kw
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=conv2d_transpose, layout=OIHW",
-                    f"// layer={layer.name}",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, Cout={Cout}",
-                    "// Keras: (Kh,Kw,Cout,Cin) -> Noodle: (Cout,Cin,Kh,Kw)",
-                    "// spatial_flip=false",
-                ],
-            )
-            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
-            continue
-
-        # ---------- DepthwiseConv2D ----------
-        if cls == "DepthwiseConv2D":
-            W = ws[0]
-            if not _is_nd(W, 4):
-                raise ValueError(f"{layer.name}: DepthwiseConv2D kernel must be 4D, got {W.shape}")
-            Kh, Kw, Cin, M = W.shape
-            if int(M) != 1:
-                raise ValueError(f"{layer.name}: depth_multiplier={int(M)} not supported by current Noodle DW path.")
-
-            w_idx += 1
-            Wn = np.transpose(W[:, :, :, 0], (2, 0, 1)).astype(np.float32)  # Cin,Kh,Kw
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=depthwise2d, layout=CKK",
-                    f"// layer={layer.name}",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={Cin}, M=1, Cout={Cin}",
-                ],
-            )
-            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
-            continue
-
-        # ---------- Conv1D ----------
-        if cls == "Conv1D":
-            W = ws[0]
-            if not _is_nd(W, 3):
-                raise ValueError(f"{layer.name}: Conv1D kernel must be 3D, got {W.shape}")
-            K1, Cin, Cout = W.shape
-
-            w_idx += 1
-            Wn = np.transpose(W, (2, 1, 0)).astype(np.float32)  # Cout,Cin,K
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=conv1d, layout=OIC",
-                    f"// layer={layer.name}",
-                    f"// dims: K={K1}, Cin={Cin}, Cout={Cout}",
-                ],
-            )
-            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
-            continue
-
-        # ---------- Dense ----------
-        if cls == "Dense":
-            W = ws[0]
-            if not _is_nd(W, 2):
-                raise ValueError(f"{layer.name}: Dense kernel must be 2D, got {W.shape}")
-            Din, Dout = W.shape
-
-            w_idx += 1
-            Wn = W.transpose().astype(np.float32)  # Dout,Din
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=dense, layout=OI",
-                    f"// layer={layer.name}",
-                    f"// dims: Din={Din}, Dout={Dout}",
-                ],
-            )
-            b_idx = _write_bias_if_present(out_dir, b_idx, ws)
-            continue
-
-        # ---------- BatchNormalization ----------
-        if cls == "BatchNormalization":
-            bn_idx = _write_bn_from_layer(out_dir, bn_idx, ws)
-            continue
-
-        print(f"Skipping unsupported weighted layer {layer.name} ({cls}) with shapes {[w.shape for w in ws]}")
-
-    print(f"Export complete: w={w_idx}, b={b_idx}, bn={bn_idx}, out_dir={out_dir}")
-
-# =============================================================================
-# Optional TFLite helper for TRANSPOSE_CONV
-# =============================================================================
-#
-# TFLite TRANSPOSE_CONV layout may vary by converter/version. The common float
-# layout is (Cout, Kh, Kw, Cin). This helper converts that to Keras
-# Conv2DTranspose layout (Kh, Kw, Cout, Cin).
-#
-# For highest confidence with autoencoders, prefer exporter_model(keras_model,...)
-# directly from the original Keras model. Use TFLite export only after checking
-# debug_tflite_ops().
-# =============================================================================
-
-def _tflite_transpose_conv2d_to_keras_hwoi(w_raw: np.ndarray) -> np.ndarray:
-    """Convert common TFLite TRANSPOSE_CONV kernel to Keras Conv2DTranspose layout.
-
-    Common TFLite: (Cout, Kh, Kw, Cin)
-    Keras:         (Kh, Kw, Cout, Cin)
-    """
-    if w_raw is None or w_raw.ndim != 4:
-        raise ValueError("TRANSPOSE_CONV kernel must be 4D")
-
-    # Common TFLite layout: (Cout, Kh, Kw, Cin)
-    return np.transpose(w_raw, (1, 2, 0, 3)).astype(np.float32)
-
-
-
-# =============================================================================
-# TFLite direct exporter with TRANSPOSE_CONV support
-# =============================================================================
-#
-# This overrides the earlier exporter_tflite() definition. The older TFLite path
-# reconstructed a Keras-like weights list and then reused exporter(). That is not
-# safe for Conv2DTranspose because a raw 4D tensor cannot be distinguished from
-# Conv2D by shape alone:
-#
-#   Conv2D Keras:            (Kh, Kw, Cin,  Cout)
-#   Conv2DTranspose Keras:   (Kh, Kw, Cout, Cin)
-#
-# Therefore this direct path writes Noodle layout immediately while walking TFLite
-# ops in execution order.
-#
-# Noodle layouts written:
-#   CONV_2D:          [O][I][Kh][Kw]
-#   TRANSPOSE_CONV:   [O][I][Kh][Kw]
-#   DEPTHWISE_CONV_2D [C][Kh][Kw]  (only depth_multiplier=1)
-#   FULLY_CONNECTED:  [O][I]
-# =============================================================================
-
-def _shape_tuple(x):
-    return tuple(int(v) for v in getattr(x, "shape", []))
-
-def _tensor_shape_from_details(tensor_details, idx):
-    d = tensor_details.get(int(idx), None)
-    if d is None:
-        return None
-    sh = d.get("shape", None)
-    if sh is None:
-        return None
-    return tuple(int(v) for v in sh)
-
-def _find_first_float_tensor_input(interpreter, inputs, ndim=None, exclude_positions=None):
-    """Return (position, tensor_index, tensor) for the first readable float32 input tensor."""
-    if exclude_positions is None:
-        exclude_positions = set()
-    for pos, idx in enumerate(inputs):
-        if pos in exclude_positions:
-            continue
-        if int(idx) < 0:
-            continue
-        t = _tflite_get_tensor(interpreter, int(idx))
-        if t is None:
-            continue
-        if t.dtype != np.float32:
-            continue
-        if ndim is not None and t.ndim != ndim:
-            continue
-        return pos, int(idx), t
-    return None, None, None
-
-def _find_bias_input(interpreter, inputs, expected_len=None, exclude_positions=None):
-    """Find a readable 1D float32 bias vector among op inputs."""
-    if exclude_positions is None:
-        exclude_positions = set()
-    for pos, idx in enumerate(inputs):
-        if pos in exclude_positions:
-            continue
-        if int(idx) < 0:
-            continue
-        t = _tflite_get_tensor(interpreter, int(idx))
-        if t is None or t.dtype != np.float32 or t.ndim != 1:
-            continue
-        if expected_len is not None and int(t.shape[0]) != int(expected_len):
-            continue
-        return np.float32(t).reshape(-1)
-    return None
-
-def _tflite_conv2d_to_noodle_oihw(w_raw: np.ndarray, cin_hint=None, cout_hint=None) -> np.ndarray:
-    """Convert TFLite CONV_2D kernel to Noodle [O][I][Kh][Kw].
-
-    Common TFLite layout is OHWI: (Cout, Kh, Kw, Cin).
-    Some tooling may expose HWIO: (Kh, Kw, Cin, Cout), so hints are used.
-    """
-    if w_raw is None or w_raw.ndim != 4:
-        raise ValueError("CONV_2D kernel must be 4D")
-
-    sh = _shape_tuple(w_raw)
-
-    # Common TFLite OHWI -> OIHW
-    if cout_hint is not None and cin_hint is not None:
-        if sh[0] == int(cout_hint) and sh[3] == int(cin_hint):
-            return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
-        # Already Keras HWIO -> OIHW
-        if sh[2] == int(cin_hint) and sh[3] == int(cout_hint):
-            return np.transpose(w_raw, (3, 2, 0, 1)).astype(np.float32)
-
-    # Default TFLite OHWI
-    return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
-
-def _tflite_transpose_conv_to_noodle_oihw(w_raw: np.ndarray, cin_hint=None, cout_hint=None) -> np.ndarray:
-    """Convert TFLite TRANSPOSE_CONV kernel to Noodle [O][I][Kh][Kw].
-
-    Common TFLite TRANSPOSE_CONV weight layout:
-      (Cout, Kh, Kw, Cin)
-
-    Keras Conv2DTranspose layout:
-      (Kh, Kw, Cout, Cin)
-
-    Noodle expects:
-      (Cout, Cin, Kh, Kw)
-
-    No spatial kernel flip is applied.
-    """
-    if w_raw is None or w_raw.ndim != 4:
-        raise ValueError("TRANSPOSE_CONV kernel must be 4D")
-
-    sh = _shape_tuple(w_raw)
-
-    if cout_hint is not None and cin_hint is not None:
-        cout_hint = int(cout_hint)
-        cin_hint = int(cin_hint)
-
-        # Common TFLite: (Cout, Kh, Kw, Cin)
-        if sh[0] == cout_hint and sh[3] == cin_hint:
-            return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
-
-        # Keras-style: (Kh, Kw, Cout, Cin)
-        if sh[2] == cout_hint and sh[3] == cin_hint:
-            return np.transpose(w_raw, (2, 3, 0, 1)).astype(np.float32)
-
-        # Some flatbuffer dumps/tools may expose (Kh, Kw, Cin, Cout)
-        if sh[2] == cin_hint and sh[3] == cout_hint:
-            return np.transpose(w_raw, (3, 2, 0, 1)).astype(np.float32)
-
-    # Default to common TFLite layout: (Cout, Kh, Kw, Cin)
-    return np.transpose(w_raw, (0, 3, 1, 2)).astype(np.float32)
-
-def _tflite_dwconv2d_to_noodle_ckk(w_raw: np.ndarray, cin_hint=None) -> np.ndarray:
-    """Convert TFLite DEPTHWISE_CONV_2D kernel to Noodle [C][Kh][Kw].
-
-    Current Noodle depthwise path supports depth_multiplier=1 only.
-    """
-    if w_raw is None or w_raw.ndim != 4:
-        raise ValueError("DEPTHWISE_CONV_2D kernel must be 4D")
-
-    sh = _shape_tuple(w_raw)
-
-    # TFLite common: (1, Kh, Kw, Cout), Cout = Cin * M
-    if sh[0] == 1:
-        kh, kw, cout = sh[1], sh[2], sh[3]
-        if cin_hint is None:
-            raise ValueError("DEPTHWISE_CONV_2D: cannot infer Cin from input shape.")
-        cin_hint = int(cin_hint)
-        if cout % cin_hint != 0:
-            raise ValueError(f"DEPTHWISE_CONV_2D: cannot infer depth_multiplier from Cin={cin_hint}, Cout={cout}.")
-        m = cout // cin_hint
-        if m != 1:
-            raise ValueError(f"DEPTHWISE_CONV_2D depth_multiplier={m}; current Noodle DW path expects M=1.")
-        # (1, Kh, Kw, Cin) -> (Cin, Kh, Kw)
-        return np.transpose(w_raw[0, :, :, :], (2, 0, 1)).astype(np.float32)
-
-    # Keras-like HWIM: (Kh, Kw, Cin, M)
-    if cin_hint is not None and sh[2] == int(cin_hint):
-        m = sh[3]
-        if m != 1:
-            raise ValueError(f"DEPTHWISE_CONV_2D depth_multiplier={m}; current Noodle DW path expects M=1.")
-        return np.transpose(w_raw[:, :, :, 0], (2, 0, 1)).astype(np.float32)
-
-    # Last-resort guess: HWIM with M=1
-    if sh[3] == 1:
-        return np.transpose(w_raw[:, :, :, 0], (2, 0, 1)).astype(np.float32)
-
-    raise ValueError(f"Unsupported DEPTHWISE_CONV_2D kernel layout/shape: {sh}")
-
-def _tflite_dense_to_noodle_oi(w_raw: np.ndarray, dout_hint=None) -> np.ndarray:
-    """Convert TFLite FULLY_CONNECTED weights to Noodle [O][I].
-
-    Common TFLite layout is already (Dout, Din).
-    """
-    if w_raw is None or w_raw.ndim != 2:
-        raise ValueError("FULLY_CONNECTED kernel must be 2D")
-
-    if dout_hint is not None:
-        dout_hint = int(dout_hint)
-        if int(w_raw.shape[0]) == dout_hint:
-            return w_raw.astype(np.float32)
-        if int(w_raw.shape[1]) == dout_hint:
-            return w_raw.transpose().astype(np.float32)
-
-    return w_raw.astype(np.float32)
-
-def exporter_tflite(tflite_path: str, out_dir: str):
-    """Export a float .tflite model into Noodle-friendly files.
-
-    Supports CONV_2D, DEPTHWISE_CONV_2D, FULLY_CONNECTED, and TRANSPOSE_CONV.
-    The function walks TFLite ops in execution order and writes wXX/bXX files
-    directly, so Conv2DTranspose tensors are not confused with Conv2D tensors.
-    """
-    if not out_dir.endswith("/"):
-        out_dir += "/"
-    os.makedirs(out_dir, exist_ok=True)
-
-    interpreter = tf.lite.Interpreter(model_path=tflite_path)
-    interpreter.allocate_tensors()
-
-    tensor_details = {int(d["index"]): d for d in interpreter.get_tensor_details()}
+    details = {int(d['index']): d for d in interpreter.get_tensor_details()}
     ops = interpreter._get_ops_details()
-
-    w_idx = 0
-    b_idx = 0
-
+    supported = {'CONV_2D', 'DEPTHWISE_CONV_2D', 'FULLY_CONNECTED', 'TRANSPOSE_CONV'}
+    entries = []
+    unsupported = []
     for op_i, op in enumerate(ops):
-        op_name = op.get("op_name", "")
-        ins = list(op.get("inputs", []))
-        outs = list(op.get("outputs", []))
-
-        if op_name == "CONV_2D":
-            if len(ins) < 2:
-                continue
-
-            in_shape = _tensor_shape_from_details(tensor_details, ins[0])
-            out_shape = _tensor_shape_from_details(tensor_details, outs[0]) if outs else None
-            cin_hint = in_shape[3] if in_shape is not None and len(in_shape) == 4 else None
-            cout_hint = out_shape[3] if out_shape is not None and len(out_shape) == 4 else None
-
-            w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
-            if w_raw is None or w_raw.dtype != np.float32:
-                continue
-
-            Wn = _tflite_conv2d_to_noodle_oihw(w_raw, cin_hint=cin_hint, cout_hint=cout_hint)
-            w_idx += 1
-            O, I, Kh, Kw = Wn.shape
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=conv2d, layout=OIHW",
-                    f"// tflite_op_index={op_i}",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={I}, Cout={O}",
-                    "// TFLite common: (Cout,Kh,Kw,Cin) -> Noodle: (Cout,Cin,Kh,Kw)",
-                ],
-            )
-
-            b = _find_bias_input(interpreter, ins, expected_len=O, exclude_positions={0, 1})
-            if b is not None:
-                b_idx += 1
-                _write_array_txt_and_h(out_dir, "b", b_idx, b)
+        kind = op.get('op_name', '')
+        if kind not in supported:
+            unsupported.append({'index': op_i, 'op': kind})
             continue
-
-        if op_name == "DEPTHWISE_CONV_2D":
-            if len(ins) < 2:
-                continue
-
-            in_shape = _tensor_shape_from_details(tensor_details, ins[0])
-            cin_hint = in_shape[3] if in_shape is not None and len(in_shape) == 4 else None
-
-            w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
-            if w_raw is None or w_raw.dtype != np.float32:
-                continue
-
-            Wn = _tflite_dwconv2d_to_noodle_ckk(w_raw, cin_hint=cin_hint)
-            w_idx += 1
-            C, Kh, Kw = Wn.shape
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=depthwise2d, layout=CKK",
-                    f"// tflite_op_index={op_i}",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={C}, M=1, Cout={C}",
-                ],
-            )
-
-            b = _find_bias_input(interpreter, ins, expected_len=C, exclude_positions={0, 1})
-            if b is not None:
-                b_idx += 1
-                _write_array_txt_and_h(out_dir, "b", b_idx, b)
-            continue
-
-        if op_name == "FULLY_CONNECTED":
-            if len(ins) < 2:
-                continue
-
-            w_raw = _tflite_get_tensor(interpreter, int(ins[1]))
-            if w_raw is None or w_raw.dtype != np.float32:
-                continue
-
-            # Bias is usually input 2. Use it as output-size hint if present.
-            b = _find_bias_input(interpreter, ins, exclude_positions={0, 1})
-            dout_hint = int(b.shape[0]) if b is not None else None
-
-            Wn = _tflite_dense_to_noodle_oi(w_raw, dout_hint=dout_hint)
-            w_idx += 1
-            O, I = Wn.shape
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=dense, layout=OI",
-                    f"// tflite_op_index={op_i}",
-                    f"// dims: Din={I}, Dout={O}",
-                ],
-            )
-
-            if b is not None:
-                b_idx += 1
-                _write_array_txt_and_h(out_dir, "b", b_idx, b)
-            continue
-
-        if op_name == "TRANSPOSE_CONV":
-            # TFLite TRANSPOSE_CONV commonly has inputs:
-            #   [output_shape, weights, input_activation, bias?]
-            # where output_shape is int32 and weights are float32 4D.
+        ins = [int(x) for x in op.get('inputs', [])]
+        outs = [int(x) for x in op.get('outputs', [])]
+        if not outs:
+            raise ValueError(f'{kind}: missing output tensor')
+        if kind == 'TRANSPOSE_CONV':
             if len(ins) < 3:
-                continue
+                raise ValueError('TRANSPOSE_CONV: expected [output_shape, weights, input]')
+            input_idx, weight_idx, bias_candidates = ins[2], ins[1], ins[3:]
+        else:
+            if len(ins) < 2:
+                raise ValueError(f'{kind}: missing weight/input tensor')
+            input_idx, weight_idx, bias_candidates = ins[0], ins[1], ins[2:]
+        input_scale, input_zp = _i8_activation_q(details, input_idx)
+        output_scale, output_zp = _i8_activation_q(details, outs[0])
+        wd, wraw = _i8_tensor(interpreter, weight_idx, details, expected_dtype=np.int8)
+        in_shape = tuple(map(int, details[input_idx]['shape']))
+        out_shape = tuple(map(int, details[outs[0]]['shape']))
+        if kind == 'CONV_2D':
+            if len(in_shape) != 4 or len(out_shape) != 4 or wraw.ndim != 4:
+                raise ValueError('CONV_2D: expected NHWC input/output and OHWI weights')
+            channels = int(out_shape[3]); axis = 0
+            if wraw.shape[0] != channels or wraw.shape[3] != in_shape[3]:
+                raise ValueError('CONV_2D: expected TFLite OHWI weight layout')
+            weights = np.transpose(wraw, (0, 3, 1, 2))  # OIHW
+            if weights.shape[2] != weights.shape[3]:
+                raise ValueError('CONV_2D: current Noodle kernel requires square filters')
+            layout = 'OIHW'
+        elif kind == 'DEPTHWISE_CONV_2D':
+            if len(in_shape) != 4 or len(out_shape) != 4 or wraw.ndim != 4:
+                raise ValueError('DEPTHWISE_CONV_2D: expected NHWC and 4D weights')
+            channels = int(out_shape[3]); axis = 3
+            if int(wraw.shape[0]) != 1 or int(wraw.shape[3]) != channels:
+                raise ValueError('DEPTHWISE_CONV_2D: expected TFLite [1, Kh, Kw, Cout]')
+            if channels % int(in_shape[3]):
+                raise ValueError('DEPTHWISE_CONV_2D: invalid depth multiplier')
+            mult = channels // int(in_shape[3])
+            # TFLite depthwise weights channel order is [input channel, multiplier].
+            weights = np.transpose(wraw[0], (2, 0, 1))  # CKK
+            if weights.shape[1] != weights.shape[2]:
+                raise ValueError('DEPTHWISE_CONV_2D: current Noodle kernel requires square filters')
+            layout = 'CKK'
+        elif kind == 'FULLY_CONNECTED':
+            if wraw.ndim != 2:
+                raise ValueError('FULLY_CONNECTED: expected [Dout, Din] weights')
+            channels = int(wraw.shape[0]); axis = 0
+            if int(out_shape[-1]) != channels:
+                raise ValueError('FULLY_CONNECTED: output neurons do not match weights')
+            weights = wraw  # OI
+            layout = 'OI'
+            if int(np.prod(in_shape[1:])) != int(wraw.shape[1]):
+                raise ValueError('FULLY_CONNECTED: flattened input length disagrees with weight width')
+        else:  # TRANSPOSE_CONV
+            if len(in_shape) != 4 or len(out_shape) != 4 or wraw.ndim != 4:
+                raise ValueError('TRANSPOSE_CONV: expected NHWC input/output and 4D weights')
+            channels = int(out_shape[3]); axis = 0
+            if int(wraw.shape[0]) != channels or int(wraw.shape[3]) != int(in_shape[3]):
+                raise ValueError('TRANSPOSE_CONV: expected TFLite [Cout, Kh, Kw, Cin] weights')
+            weights = np.transpose(wraw, (0, 3, 1, 2))
+            if weights.shape[2] != weights.shape[3]:
+                raise ValueError('TRANSPOSE_CONV: current Noodle kernel requires square filters')
+            layout = 'OIHW'
+        w_scales, w_zps = _i8_quant(wd, per_channel=True, channels=channels, axis=axis)
+        if np.any(w_zps != 0):
+            raise ValueError(f'{kind}: Noodle INT8 expects symmetric weights (zero point 0)')
+        # Optional bias tensor: use fixed expected location, not heuristic activation search.
+        bias = np.zeros(channels, dtype=np.int32)
+        if bias_candidates and bias_candidates[0] >= 0:
+            bd, braw = _i8_tensor(interpreter, bias_candidates[0], details, expected_dtype=np.int32)
+            if braw.ndim != 1 or int(braw.size) != channels:
+                raise ValueError(f'{kind}: bias shape must be [{channels}]')
+            bs, bz = _i8_quant(bd, per_channel=True, channels=channels, axis=0)
+            # Quantization parameters often use float32 precision; allow small relative error.
+            if np.any(bz != 0) or not np.allclose(bs, input_scale * w_scales, rtol=2e-3, atol=0):
+                raise ValueError(f'{kind}: bias quantization must use input_scale * weight_scale and zero point 0')
+            bias = np.asarray(braw, dtype=np.int32)
+        mul = np.empty(channels, dtype=np.int32)
+        shift = np.empty(channels, dtype=np.int32)
+        for ci, ws in enumerate(w_scales):
+            mul[ci], shift[ci] = _i8_requantize(input_scale * float(ws) / output_scale)
+        idx = len(entries) + 1
+        notes = [f'op={kind}, index={op_i}, layout={layout}', f'shape={tuple(map(int,weights.shape))}']
+        files = {
+            'weight': _write_i8_parameter(dest, 'w', idx, weights, 'int8_t', notes=notes),
+            'bias': _write_i8_parameter(dest, 'b', idx, bias, 'int32_t', notes=notes),
+            'multiplier': _write_i8_parameter(dest, 'm', idx, mul, 'int32_t', notes=notes),
+            'shift': _write_i8_parameter(dest, 's', idx, shift, 'int32_t', notes=notes),
+        }
+        layer = {
+            'layer': idx, 'tflite_op_index': op_i, 'op': kind, 'layout': layout,
+            'weight_shape': list(map(int, weights.shape)),
+            'input_shape_nhwc': list(in_shape), 'output_shape_nhwc': list(out_shape),
+            'input_scale': input_scale, 'input_zero_point': input_zp,
+            'output_scale': output_scale, 'output_zero_point': output_zp,
+            'weight_scales': w_scales.tolist(), 'weight_zero_points': w_zps.tolist(),
+            'activation_min': -128, 'activation_max': 127,
+            'activation_note': 'Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.',
+            'files': files,
+        }
+        if kind == 'DEPTHWISE_CONV_2D':
+            layer['depth_multiplier'] = int(mult)
+        entries.append(layer)
+    if not entries:
+        raise ValueError('No INT8 weighted ops found in model')
+    with open(dest / 'noodle_export_storage.h', 'w', encoding='utf-8') as f:
+        f.write('#pragma once\n')
+        f.write('#if defined(__AVR__)\n#include <avr/pgmspace.h>\n#define NOODLE_EXPORT_STORAGE PROGMEM\n')
+        f.write('#else\n#define NOODLE_EXPORT_STORAGE\n#endif\n')
+    with open(dest / 'model_weights.h', 'w', encoding='utf-8') as f:
+        f.write('#pragma once\n')
+        for layer in entries:
+            for v in ('weight', 'bias', 'multiplier', 'shift'):
+                f.write('#include "' + layer['files'][v]['header'] + '"\n')
+    # Layer-specific quantization scalar constants suitable for filling Noodle's Conv/FCN descriptor.
+    with open(dest / 'model_quant.h', 'w', encoding='utf-8') as f:
+        f.write('#pragma once\n#include <stdint.h>\nnamespace noodle_export_i8 {\n')
+        for layer in entries:
+            sym = f"layer{layer['layer']:02d}"
+            for v in ('input_scale', 'output_scale'):
+                f.write(f'static constexpr float {sym}_{v} = {layer[v]:.9g}' + ('' if 'e' in f'{layer[v]:.9g}' or '.' in f'{layer[v]:.9g}' else '.0') + 'f;\n')
+            for v in ('input_zero_point', 'output_zero_point', 'activation_min', 'activation_max'):
+                f.write(f'static constexpr int32_t {sym}_{v} = {layer[v]};\n')
+        f.write('}\n')
+    manifest = {'format': 'noodle_int8_parameters_v1', 'source': 'full_INT8_TFLite',
+                'layer_count': len(entries), 'layers': entries,
+                'non_weighted_ops': unsupported,
+                'notes': ['File .bin = headerless little-endian int8/int32 (NOODLE_FILE_FORMAT_BIN).',
+                          'Input and output activations are TFLite NHWC; Noodle convolution activations are CHW.',
+                          'Weights use zero-point=0; per-output-channel multipliers/shifts match Noodle C++ algorithm.',
+                          'Layer descriptors (stride, padding, fused activation) must be matched to model manually.',
+                          'Unsupported or unexported non-weighted operations are listed but NOT converted.',
+                          'Do not mix FP32 and INT8 exports in one directory.']}
+    with open(dest / 'model_int8_manifest.json', 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=2)
+    return manifest
 
-            # Find the 4D float weight tensor among inputs.
-            w_pos, w_idx_tensor, w_raw = _find_first_float_tensor_input(interpreter, ins, ndim=4)
-            if w_raw is None:
-                continue
+def _model_tensors(interpreter):
+    """Inspect a TFLite interpreter (public tensor details + op order)."""
+    interpreter.allocate_tensors()
+    details = {int(d['index']): d for d in interpreter.get_tensor_details()}
+    ops = list(interpreter._get_ops_details())  # TFLite Python op walk; private interpreter API
+    return details, ops
 
-            # Input activation is the other 4D tensor, usually position 2.
-            act_pos = None
-            act_shape = None
-            for pos, tidx in enumerate(ins):
-                if pos == w_pos or int(tidx) < 0:
-                    continue
-                sh = _tensor_shape_from_details(tensor_details, tidx)
-                if sh is not None and len(sh) == 4:
-                    # Prefer tensor-details shape over get_tensor(), because activation
-                    # tensors may not be readable constants.
-                    act_pos = pos
-                    act_shape = sh
-                    break
 
-            out_shape = _tensor_shape_from_details(tensor_details, outs[0]) if outs else None
-            cin_hint = act_shape[3] if act_shape is not None and len(act_shape) == 4 else None
-            cout_hint = out_shape[3] if out_shape is not None and len(out_shape) == 4 else None
+def _detect_precision(interpreter):
+    """Detect full FP32 vs *full* signed INT8. Refuse hybrid/mixed/unsupported graphs."""
+    details, ops = _model_tensors(interpreter)
+    if not ops:
+        raise ValueError('TFLite file has no operations.')
+    unsupported = sorted({op['op_name'] for op in ops
+                          if op.get('op_name') not in WEIGHTED_OPS | METADATA_ONLY_OPS})
+    if unsupported:
+        raise ValueError('Unsupported TFLite operator(s): ' + ', '.join(unsupported)
+                         + '. Parameter extraction cannot safely reproduce this graph.')
 
-            Wn = _tflite_transpose_conv_to_noodle_oihw(w_raw, cin_hint=cin_hint, cout_hint=cout_hint)
-            w_idx += 1
-            O, I, Kh, Kw = Wn.shape
-            _write_array_txt_and_h(
-                out_dir, "w", w_idx, Wn.flatten(order="C"),
-                header_lines=[
-                    "// kind=conv2d_transpose, layout=OIHW",
-                    f"// tflite_op_index={op_i}",
-                    f"// dims: Kh={Kh}, Kw={Kw}, Cin={I}, Cout={O}",
-                    "// TFLite common: (Cout,Kh,Kw,Cin) -> Noodle: (Cout,Cin,Kh,Kw)",
-                    "// spatial_flip=false",
-                ],
-            )
+    weighted = [op for op in ops if op['op_name'] in WEIGHTED_OPS]
+    if not weighted:
+        raise ValueError('No supported weighted TFLite operators (Conv2D/DWConv2D/FCN/TransposeConv).')
 
-            b = _find_bias_input(interpreter, ins, expected_len=O, exclude_positions={w_pos})
-            if b is not None:
-                b_idx += 1
-                _write_array_txt_and_h(out_dir, "b", b_idx, b)
+    def dtype_at(idx):
+        d = details.get(int(idx))
+        if d is None:
+            raise ValueError(f'Unknown TFLite tensor index {idx}.')
+        return np.dtype(d['dtype'])
+
+    kinds = set()
+    for op in weighted:
+        ins = list(map(int, op.get('inputs', [])))
+        wi = 1  # TFLite CONV_2D / DEPTHWISE / FULLY_CONNECTED / TRANSPOSE_CONV
+        if len(ins) <= wi or ins[wi] < 0:
+            raise ValueError(f"{op['op_name']}: weights are missing.")
+        kinds.add(dtype_at(ins[wi]))
+
+    if len(kinds) != 1:
+        raise ValueError('Hybrid/mixed TFLite weights detected: ' + ', '.join(map(str,kinds)))
+    kind = next(iter(kinds))
+    if kind == np.dtype('float32'):
+        precision, activation_dtype = 'fp32', np.dtype('float32')
+    elif kind == np.dtype('int8'):
+        precision, activation_dtype = 'int8', np.dtype('int8')
+    else:
+        raise ValueError(f'Unsupported parameter dtype {kind}; expected float32 or signed int8.')
+
+    # Reject FLOAT32 input / output around INT8 layers, and vice versa.
+    # In particular do not silently accept a mixed-precision TFLite conversion.
+    for direction, ds in [('input', interpreter.get_input_details()),
+                          ('output', interpreter.get_output_details())]:
+        for d in ds:
+            if np.dtype(d['dtype']) != activation_dtype:
+                raise ValueError(f"{precision.upper()} model has incompatible {direction} "
+                                 f"{d.get('name', d['index'])}: {d['dtype']}. "
+                                 'Convert to a fully FLOAT32 or fully signed INT8 TFLite model.')
+
+    # Verify execution graph activations (not op constants) match the selected type.
+    for idx, op in enumerate(ops):
+        ins, outs = list(map(int, op.get('inputs', []))), list(map(int, op.get('outputs', [])))
+        if op['op_name'] == 'TRANSPOSE_CONV':
+            ai = ins[2] if len(ins) > 2 else -1
+        else:
+            ai = ins[0] if ins else -1
+        activation_indices = ([ai] if ai >= 0 else []) + [o for o in outs if o >= 0]
+        for ti in activation_indices:
+            if dtype_at(ti) != activation_dtype:
+                raise ValueError(f"{op['op_name']} (op #{idx}) has a mixed-precision activation "
+                                 f"tensor {ti} ({dtype_at(ti)}).")
+
+    return precision, details, ops
+
+
+def _float_array(out_dir, prefix, index, values, *, notes=()):
+    """Export native Noodle layout as .h, plain text and raw little-endian .bin."""
+    a = np.asarray(values, dtype=np.float32).reshape(-1)
+    if not np.all(np.isfinite(a)):
+        raise ValueError(f'{prefix}{index:02d}: nonfinite FP32 values.')
+    name = f'{prefix}{index:02d}'
+    a.astype('<f4').tofile(Path(out_dir) / (name + '.bin'))
+    np.savetxt(Path(out_dir) / (name + '.txt'), a, fmt='%.9g')
+    with open(Path(out_dir)/(name+'.h'), 'w', encoding='utf-8') as f:
+        f.write('#pragma once\n\n')
+        for item in notes:
+            f.write('// '+str(item).replace('\n',' ')+'\n')
+        f.write(f'static const float {name}[] = {{\n')
+        for k in range(0, len(a), 8):
+            entries = []
+            for v in a[k:k+8]:
+                text = format(float(v), '.9g')
+                if 'e' not in text and '.' not in text:
+                    text += '.0'
+                entries.append(text + 'f')
+            f.write('  ' + ', '.join(entries) + (',' if k+8 < len(a) else '') + '\n')
+        f.write('};\n')
+    return {'bin': name+'.bin', 'txt': name+'.txt',
+            'header': name+'.h', 'symbol': name, 'elements': int(a.size)}
+
+
+def _export_tflite_float_interpreter(interpreter, out_dir):
+    """FP32 extraction in TFLite execution order, preserving existing wNN/bNN names."""
+    details, ops = _model_tensors(interpreter)
+    out_dir = Path(out_dir)
+    entries = []
+    for op_i, op in enumerate(ops):
+        kind = op['op_name']
+        if kind not in WEIGHTED_OPS:
             continue
+        ins = list(map(int, op.get('inputs', [])))
+        outs = list(map(int, op.get('outputs', [])))
+        if len(ins) < 2 or not outs:
+            raise ValueError(f'{kind} op {op_i}: missing input/weight/output')
+        ai = ins[2] if kind == 'TRANSPOSE_CONV' else ins[0]
+        if ai < 0:
+            raise ValueError(f'{kind} op {op_i}: missing activation input')
+        in_shape = tuple(map(int, details[ai]['shape']))
+        out_shape = tuple(map(int, details[outs[0]]['shape']))
+        w_raw = np.asarray(interpreter.get_tensor(ins[1]))
+        if w_raw.dtype != np.float32:
+            raise ValueError(f'{kind} op {op_i}: weights must be FLOAT32')
+        if kind == 'CONV_2D':
+            if len(in_shape) != 4 or len(out_shape) != 4 or w_raw.ndim != 4:
+                raise ValueError('CONV_2D requires NHWC input/output and OHWI weights')
+            O = out_shape[3]
+            if w_raw.shape[0] != O or w_raw.shape[3] != in_shape[3]:
+                raise ValueError('CONV_2D: expected TFLite OHWI weight layout')
+            weights, layout = w_raw.transpose(0, 3, 1, 2), 'OIHW'
+        elif kind == 'DEPTHWISE_CONV_2D':
+            if len(in_shape) != 4 or len(out_shape) != 4 or w_raw.ndim != 4:
+                raise ValueError('DEPTHWISE_CONV_2D requires NHWC input/output and 4D weights')
+            O = out_shape[3]
+            if w_raw.shape[0] != 1 or w_raw.shape[3] != O:
+                raise ValueError('DEPTHWISE_CONV_2D: expected TFLite [1,Kh,Kw,Cout]')
+            if O != in_shape[3]:
+                raise ValueError('DEPTHWISE_CONV_2D: FP32 Noodle export currently expects depth multiplier=1')
+            weights, layout = w_raw[0].transpose(2, 0, 1), 'CKK'
+        elif kind == 'FULLY_CONNECTED':
+            if w_raw.ndim != 2 or w_raw.shape[0] != out_shape[-1]:
+                raise ValueError('FULLY_CONNECTED: expected TFLite [Dout,Din]')
+            if int(np.prod(in_shape[1:])) != w_raw.shape[1]:
+                raise ValueError('FULLY_CONNECTED: input shape disagrees with weights')
+            weights, layout, O = w_raw, 'OI', w_raw.shape[0]
+        else:
+            if len(in_shape) != 4 or len(out_shape) != 4 or w_raw.ndim != 4:
+                raise ValueError('TRANSPOSE_CONV requires NHWC input/output and 4D weights')
+            O = out_shape[3]
+            if w_raw.shape[0] != O or w_raw.shape[3] != in_shape[3]:
+                raise ValueError('TRANSPOSE_CONV: expected TFLite [Cout,Kh,Kw,Cin]')
+            weights, layout = w_raw.transpose(0,3,1,2), 'OIHW'
+        if kind != 'FULLY_CONNECTED' and weights.shape[-2] != weights.shape[-1]:
+            raise ValueError(f'{kind}: current Noodle convolution kernels require square filters')
+        bi = ins[3] if kind == 'TRANSPOSE_CONV' and len(ins) >= 4 else (
+            ins[2] if kind != 'TRANSPOSE_CONV' and len(ins) >= 3 else -1)
+        bias = np.zeros(O, dtype=np.float32)
+        if bi >= 0:
+            bias = np.asarray(interpreter.get_tensor(bi))
+            if bias.dtype != np.float32 or bias.ndim != 1 or bias.size != O:
+                raise ValueError(f'{kind}: expected FP32 bias of length {O}')
+        seq = len(entries)+1
+        notes = (f'op={kind}; tflite_index={op_i}; layout={layout}',f'shape={tuple(weights.shape)}')
+        files = {'weight': _float_array(out_dir,'w',seq,weights,notes=notes),
+                 'bias': _float_array(out_dir,'b',seq,bias,notes=notes)}
+        entries.append({'layer':seq, 'tflite_op_index':op_i,'op':kind,'layout':layout,
+                        'weight_shape':list(map(int,weights.shape)), 'input_shape_nhwc':list(in_shape),
+                        'output_shape_nhwc':list(out_shape),'bias_synthesized':bi<0,'files':files})
+    if not entries:
+        raise ValueError('No weighted operations to export')
+    with open(out_dir/'model_weights.h','w',encoding='utf-8') as f:
+        f.write('#pragma once\n')
+        for layer in entries:
+            for role in ('weight','bias'):
+                f.write(f'#include "{layer["files"][role]["header"]}"\n')
+    manifest = {'format':'noodle_fp32_parameters_v1','precision':'fp32',
+                'layer_count':len(entries),'layers':entries,
+                'non_weighted_ops':[{'index':i,'op':op['op_name']}
+                                    for i,op in enumerate(ops) if op['op_name'] not in WEIGHTED_OPS]}
+    with open(out_dir/'model_fp32_manifest.json','w',encoding='utf-8') as f:
+        json.dump(manifest,f,indent=2)
+    return manifest
 
-    write_model_weights_header(out_dir, w_idx, b_idx)
-    print(f"Export complete: w={w_idx}, b={b_idx}, out_dir={out_dir}")
 
-def debug_tflite_ops(tflite_path):
-    """Print readable parameter tensors for supported TFLite ops, including TRANSPOSE_CONV."""
-    itp = tf.lite.Interpreter(model_path=tflite_path)
-    itp.allocate_tensors()
-    td = {int(d["index"]): d for d in itp.get_tensor_details()}
-    ops = itp._get_ops_details()
+def export_interpreter(interpreter, out_dir):
+    """Safe, auto-detected TFLite-only export; works with real or test interpreters."""
+    precision, _, _ = _detect_precision(interpreter)
+    dest = Path(out_dir)
+    if dest.exists() and (not dest.is_dir() or any(dest.iterdir())):
+        raise FileExistsError(f'{dest} already contains files. Choose an empty output directory; '
+                              'the exporter will not overwrite existing FP32 or INT8 parameters.')
+    parent = dest.resolve().parent
+    parent.mkdir(parents=True,exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='.noodle_export_',dir=parent) as scratch:
+        staging = Path(scratch)/'export'
+        staging.mkdir()
+        if precision == 'int8':
+            manifest = _export_tflite_int8_interpreter(interpreter,str(staging))
+            manifest['precision'] = 'int8'
+        else:
+            manifest = _export_tflite_float_interpreter(interpreter,str(staging))
+        manifest['warning'] = ('Parameter extraction only. Nonweighted ops, convolution stride/padding, '
+                               'fused activations and NHWC-to-CHW handling must be reproduced in Noodle firmware.')
+        with open(staging/'model_manifest.json','w',encoding='utf-8') as f:
+            json.dump(manifest,f,indent=2)
+        if precision == 'int8':
+            with open(staging/'model_int8_manifest.json','w',encoding='utf-8') as f:
+                json.dump(manifest,f,indent=2)
+        if dest.exists():
+            dest.rmdir()  # existing *empty* directory
+        shutil.move(str(staging),str(dest))
+    return manifest
 
-    allowed = {"CONV_2D", "DEPTHWISE_CONV_2D", "FULLY_CONNECTED", "TRANSPOSE_CONV"}
 
-    for i, op in enumerate(ops):
-        op_name = op.get("op_name", "")
-        if op_name not in allowed:
-            continue
+def export_tflite(tflite_path, out_dir):
+    """One public entry point for both model precisions."""
+    try:
+        import tensorflow as tf
+    except ImportError as e:
+        raise RuntimeError('Install TensorFlow to load .tflite models (pip install tensorflow).') from e
+    # Prevent XNNPACK/default delegates from replacing original CONV ops with DELEGATE.
+    interpreter = tf.lite.Interpreter(model_path=str(tflite_path),
+                                      experimental_preserve_all_tensors=True)
+    return export_interpreter(interpreter,out_dir)
 
-        ins = list(op.get("inputs", []))
-        outs = list(op.get("outputs", []))
-        print(i, op_name, "inputs:", ins, "outputs:", outs)
 
-        for pos, idx in enumerate(ins):
-            if int(idx) < 0:
-                print("  in", pos, "idx", idx, "<none>")
-                continue
+def main(argv=None):
+    parser = argparse.ArgumentParser(description='Export FP32 or full INT8 TFLite parameters to Noodle .h/.txt/.bin files.')
+    parser.add_argument('tflite_path', help='Input .tflite model')
+    parser.add_argument('out_dir', help='New or empty output directory')
+    args = parser.parse_args(argv)
+    if not args.tflite_path.lower().endswith('.tflite'):
+        parser.error('Input must be a .tflite model.')
+    try:
+        manifest = export_tflite(args.tflite_path,args.out_dir)
+    except (ValueError,RuntimeError,FileExistsError,OSError,KeyError,IndexError) as e:
+        parser.exit(1, f'ERROR: {e}\n')
+    print(f"Noodle {manifest['precision'].upper()} export complete: {manifest['layer_count']} weighted layers -> {args.out_dir}")
+    print('Use model_weights.h for on-chip parameters or raw .bin files for SD-backed parameters.')
+    print('See model_manifest.json for layer shapes, quantization information and nonweighted operations.')
 
-            d = td.get(int(idx), {})
-            try:
-                t = itp.get_tensor(int(idx))
-                t_info = (t.shape, t.dtype)
-            except Exception:
-                t_info = "<not readable activation/intermediate>"
 
-            print("  in", pos,
-                  "idx", int(idx),
-                  "name", d.get("name", ""),
-                  "shape", d.get("shape", None),
-                  "dtype", d.get("dtype", None),
-                  "tensor", t_info)
-
-        for pos, idx in enumerate(outs):
-            d = td.get(int(idx), {})
-            print("  out", pos,
-                  "idx", int(idx),
-                  "name", d.get("name", ""),
-                  "shape", d.get("shape", None),
-                  "dtype", d.get("dtype", None))
-        print()
-
-def write_model_weights_header(out_dir: str, w_count: int, b_count: int):
-    path = os.path.join(out_dir, "model_weights.h")
-    with open(path, "w") as f:
-        f.write("#pragma once\n\n")
-        n = max(w_count, b_count)
-        for i in range(1, n + 1):
-            if i <= w_count:
-                f.write(f'#include "w{i:02d}.h"\n')
-            if i <= b_count:
-                f.write(f'#include "b{i:02d}.h"\n')
-    print(path)
-                
-if __name__ == "__main__":
-    import argparse
-
-    # Set up command line argument parsing
-    parser = argparse.ArgumentParser(
-        description="Convert a float TFLite model into Noodle-friendly .h and .txt files."
-    )
-    
-    # Required arguments
-    parser.add_argument(
-        "tflite_path", 
-        type=str, 
-        help="Path to the input .tflite file"
-    )
-    parser.add_argument(
-        "out_dir", 
-        type=str, 
-        help="Path to the directory where exported files will be saved"
-    )
-    
-    # Optional flags
-    parser.add_argument(
-        "--debug", 
-        action="store_true", 
-        help="Print verbose TFLite operator information before exporting"
-    )
-
-    args = parser.parse_args()
-
-    # Run debug print if requested by the user
-    if args.debug:
-        print(f"=== Debugging operators for {args.tflite_path} ===")
-        debug_tflite_ops(args.tflite_path)
-        print("==================================================\n")
-
-    # Execute the exporter
-    print(f"Exporting {args.tflite_path} to directory '{args.out_dir}'...")
-    exporter_tflite(args.tflite_path, args.out_dir)
-    
+if __name__ == '__main__':
+    main()
