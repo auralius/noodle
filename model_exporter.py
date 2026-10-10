@@ -524,11 +524,22 @@ def export_tflite(tflite_path, out_dir, *, int8_sd_layout="split"):
         import tensorflow as tf
     except ImportError as e:
         raise RuntimeError('Install TensorFlow to load .tflite models (pip install tensorflow).') from e
-    # Prevent XNNPACK/default delegates from replacing original CONV ops with DELEGATE.
-    interpreter = tf.lite.Interpreter(model_path=str(tflite_path),
-                                      experimental_preserve_all_tensors=True)
-    return export_interpreter(interpreter, out_dir, int8_sd_layout=int8_sd_layout)
 
+    # Read original TFLite operators without default delegates.
+    # Prevent XNNPACK from replacing FCN/Conv operators with DELEGATE.
+    resolver = tf.lite.experimental.OpResolverType.BUILTIN_WITHOUT_DEFAULT_DELEGATES
+
+    interpreter = tf.lite.Interpreter(
+        model_path=str(tflite_path),
+        experimental_op_resolver_type=resolver,
+        experimental_preserve_all_tensors=True,
+    )
+
+    return export_interpreter(
+        interpreter,
+        out_dir,
+        int8_sd_layout=int8_sd_layout,
+    )
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Export FP32 or full INT8 TFLite parameters to Noodle .h/.txt/.bin files.')
