@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """TFLite-only Noodle parameter exporter; detects FP32 or full INT8 automatically.
 
-Usage: python model_exporter.py model.tflite output_directory/
+Usage: python model_exporter.py model.tflite output_directory/ [--int8-sd-layout split|packed]
+Default split layout preserves existing FP32/INT8 Noodle examples.
+Packed layout is for fully connected INT8 SD-backed layers only.
 Parameter exporter only: reconstruct the operator graph in Noodle firmware.
 """
 
@@ -60,12 +62,13 @@ def _i8_requantize(real_multiplier):
         raise ValueError(f"Requantization exponent {exponent} exceeds Noodle range")
     return fixed, exponent
 
-def _write_i8_parameter(out_dir, prefix, idx, values, ctype, *, notes=()):
-    """Emit raw LE .bin, decimal .txt, and C/C++ .h using current Noodle layout."""
+def _write_i8_parameter(out_dir, prefix, idx, values, ctype, *, notes=(), emit_bin=True):
+    """Emit optional raw LE .bin plus decimal .txt and C/C++ .h."""
     dtype = {'int8_t': np.dtype('i1'), 'int32_t': np.dtype('<i4')}[ctype]
     a = np.asarray(values, dtype=dtype).reshape(-1)
     name = f"{prefix}{idx:02d}"
-    a.tofile(os.path.join(out_dir, f"{name}.bin"))
+    if emit_bin:
+        a.tofile(os.path.join(out_dir, f"{name}.bin"))
     np.savetxt(os.path.join(out_dir, f"{name}.txt"), a, fmt="%d")
     with open(os.path.join(out_dir, f"{name}.h"), "w", encoding="utf-8") as f:
         f.write('#pragma once\n#include <stdint.h>\n#include "noodle_export_storage.h"\n\n')
@@ -78,7 +81,32 @@ def _write_i8_parameter(out_dir, prefix, idx, values, ctype, *, notes=()):
             f.write(',' if start+12 < len(ints) else '')
             f.write('\n')
         f.write('};\n')
-    return {'bin': f'{name}.bin', 'txt': f'{name}.txt', 'header': f'{name}.h', 'symbol': name, 'elements': int(a.size)}
+    result = {'txt': f'{name}.txt', 'header': f'{name}.h', 'symbol': name, 'elements': int(a.size)}
+    if emit_bin:
+        result['bin'] = f'{name}.bin'
+    return result
+
+
+def _write_i8_packed_metadata(out_dir, idx, bias, multiplier, shift):
+    """Write pNN.bin: for output neuron o, 3 little-endian int32 values.
+
+    Record[o] = bias[o], multiplier[o], shift[o], exactly 12 bytes.
+    This is the proven Uno Case 1 FCN SD layout, with no header/padding.
+    """
+    bias = np.asarray(bias, dtype=np.int32).reshape(-1)
+    multiplier = np.asarray(multiplier, dtype=np.int32).reshape(-1)
+    shift = np.asarray(shift, dtype=np.int32).reshape(-1)
+    if not (len(bias) == len(multiplier) == len(shift)):
+        raise ValueError('Packed INT8 metadata requires one bias, multiplier, and shift per output')
+    records = np.column_stack((bias, multiplier, shift)).astype('<i4', copy=False)
+    filename = f'p{idx:02d}.bin'
+    (Path(out_dir) / filename).write_bytes(records.tobytes(order='C'))
+    return {
+        'bin': filename, 'record_count': int(len(bias)), 'record_bytes': 12,
+        'record_fields': ['bias', 'multiplier', 'shift'],
+        'record_dtype': 'int32_le',
+        'elements': int(records.size),
+    }
 
 def _i8_tensor(interpreter, index, details, *, expected_dtype=None):
     index = int(index)
@@ -98,8 +126,10 @@ def _i8_activation_q(details, index):
         raise ValueError(f"{d.get('name')}: invalid signed int8 zero point")
     return float(s[0]), int(zp[0])
 
-def _export_tflite_int8_interpreter(interpreter, out_dir):
-    """Export already-converted full-INT8 TFLite model. No host requantization of weights."""
+def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="split"):
+    """Export full-INT8 TFLite model, with optional FCN packed SD metadata."""
+    if int8_sd_layout not in ("split", "packed"):
+        raise ValueError("int8_sd_layout must be split or packed")
     import json
     from pathlib import Path
     dest = Path(out_dir)
@@ -115,6 +145,11 @@ def _export_tflite_int8_interpreter(interpreter, out_dir):
     unsupported = []
     for op_i, op in enumerate(ops):
         kind = op.get('op_name', '')
+        if int8_sd_layout == "packed" and kind in supported and kind != "FULLY_CONNECTED":
+            raise ValueError(
+                f"--int8-sd-layout packed currently supports FULLY_CONNECTED only; "
+                f"model contains {kind}. Use split for convolutional models."
+            )
         if kind not in supported:
             unsupported.append({'index': op_i, 'op': kind})
             continue
@@ -199,12 +234,21 @@ def _export_tflite_int8_interpreter(interpreter, out_dir):
             mul[ci], shift[ci] = _i8_requantize(input_scale * float(ws) / output_scale)
         idx = len(entries) + 1
         notes = [f'op={kind}, index={op_i}, layout={layout}', f'shape={tuple(map(int,weights.shape))}']
+        # Keep the b/m/s .h and .txt exports in BOTH modes so existing
+        # PROGMEM/header-based examples continue to work. In packed mode only
+        # the SD .bin files change: wNN.bin + pNN.bin (no b/m/sNN.bin).
+        split_sd = int8_sd_layout == 'split'
         files = {
             'weight': _write_i8_parameter(dest, 'w', idx, weights, 'int8_t', notes=notes),
-            'bias': _write_i8_parameter(dest, 'b', idx, bias, 'int32_t', notes=notes),
-            'multiplier': _write_i8_parameter(dest, 'm', idx, mul, 'int32_t', notes=notes),
-            'shift': _write_i8_parameter(dest, 's', idx, shift, 'int32_t', notes=notes),
+            'bias': _write_i8_parameter(dest, 'b', idx, bias, 'int32_t', notes=notes, emit_bin=split_sd),
+            'multiplier': _write_i8_parameter(dest, 'm', idx, mul, 'int32_t', notes=notes, emit_bin=split_sd),
+            'shift': _write_i8_parameter(dest, 's', idx, shift, 'int32_t', notes=notes, emit_bin=split_sd),
         }
+        if split_sd:
+            sd_files = [files[k]['bin'] for k in ('weight', 'bias', 'multiplier', 'shift')]
+        else:
+            files['packed_metadata'] = _write_i8_packed_metadata(dest, idx, bias, mul, shift)
+            sd_files = [files['weight']['bin'], files['packed_metadata']['bin']]
         layer = {
             'layer': idx, 'tflite_op_index': op_i, 'op': kind, 'layout': layout,
             'weight_shape': list(map(int, weights.shape)),
@@ -215,6 +259,7 @@ def _export_tflite_int8_interpreter(interpreter, out_dir):
             'activation_min': -128, 'activation_max': 127,
             'activation_note': 'Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.',
             'files': files,
+            'sd_files': sd_files,
         }
         if kind == 'DEPTHWISE_CONV_2D':
             layer['depth_multiplier'] = int(mult)
@@ -240,10 +285,14 @@ def _export_tflite_int8_interpreter(interpreter, out_dir):
             for v in ('input_zero_point', 'output_zero_point', 'activation_min', 'activation_max'):
                 f.write(f'static constexpr int32_t {sym}_{v} = {layer[v]};\n')
         f.write('}\n')
-    manifest = {'format': 'noodle_int8_parameters_v1', 'source': 'full_INT8_TFLite',
+    manifest = {'format': ('noodle_int8_parameters_v1' if int8_sd_layout == 'split'
+                           else 'noodle_int8_parameters_v2'),
+                'source': 'full_INT8_TFLite', 'int8_sd_layout': int8_sd_layout,
                 'layer_count': len(entries), 'layers': entries,
                 'non_weighted_ops': unsupported,
-                'notes': ['File .bin = headerless little-endian int8/int32 (NOODLE_FILE_FORMAT_BIN).',
+                'notes': ['SD layout: split has w/b/m/sNN.bin; packed FCN has wNN.bin + pNN.bin.',
+                          'Packed pNN.bin = 12 bytes per output neuron: bias, multiplier, shift (LE int32).',
+                          'File .bin = headerless little-endian int8/int32 (NOODLE_FILE_FORMAT_BIN).',
                           'Input and output activations are TFLite NHWC; Noodle convolution activations are CHW.',
                           'Weights use zero-point=0; per-output-channel multipliers/shifts match Noodle C++ algorithm.',
                           'Layer descriptors (stride, padding, fused activation) must be matched to model manually.',
@@ -434,9 +483,13 @@ def _export_tflite_float_interpreter(interpreter, out_dir):
     return manifest
 
 
-def export_interpreter(interpreter, out_dir):
-    """Safe, auto-detected TFLite-only export; works with real or test interpreters."""
+def export_interpreter(interpreter, out_dir, *, int8_sd_layout="split"):
+    """Safe, auto-detected TFLite export. Default SD layout stays legacy split."""
+    if int8_sd_layout not in ("split", "packed"):
+        raise ValueError("int8_sd_layout must be split or packed")
     precision, _, _ = _detect_precision(interpreter)
+    if precision != "int8" and int8_sd_layout != "split":
+        raise ValueError("--int8-sd-layout packed requires a fully signed INT8 TFLite model")
     dest = Path(out_dir)
     if dest.exists() and (not dest.is_dir() or any(dest.iterdir())):
         raise FileExistsError(f'{dest} already contains files. Choose an empty output directory; '
@@ -447,7 +500,8 @@ def export_interpreter(interpreter, out_dir):
         staging = Path(scratch)/'export'
         staging.mkdir()
         if precision == 'int8':
-            manifest = _export_tflite_int8_interpreter(interpreter,str(staging))
+            manifest = _export_tflite_int8_interpreter(
+                interpreter, str(staging), int8_sd_layout=int8_sd_layout)
             manifest['precision'] = 'int8'
         else:
             manifest = _export_tflite_float_interpreter(interpreter,str(staging))
@@ -464,7 +518,7 @@ def export_interpreter(interpreter, out_dir):
     return manifest
 
 
-def export_tflite(tflite_path, out_dir):
+def export_tflite(tflite_path, out_dir, *, int8_sd_layout="split"):
     """One public entry point for both model precisions."""
     try:
         import tensorflow as tf
@@ -473,21 +527,29 @@ def export_tflite(tflite_path, out_dir):
     # Prevent XNNPACK/default delegates from replacing original CONV ops with DELEGATE.
     interpreter = tf.lite.Interpreter(model_path=str(tflite_path),
                                       experimental_preserve_all_tensors=True)
-    return export_interpreter(interpreter,out_dir)
+    return export_interpreter(interpreter, out_dir, int8_sd_layout=int8_sd_layout)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Export FP32 or full INT8 TFLite parameters to Noodle .h/.txt/.bin files.')
     parser.add_argument('tflite_path', help='Input .tflite model')
     parser.add_argument('out_dir', help='New or empty output directory')
+    parser.add_argument('--int8-sd-layout', choices=('split', 'packed'), default='split',
+                        help='INT8 SD files: split=w/b/m/sNN.bin (default, compatible); '
+                             'packed=wNN.bin+pNN.bin (FULLY_CONNECTED only). '
+                             'FP32 exports are unchanged.')
     args = parser.parse_args(argv)
     if not args.tflite_path.lower().endswith('.tflite'):
         parser.error('Input must be a .tflite model.')
     try:
-        manifest = export_tflite(args.tflite_path,args.out_dir)
+        manifest = export_tflite(args.tflite_path, args.out_dir, int8_sd_layout=args.int8_sd_layout)
     except (ValueError,RuntimeError,FileExistsError,OSError,KeyError,IndexError) as e:
         parser.exit(1, f'ERROR: {e}\n')
     print(f"Noodle {manifest['precision'].upper()} export complete: {manifest['layer_count']} weighted layers -> {args.out_dir}")
+    if manifest['precision'] == 'int8':
+        print(f"INT8 SD binary layout: {manifest['int8_sd_layout']}")
+        for layer in manifest['layers']:
+            print(f"  Layer {layer['layer']:02d} SD files: {', '.join(layer['sd_files'])}")
     print('Use model_weights.h for on-chip parameters or raw .bin files for SD-backed parameters.')
     print('See model_manifest.json for layer shapes, quantization information and nonweighted operations.')
 
