@@ -406,6 +406,11 @@ struct FCNFile {
 #if defined(NOODLE_USE_INT8)
   const char *multiplier_fn = nullptr;
   const char *shift_fn = nullptr;
+  // Optional packed per-neuron binary records: bias, multiplier, shift
+  // (three little-endian int32 values = 12 bytes per output neuron).
+  // When set, this file replaces bias_fn/multiplier_fn/shift_fn for
+  // SRAM-to-SRAM FCNFile inference with SD-backed parameters.
+  const char *metadata_fn = nullptr;
   float input_scale = 1.0f;
   float output_scale = 1.0f;
   int32_t input_zero_point = 0;

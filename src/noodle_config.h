@@ -95,6 +95,22 @@
   #define NOODLE_FCN_BLOCK 128
 #endif
 
+// INT8 FCN parameter preload: weights per read in one bounded block.
+// RAM-input FCNFile/FCNProgmem uses one buffer of this many bytes;
+// SD-input FCNs use two buffers (input + weights), or 2 * this value.
+// This does not change the Float32 NOODLE_FCN_BLOCK setting.
+#ifndef NOODLE_INT8_FCN_BLOCK
+  // Keep the earlier internal file-input tuning macro functional.
+  #ifdef NOODLE_INT8_FILE_BLOCK
+    #define NOODLE_INT8_FCN_BLOCK NOODLE_INT8_FILE_BLOCK
+  #else
+    #define NOODLE_INT8_FCN_BLOCK 128
+  #endif
+#endif
+#if NOODLE_INT8_FCN_BLOCK < 1
+  #error "NOODLE_INT8_FCN_BLOCK must be positive"
+#endif
+
 #ifndef NOODLE_MAX_K
   /**
    * @brief Largest convolution kernel width copied into fixed stack scratch.
@@ -104,6 +120,37 @@
    * the firmware.
    */
   #define NOODLE_MAX_K 5
+#endif
+
+// INT8 2D convolution implementation selector.
+// 0 keeps the original direct output-pixel kernel.
+// 1 enables the tiled spatial-streaming 3x3 kernel; unsupported K values
+//    automatically fall back to the direct implementation.
+#ifndef NOODLE_INT8_CONV_IMPL_DIRECT
+  #define NOODLE_INT8_CONV_IMPL_DIRECT 0
+#endif
+#ifndef NOODLE_INT8_CONV_IMPL_STREAMING
+  #define NOODLE_INT8_CONV_IMPL_STREAMING 1
+#endif
+#ifndef NOODLE_INT8_CONV_IMPL
+  #define NOODLE_INT8_CONV_IMPL NOODLE_INT8_CONV_IMPL_DIRECT
+#endif
+
+// Spatial output tile edge used by the INT8 streaming kernel.  This is not
+// the convolution kernel width; a 3x3 layer still uses a 3x3 kernel.
+#ifndef NOODLE_INT8_OUTPUT_TILE
+  #define NOODLE_INT8_OUTPUT_TILE 8
+#endif
+
+// INT8 pointwise (1x1) convolution implementation selector.
+// 0 keeps the ordinary one-output-channel path.
+// 1 blocks output channels so each input value is reused across a small
+//    group of pointwise filters.
+#ifndef NOODLE_INT8_PW_IMPL
+  #define NOODLE_INT8_PW_IMPL 0
+#endif
+#ifndef NOODLE_INT8_PW_OUTPUT_BLOCK
+  #define NOODLE_INT8_PW_OUTPUT_BLOCK 8
 #endif
 
 // Hidden global NoodleBuffer arena.
@@ -118,3 +165,5 @@
     #define NOODLE_BUFFER_ARENA_INITIAL_BYTES 64u
   #endif
 #endif
+
+

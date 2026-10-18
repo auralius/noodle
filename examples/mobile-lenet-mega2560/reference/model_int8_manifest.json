@@ -1,0 +1,1416 @@
+{
+  "format": "noodle_int8_parameters_v1",
+  "source": "full_INT8_TFLite",
+  "int8_sd_layout": "split",
+  "layer_count": 14,
+  "layers": [
+    {
+      "layer": 1,
+      "tflite_op_index": 0,
+      "op": "CONV_2D",
+      "layout": "OIHW",
+      "weight_shape": [
+        8,
+        1,
+        3,
+        3
+      ],
+      "input_shape_nhwc": [
+        1,
+        16,
+        16,
+        1
+      ],
+      "output_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "input_scale": 0.003921568859368563,
+      "input_zero_point": -128,
+      "output_scale": 0.01728677749633789,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.01844392716884613,
+        0.02486421726644039,
+        0.010327869094908237,
+        0.009372793138027191,
+        0.012571100145578384,
+        0.03223371505737305,
+        0.010627318173646927,
+        0.014727793633937836
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w01.txt",
+          "header": "w01.h",
+          "symbol": "w01",
+          "elements": 72,
+          "bin": "w01.bin"
+        },
+        "bias": {
+          "txt": "b01.txt",
+          "header": "b01.h",
+          "symbol": "b01",
+          "elements": 8,
+          "bin": "b01.bin"
+        },
+        "multiplier": {
+          "txt": "m01.txt",
+          "header": "m01.h",
+          "symbol": "m01",
+          "elements": 8,
+          "bin": "m01.bin"
+        },
+        "shift": {
+          "txt": "s01.txt",
+          "header": "s01.h",
+          "symbol": "s01",
+          "elements": 8,
+          "bin": "s01.bin"
+        }
+      },
+      "sd_files": [
+        "w01.bin",
+        "b01.bin",
+        "m01.bin",
+        "s01.bin"
+      ]
+    },
+    {
+      "layer": 2,
+      "tflite_op_index": 1,
+      "op": "DEPTHWISE_CONV_2D",
+      "layout": "CKK",
+      "weight_shape": [
+        8,
+        3,
+        3
+      ],
+      "input_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "output_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "input_scale": 0.01728677749633789,
+      "input_zero_point": -128,
+      "output_scale": 0.023802468553185463,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.018934857100248337,
+        0.00551697239279747,
+        0.01816749759018421,
+        0.008053671568632126,
+        0.0067115179263055325,
+        0.007566635962575674,
+        0.0058953119441866875,
+        0.012473423033952713
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w02.txt",
+          "header": "w02.h",
+          "symbol": "w02",
+          "elements": 72,
+          "bin": "w02.bin"
+        },
+        "bias": {
+          "txt": "b02.txt",
+          "header": "b02.h",
+          "symbol": "b02",
+          "elements": 8,
+          "bin": "b02.bin"
+        },
+        "multiplier": {
+          "txt": "m02.txt",
+          "header": "m02.h",
+          "symbol": "m02",
+          "elements": 8,
+          "bin": "m02.bin"
+        },
+        "shift": {
+          "txt": "s02.txt",
+          "header": "s02.h",
+          "symbol": "s02",
+          "elements": 8,
+          "bin": "s02.bin"
+        }
+      },
+      "sd_files": [
+        "w02.bin",
+        "b02.bin",
+        "m02.bin",
+        "s02.bin"
+      ],
+      "depth_multiplier": 1
+    },
+    {
+      "layer": 3,
+      "tflite_op_index": 2,
+      "op": "CONV_2D",
+      "layout": "OIHW",
+      "weight_shape": [
+        8,
+        8,
+        1,
+        1
+      ],
+      "input_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "output_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "input_scale": 0.023802468553185463,
+      "input_zero_point": -128,
+      "output_scale": 0.022087031975388527,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.008227056823670864,
+        0.005008686799556017,
+        0.009123089723289013,
+        0.007415211293846369,
+        0.006195936817675829,
+        0.011667003855109215,
+        0.008217745460569859,
+        0.008587954565882683
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w03.txt",
+          "header": "w03.h",
+          "symbol": "w03",
+          "elements": 64,
+          "bin": "w03.bin"
+        },
+        "bias": {
+          "txt": "b03.txt",
+          "header": "b03.h",
+          "symbol": "b03",
+          "elements": 8,
+          "bin": "b03.bin"
+        },
+        "multiplier": {
+          "txt": "m03.txt",
+          "header": "m03.h",
+          "symbol": "m03",
+          "elements": 8,
+          "bin": "m03.bin"
+        },
+        "shift": {
+          "txt": "s03.txt",
+          "header": "s03.h",
+          "symbol": "s03",
+          "elements": 8,
+          "bin": "s03.bin"
+        }
+      },
+      "sd_files": [
+        "w03.bin",
+        "b03.bin",
+        "m03.bin",
+        "s03.bin"
+      ]
+    },
+    {
+      "layer": 4,
+      "tflite_op_index": 3,
+      "op": "DEPTHWISE_CONV_2D",
+      "layout": "CKK",
+      "weight_shape": [
+        8,
+        3,
+        3
+      ],
+      "input_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "output_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "input_scale": 0.022087031975388527,
+      "input_zero_point": -128,
+      "output_scale": 0.023900017142295837,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.009977633133530617,
+        0.006867339368909597,
+        0.006111637223511934,
+        0.006481580901890993,
+        0.007029500789940357,
+        0.010675670579075813,
+        0.010115357115864754,
+        0.005654866807162762
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w04.txt",
+          "header": "w04.h",
+          "symbol": "w04",
+          "elements": 72,
+          "bin": "w04.bin"
+        },
+        "bias": {
+          "txt": "b04.txt",
+          "header": "b04.h",
+          "symbol": "b04",
+          "elements": 8,
+          "bin": "b04.bin"
+        },
+        "multiplier": {
+          "txt": "m04.txt",
+          "header": "m04.h",
+          "symbol": "m04",
+          "elements": 8,
+          "bin": "m04.bin"
+        },
+        "shift": {
+          "txt": "s04.txt",
+          "header": "s04.h",
+          "symbol": "s04",
+          "elements": 8,
+          "bin": "s04.bin"
+        }
+      },
+      "sd_files": [
+        "w04.bin",
+        "b04.bin",
+        "m04.bin",
+        "s04.bin"
+      ],
+      "depth_multiplier": 1
+    },
+    {
+      "layer": 5,
+      "tflite_op_index": 4,
+      "op": "CONV_2D",
+      "layout": "OIHW",
+      "weight_shape": [
+        8,
+        8,
+        1,
+        1
+      ],
+      "input_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "output_shape_nhwc": [
+        1,
+        16,
+        16,
+        8
+      ],
+      "input_scale": 0.023900017142295837,
+      "input_zero_point": -128,
+      "output_scale": 0.022708598524332047,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.0054938942193984985,
+        0.008993321098387241,
+        0.005658151116222143,
+        0.004861991386860609,
+        0.005108524113893509,
+        0.007797641679644585,
+        0.005771442782133818,
+        0.005215670447796583
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w05.txt",
+          "header": "w05.h",
+          "symbol": "w05",
+          "elements": 64,
+          "bin": "w05.bin"
+        },
+        "bias": {
+          "txt": "b05.txt",
+          "header": "b05.h",
+          "symbol": "b05",
+          "elements": 8,
+          "bin": "b05.bin"
+        },
+        "multiplier": {
+          "txt": "m05.txt",
+          "header": "m05.h",
+          "symbol": "m05",
+          "elements": 8,
+          "bin": "m05.bin"
+        },
+        "shift": {
+          "txt": "s05.txt",
+          "header": "s05.h",
+          "symbol": "s05",
+          "elements": 8,
+          "bin": "s05.bin"
+        }
+      },
+      "sd_files": [
+        "w05.bin",
+        "b05.bin",
+        "m05.bin",
+        "s05.bin"
+      ]
+    },
+    {
+      "layer": 6,
+      "tflite_op_index": 6,
+      "op": "DEPTHWISE_CONV_2D",
+      "layout": "CKK",
+      "weight_shape": [
+        8,
+        3,
+        3
+      ],
+      "input_shape_nhwc": [
+        1,
+        18,
+        18,
+        8
+      ],
+      "output_shape_nhwc": [
+        1,
+        8,
+        8,
+        8
+      ],
+      "input_scale": 0.022708598524332047,
+      "input_zero_point": -128,
+      "output_scale": 0.03112945519387722,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.003939975518733263,
+        0.0050414432771503925,
+        0.006556878797709942,
+        0.005370211321860552,
+        0.005081611219793558,
+        0.0053555043414235115,
+        0.0053437380120158195,
+        0.004446151200681925
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w06.txt",
+          "header": "w06.h",
+          "symbol": "w06",
+          "elements": 72,
+          "bin": "w06.bin"
+        },
+        "bias": {
+          "txt": "b06.txt",
+          "header": "b06.h",
+          "symbol": "b06",
+          "elements": 8,
+          "bin": "b06.bin"
+        },
+        "multiplier": {
+          "txt": "m06.txt",
+          "header": "m06.h",
+          "symbol": "m06",
+          "elements": 8,
+          "bin": "m06.bin"
+        },
+        "shift": {
+          "txt": "s06.txt",
+          "header": "s06.h",
+          "symbol": "s06",
+          "elements": 8,
+          "bin": "s06.bin"
+        }
+      },
+      "sd_files": [
+        "w06.bin",
+        "b06.bin",
+        "m06.bin",
+        "s06.bin"
+      ],
+      "depth_multiplier": 1
+    },
+    {
+      "layer": 7,
+      "tflite_op_index": 7,
+      "op": "CONV_2D",
+      "layout": "OIHW",
+      "weight_shape": [
+        16,
+        8,
+        1,
+        1
+      ],
+      "input_shape_nhwc": [
+        1,
+        8,
+        8,
+        8
+      ],
+      "output_shape_nhwc": [
+        1,
+        8,
+        8,
+        16
+      ],
+      "input_scale": 0.03112945519387722,
+      "input_zero_point": -128,
+      "output_scale": 0.03825654461979866,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.008507457561790943,
+        0.007047579158097506,
+        0.004460820462554693,
+        0.006947369780391455,
+        0.007884177379310131,
+        0.006527344696223736,
+        0.005209316033869982,
+        0.0046503860503435135,
+        0.003650830825790763,
+        0.008264739997684956,
+        0.004653944168239832,
+        0.005957750137895346,
+        0.0060692718252539635,
+        0.00470695598050952,
+        0.0037985909730196,
+        0.00645919656381011
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w07.txt",
+          "header": "w07.h",
+          "symbol": "w07",
+          "elements": 128,
+          "bin": "w07.bin"
+        },
+        "bias": {
+          "txt": "b07.txt",
+          "header": "b07.h",
+          "symbol": "b07",
+          "elements": 16,
+          "bin": "b07.bin"
+        },
+        "multiplier": {
+          "txt": "m07.txt",
+          "header": "m07.h",
+          "symbol": "m07",
+          "elements": 16,
+          "bin": "m07.bin"
+        },
+        "shift": {
+          "txt": "s07.txt",
+          "header": "s07.h",
+          "symbol": "s07",
+          "elements": 16,
+          "bin": "s07.bin"
+        }
+      },
+      "sd_files": [
+        "w07.bin",
+        "b07.bin",
+        "m07.bin",
+        "s07.bin"
+      ]
+    },
+    {
+      "layer": 8,
+      "tflite_op_index": 8,
+      "op": "DEPTHWISE_CONV_2D",
+      "layout": "CKK",
+      "weight_shape": [
+        16,
+        3,
+        3
+      ],
+      "input_shape_nhwc": [
+        1,
+        8,
+        8,
+        16
+      ],
+      "output_shape_nhwc": [
+        1,
+        8,
+        8,
+        16
+      ],
+      "input_scale": 0.03825654461979866,
+      "input_zero_point": -128,
+      "output_scale": 0.035527896136045456,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.005848669912666082,
+        0.010145314037799835,
+        0.006361889187246561,
+        0.007022892124950886,
+        0.00359217613004148,
+        0.006413246039301157,
+        0.009027612395584583,
+        0.017850985750555992,
+        0.006826682016253471,
+        0.007292329333722591,
+        0.014028181321918964,
+        0.011685243807733059,
+        0.006054244004189968,
+        0.007814951241016388,
+        0.00736415758728981,
+        0.009290476329624653
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w08.txt",
+          "header": "w08.h",
+          "symbol": "w08",
+          "elements": 144,
+          "bin": "w08.bin"
+        },
+        "bias": {
+          "txt": "b08.txt",
+          "header": "b08.h",
+          "symbol": "b08",
+          "elements": 16,
+          "bin": "b08.bin"
+        },
+        "multiplier": {
+          "txt": "m08.txt",
+          "header": "m08.h",
+          "symbol": "m08",
+          "elements": 16,
+          "bin": "m08.bin"
+        },
+        "shift": {
+          "txt": "s08.txt",
+          "header": "s08.h",
+          "symbol": "s08",
+          "elements": 16,
+          "bin": "s08.bin"
+        }
+      },
+      "sd_files": [
+        "w08.bin",
+        "b08.bin",
+        "m08.bin",
+        "s08.bin"
+      ],
+      "depth_multiplier": 1
+    },
+    {
+      "layer": 9,
+      "tflite_op_index": 9,
+      "op": "CONV_2D",
+      "layout": "OIHW",
+      "weight_shape": [
+        16,
+        16,
+        1,
+        1
+      ],
+      "input_shape_nhwc": [
+        1,
+        8,
+        8,
+        16
+      ],
+      "output_shape_nhwc": [
+        1,
+        8,
+        8,
+        16
+      ],
+      "input_scale": 0.035527896136045456,
+      "input_zero_point": -128,
+      "output_scale": 0.02297094464302063,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.006057385820895433,
+        0.004862924572080374,
+        0.0043371738865971565,
+        0.00669595692306757,
+        0.007491854950785637,
+        0.0035993470810353756,
+        0.0054915291257202625,
+        0.005739237647503614,
+        0.0026123400311917067,
+        0.006420912686735392,
+        0.004197999369353056,
+        0.00539197213947773,
+        0.00534160528331995,
+        0.0030495563987642527,
+        0.004800173453986645,
+        0.0026775498408824205
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w09.txt",
+          "header": "w09.h",
+          "symbol": "w09",
+          "elements": 256,
+          "bin": "w09.bin"
+        },
+        "bias": {
+          "txt": "b09.txt",
+          "header": "b09.h",
+          "symbol": "b09",
+          "elements": 16,
+          "bin": "b09.bin"
+        },
+        "multiplier": {
+          "txt": "m09.txt",
+          "header": "m09.h",
+          "symbol": "m09",
+          "elements": 16,
+          "bin": "m09.bin"
+        },
+        "shift": {
+          "txt": "s09.txt",
+          "header": "s09.h",
+          "symbol": "s09",
+          "elements": 16,
+          "bin": "s09.bin"
+        }
+      },
+      "sd_files": [
+        "w09.bin",
+        "b09.bin",
+        "m09.bin",
+        "s09.bin"
+      ]
+    },
+    {
+      "layer": 10,
+      "tflite_op_index": 11,
+      "op": "DEPTHWISE_CONV_2D",
+      "layout": "CKK",
+      "weight_shape": [
+        16,
+        3,
+        3
+      ],
+      "input_shape_nhwc": [
+        1,
+        10,
+        10,
+        16
+      ],
+      "output_shape_nhwc": [
+        1,
+        4,
+        4,
+        16
+      ],
+      "input_scale": 0.02297094464302063,
+      "input_zero_point": -128,
+      "output_scale": 0.026980169117450714,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.004747363738715649,
+        0.005284625105559826,
+        0.004990302491933107,
+        0.0076963226310908794,
+        0.003707832656800747,
+        0.007541133090853691,
+        0.01075709518045187,
+        0.006127081345766783,
+        0.009432454593479633,
+        0.004867724608629942,
+        0.010589073412120342,
+        0.005105872172862291,
+        0.005526827182620764,
+        0.009382757358253002,
+        0.004404326900839806,
+        0.017277300357818604
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w10.txt",
+          "header": "w10.h",
+          "symbol": "w10",
+          "elements": 144,
+          "bin": "w10.bin"
+        },
+        "bias": {
+          "txt": "b10.txt",
+          "header": "b10.h",
+          "symbol": "b10",
+          "elements": 16,
+          "bin": "b10.bin"
+        },
+        "multiplier": {
+          "txt": "m10.txt",
+          "header": "m10.h",
+          "symbol": "m10",
+          "elements": 16,
+          "bin": "m10.bin"
+        },
+        "shift": {
+          "txt": "s10.txt",
+          "header": "s10.h",
+          "symbol": "s10",
+          "elements": 16,
+          "bin": "s10.bin"
+        }
+      },
+      "sd_files": [
+        "w10.bin",
+        "b10.bin",
+        "m10.bin",
+        "s10.bin"
+      ],
+      "depth_multiplier": 1
+    },
+    {
+      "layer": 11,
+      "tflite_op_index": 12,
+      "op": "CONV_2D",
+      "layout": "OIHW",
+      "weight_shape": [
+        24,
+        16,
+        1,
+        1
+      ],
+      "input_shape_nhwc": [
+        1,
+        4,
+        4,
+        16
+      ],
+      "output_shape_nhwc": [
+        1,
+        4,
+        4,
+        24
+      ],
+      "input_scale": 0.026980169117450714,
+      "input_zero_point": -128,
+      "output_scale": 0.019859693944454193,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.004811554681509733,
+        0.009742772206664085,
+        0.0048524849116802216,
+        0.003143203677609563,
+        0.0067751044407486916,
+        0.005996204912662506,
+        0.003298452589660883,
+        0.005675089079886675,
+        0.004037652630358934,
+        0.005157869774848223,
+        0.007489336654543877,
+        0.004303018096834421,
+        0.0034010515082627535,
+        0.0031671093311160803,
+        0.003937792032957077,
+        0.004514047876000404,
+        0.004754716996103525,
+        0.0026272793766111135,
+        0.004113603383302689,
+        0.003962285816669464,
+        0.004610140807926655,
+        0.004670613911002874,
+        0.004759188275784254,
+        0.008382614701986313
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w11.txt",
+          "header": "w11.h",
+          "symbol": "w11",
+          "elements": 384,
+          "bin": "w11.bin"
+        },
+        "bias": {
+          "txt": "b11.txt",
+          "header": "b11.h",
+          "symbol": "b11",
+          "elements": 24,
+          "bin": "b11.bin"
+        },
+        "multiplier": {
+          "txt": "m11.txt",
+          "header": "m11.h",
+          "symbol": "m11",
+          "elements": 24,
+          "bin": "m11.bin"
+        },
+        "shift": {
+          "txt": "s11.txt",
+          "header": "s11.h",
+          "symbol": "s11",
+          "elements": 24,
+          "bin": "s11.bin"
+        }
+      },
+      "sd_files": [
+        "w11.bin",
+        "b11.bin",
+        "m11.bin",
+        "s11.bin"
+      ]
+    },
+    {
+      "layer": 12,
+      "tflite_op_index": 13,
+      "op": "DEPTHWISE_CONV_2D",
+      "layout": "CKK",
+      "weight_shape": [
+        24,
+        3,
+        3
+      ],
+      "input_shape_nhwc": [
+        1,
+        4,
+        4,
+        24
+      ],
+      "output_shape_nhwc": [
+        1,
+        4,
+        4,
+        24
+      ],
+      "input_scale": 0.019859693944454193,
+      "input_zero_point": -128,
+      "output_scale": 0.020884022116661072,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.009620663709938526,
+        0.00483471155166626,
+        0.01202645804733038,
+        0.011971578001976013,
+        0.009118623100221157,
+        0.007251756731420755,
+        0.012060107663273811,
+        0.008142716251313686,
+        0.006681226193904877,
+        0.006116480100899935,
+        0.006171754561364651,
+        0.010699759237468243,
+        0.011535740457475185,
+        0.008526341989636421,
+        0.006408551707863808,
+        0.008997424505650997,
+        0.009440457448363304,
+        0.015165870077908039,
+        0.009869412519037724,
+        0.00906918104737997,
+        0.010800367221236229,
+        0.022814597934484482,
+        0.010731998831033707,
+        0.008918674662709236
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w12.txt",
+          "header": "w12.h",
+          "symbol": "w12",
+          "elements": 216,
+          "bin": "w12.bin"
+        },
+        "bias": {
+          "txt": "b12.txt",
+          "header": "b12.h",
+          "symbol": "b12",
+          "elements": 24,
+          "bin": "b12.bin"
+        },
+        "multiplier": {
+          "txt": "m12.txt",
+          "header": "m12.h",
+          "symbol": "m12",
+          "elements": 24,
+          "bin": "m12.bin"
+        },
+        "shift": {
+          "txt": "s12.txt",
+          "header": "s12.h",
+          "symbol": "s12",
+          "elements": 24,
+          "bin": "s12.bin"
+        }
+      },
+      "sd_files": [
+        "w12.bin",
+        "b12.bin",
+        "m12.bin",
+        "s12.bin"
+      ],
+      "depth_multiplier": 1
+    },
+    {
+      "layer": 13,
+      "tflite_op_index": 14,
+      "op": "CONV_2D",
+      "layout": "OIHW",
+      "weight_shape": [
+        24,
+        24,
+        1,
+        1
+      ],
+      "input_shape_nhwc": [
+        1,
+        4,
+        4,
+        24
+      ],
+      "output_shape_nhwc": [
+        1,
+        4,
+        4,
+        24
+      ],
+      "input_scale": 0.020884022116661072,
+      "input_zero_point": -128,
+      "output_scale": 0.05943779647350311,
+      "output_zero_point": -128,
+      "weight_scales": [
+        0.01742744632065296,
+        0.012236768379807472,
+        0.01945117861032486,
+        0.021942418068647385,
+        0.021379297599196434,
+        0.01714404486119747,
+        0.017472371459007263,
+        0.013353724963963032,
+        0.0160006545484066,
+        0.014206085354089737,
+        0.016026917845010757,
+        0.016808373853564262,
+        0.018199754878878593,
+        0.014800282195210457,
+        0.01743665710091591,
+        0.016242526471614838,
+        0.019551508128643036,
+        0.017229242250323296,
+        0.011716887354850769,
+        0.013150752522051334,
+        0.015201072208583355,
+        0.015131072141230106,
+        0.017562946304678917,
+        0.01391745638102293
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w13.txt",
+          "header": "w13.h",
+          "symbol": "w13",
+          "elements": 576,
+          "bin": "w13.bin"
+        },
+        "bias": {
+          "txt": "b13.txt",
+          "header": "b13.h",
+          "symbol": "b13",
+          "elements": 24,
+          "bin": "b13.bin"
+        },
+        "multiplier": {
+          "txt": "m13.txt",
+          "header": "m13.h",
+          "symbol": "m13",
+          "elements": 24,
+          "bin": "m13.bin"
+        },
+        "shift": {
+          "txt": "s13.txt",
+          "header": "s13.h",
+          "symbol": "s13",
+          "elements": 24,
+          "bin": "s13.bin"
+        }
+      },
+      "sd_files": [
+        "w13.bin",
+        "b13.bin",
+        "m13.bin",
+        "s13.bin"
+      ]
+    },
+    {
+      "layer": 14,
+      "tflite_op_index": 16,
+      "op": "FULLY_CONNECTED",
+      "layout": "OI",
+      "weight_shape": [
+        10,
+        24
+      ],
+      "input_shape_nhwc": [
+        1,
+        24
+      ],
+      "output_shape_nhwc": [
+        1,
+        10
+      ],
+      "input_scale": 0.021777009591460228,
+      "input_zero_point": -128,
+      "output_scale": 0.1326829493045807,
+      "output_zero_point": -2,
+      "weight_scales": [
+        0.011286836117506027,
+        0.009979638271033764,
+        0.008036010898649693,
+        0.009756123647093773,
+        0.009427781216800213,
+        0.010501259006559849,
+        0.011610457673668861,
+        0.009769290685653687,
+        0.009673506021499634,
+        0.008594225160777569
+      ],
+      "weight_zero_points": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "activation_min": -128,
+      "activation_max": 127,
+      "activation_note": "Default unclamped range; set fused RELU/RELU6 manually if present in TFLite op options.",
+      "files": {
+        "weight": {
+          "txt": "w14.txt",
+          "header": "w14.h",
+          "symbol": "w14",
+          "elements": 240,
+          "bin": "w14.bin"
+        },
+        "bias": {
+          "txt": "b14.txt",
+          "header": "b14.h",
+          "symbol": "b14",
+          "elements": 10,
+          "bin": "b14.bin"
+        },
+        "multiplier": {
+          "txt": "m14.txt",
+          "header": "m14.h",
+          "symbol": "m14",
+          "elements": 10,
+          "bin": "m14.bin"
+        },
+        "shift": {
+          "txt": "s14.txt",
+          "header": "s14.h",
+          "symbol": "s14",
+          "elements": 10,
+          "bin": "s14.bin"
+        }
+      },
+      "sd_files": [
+        "w14.bin",
+        "b14.bin",
+        "m14.bin",
+        "s14.bin"
+      ]
+    }
+  ],
+  "progmem_header": "model_progmem.h",
+  "progmem_manifest": "model_progmem_manifest.json",
+  "non_weighted_ops": [
+    {
+      "index": 5,
+      "op": "PAD"
+    },
+    {
+      "index": 10,
+      "op": "PAD"
+    },
+    {
+      "index": 15,
+      "op": "MEAN"
+    },
+    {
+      "index": 17,
+      "op": "SOFTMAX"
+    }
+  ],
+  "notes": [
+    "SD layout: split has w/b/m/sNN.bin; packed FCN has wNN.bin + pNN.bin.",
+    "Packed pNN.bin = 12 bytes per output neuron: bias, multiplier, shift (LE int32).",
+    "File .bin = headerless little-endian int8/int32 (NOODLE_FILE_FORMAT_BIN).",
+    "Input and output activations are TFLite NHWC; Noodle convolution activations are CHW.",
+    "Weights use zero-point=0; per-output-channel multipliers/shifts match Noodle C++ algorithm.",
+    "Layer descriptors (stride, padding, fused activation) must be matched to model manually.",
+    "Unsupported or unexported non-weighted operations are listed but NOT converted.",
+    "Do not mix FP32 and INT8 exports in one directory."
+  ],
+  "precision": "int8",
+  "warning": "Parameter extraction only. Nonweighted ops, convolution stride/padding, fused activations and NHWC-to-CHW handling must be reproduced in Noodle firmware."
+}

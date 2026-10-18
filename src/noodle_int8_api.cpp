@@ -95,15 +95,10 @@ template <typename Layer>
 static uint16_t conv2d_with_pool(NoodleTensor *input, NoodleTensor *output,
                                  const Layer &layer, const Pool &pool) {
   Layer configured = with_activation_bounds(layer);
-  if (identity_pool(pool)) return noodle_i8_conv2d(input, configured, output);
-
-  NoodleTensor tmp;
-  noodle_tensor_init(&tmp);
-  const uint16_t v = noodle_i8_conv2d(input, configured, &tmp);
-  if (!v) { noodle_tensor_free(&tmp); return 0; }
-  const uint16_t out = noodle_i8_pool2d(&tmp, make_pool(pool), output);
-  noodle_tensor_free(&tmp);
-  return out;
+  if (identity_pool(pool) && input && output &&
+      !input->file_path && !output->file_path)
+    return noodle_i8_conv2d(input, configured, output);
+  return noodle_i8_conv2d_fused(input, configured, make_pool(pool), output);
 }
 
 uint16_t noodle_conv2d(NoodleTensor *input, NoodleTensor *output,
@@ -118,15 +113,7 @@ uint16_t noodle_conv2d(NoodleTensor *input, NoodleTensor *output,
 
 uint16_t noodle_conv2d(NoodleTensor *input, NoodleTensor *output,
                        const ConvProgmem &conv, const Pool &pool) {
-  ConvProgmem configured = with_activation_bounds(conv);
-  if (identity_pool(pool)) return noodle_i8_conv2d(input, configured, output);
-  NoodleTensor tmp;
-  noodle_tensor_init(&tmp);
-  const uint16_t v = noodle_i8_conv2d(input, configured, &tmp);
-  if (!v) { noodle_tensor_free(&tmp); return 0; }
-  const uint16_t out = noodle_i8_pool2d(&tmp, make_pool(pool), output);
-  noodle_tensor_free(&tmp);
-  return out;
+  return conv2d_with_pool(input, output, conv, pool);
 }
 
 uint16_t noodle_conv_transpose2d(NoodleTensor *input, NoodleTensor *output,
@@ -158,14 +145,10 @@ template <typename Layer>
 static uint16_t dwconv_with_pool(NoodleTensor *input, NoodleTensor *output,
                                  const Layer &layer, const Pool &pool) {
   Layer configured = with_activation_bounds(layer);
-  if (identity_pool(pool)) return noodle_i8_dwconv2d(input, configured, output);
-  NoodleTensor tmp;
-  noodle_tensor_init(&tmp);
-  const uint16_t v = noodle_i8_dwconv2d(input, configured, &tmp);
-  if (!v) { noodle_tensor_free(&tmp); return 0; }
-  const uint16_t out = noodle_i8_pool2d(&tmp, make_pool(pool), output);
-  noodle_tensor_free(&tmp);
-  return out;
+  if (identity_pool(pool) && input && output &&
+      !input->file_path && !output->file_path)
+    return noodle_i8_dwconv2d(input, configured, output);
+  return noodle_i8_dwconv2d_fused(input, configured, make_pool(pool), output);
 }
 
 uint16_t noodle_dwconv2d(NoodleTensor *input, NoodleTensor *output,
@@ -180,15 +163,7 @@ uint16_t noodle_dwconv2d(NoodleTensor *input, NoodleTensor *output,
 
 uint16_t noodle_dwconv2d(NoodleTensor *input, NoodleTensor *output,
                          const ConvProgmem &conv, const Pool &pool) {
-  ConvProgmem configured = with_activation_bounds(conv);
-  if (identity_pool(pool)) return noodle_i8_dwconv2d(input, configured, output);
-  NoodleTensor tmp;
-  noodle_tensor_init(&tmp);
-  const uint16_t v = noodle_i8_dwconv2d(input, configured, &tmp);
-  if (!v) { noodle_tensor_free(&tmp); return 0; }
-  const uint16_t out = noodle_i8_pool2d(&tmp, make_pool(pool), output);
-  noodle_tensor_free(&tmp);
-  return out;
+  return dwconv_with_pool(input, output, conv, pool);
 }
 
 uint16_t noodle_pool2d(NoodleTensor *input, NoodleTensor *output,
@@ -227,10 +202,31 @@ uint16_t noodle_fcn(NoodleTensor *input, NoodleTensor *output,
   return noodle_i8_fcn(input, configured, output);
 }
 
-uint16_t noodle_fcn(NoodleTensor *input, NoodleTensor *output,
-                    const FCNFile &fcn) {
+#if defined(__AVR__)
+// AVR: avoid copying FCNFile for already-valid activation bounds. Keep
+// the less common clamp-repair path in a separate call frame to protect
+// the SRAM-to-SRAM SD-backed kernel's peak stack usage.
+__attribute__((noinline))
+static uint16_t noodle_fcn_i8_file_clamped(
+    NoodleTensor *input, NoodleTensor *output, const FCNFile &fcn) {
   FCNFile configured = with_activation_bounds(fcn);
   return noodle_i8_fcn(input, configured, output);
+}
+#endif
+
+uint16_t noodle_fcn(NoodleTensor *input, NoodleTensor *output,
+                    const FCNFile &fcn) {
+#if defined(__AVR__)
+  if (fcn.act != ACT_RELU ||
+      fcn.activation_min >= noodle_activation_min_relu(
+          fcn.output_scale, fcn.output_zero_point)) {
+    return noodle_i8_fcn(input, fcn, output);
+  }
+  return noodle_fcn_i8_file_clamped(input, output, fcn);
+#else
+  FCNFile configured = with_activation_bounds(fcn);
+  return noodle_i8_fcn(input, configured, output);
+#endif
 }
 
 uint16_t noodle_fcn(NoodleTensor *input, NoodleTensor *output,

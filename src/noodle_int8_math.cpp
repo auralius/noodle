@@ -9,6 +9,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+static double noodle_round_even(double x)
+{
+    const double base = floor(x);
+    const double frac = x - base;
+
+    if (frac < 0.5) return base;
+    if (frac > 0.5) return base + 1.0;
+
+    return (fmod(base, 2.0) == 0.0)
+        ? base : base + 1.0;
+}
+
 static int32_t q_clamp_i32(int64_t x) {
   if (x > INT32_MAX) return INT32_MAX;
   if (x < INT32_MIN) return INT32_MIN;
@@ -65,7 +77,8 @@ bool noodle_quantize_multiplier(double real_multiplier,
   }
   int exp = 0;
   const double q = frexp(real_multiplier, &exp);
-  int64_t q_fixed = static_cast<int64_t>(llround(q * (INT64_C(1) << 31)));
+  //int64_t q_fixed = static_cast<int64_t>(llround(q * (INT64_C(1) << 31)));
+  int64_t q_fixed = static_cast<int64_t>(floor(q * 2147483648.0 + 0.5));
   if (q_fixed == (INT64_C(1) << 31)) {
     q_fixed >>= 1;
     ++exp;
@@ -83,7 +96,8 @@ bool noodle_quantize_multiplier(double real_multiplier,
 
 int32_t noodle_quantize_float(float value, float scale, int32_t zero_point) {
   if (!(scale > 0.0f)) return zero_point;
-  const double q = nearbyint(static_cast<double>(value) / scale) + zero_point;
+  //const double q = nearbyint(static_cast<double>(value) / scale) + zero_point;
+  const double q = noodle_round_even(static_cast<double>(value) / scale) + zero_point;
   if (q > 127.0) return 127;
   if (q < -128.0) return -128;
   return static_cast<int32_t>(q);
@@ -144,6 +158,7 @@ void noodle_tensor_init(NoodleTensor *t) {
   t->rank = NOODLE_TENSOR_EMPTY;
   t->scale = 1.0f;
   t->zero_point = 0;
+  t->file_path = nullptr;
 }
 
 void noodle_tensor_free(NoodleTensor *t) {
@@ -153,11 +168,82 @@ void noodle_tensor_free(NoodleTensor *t) {
   t->rank = NOODLE_TENSOR_EMPTY;
   t->scale = 1.0f;
   t->zero_point = 0;
+  t->file_path = nullptr;
+}
+
+// File-backed tensors are explicitly bound; no implicit SD spill is performed.
+// The caller owns the file lifecycle and must avoid aliasing input/output paths.
+bool noodle_i8_tensor_bind_file(NoodleTensor *t, const char *path) {
+#if defined(NOODLE_USE_NONE)
+  (void)t; (void)path;
+  return false;
+#else
+  if (!t || !path || !*path) return false;
+  noodle_buffer_free(&t->buffer);
+  t->file_path = path;
+  t->C = t->W = 0;
+  t->rank = NOODLE_TENSOR_EMPTY;
+  return true;
+#endif
+}
+
+void noodle_i8_tensor_unbind_file(NoodleTensor *t) {
+  if (!t) return;
+  t->file_path = nullptr;
+  t->C = t->W = 0;
+  t->rank = NOODLE_TENSOR_EMPTY;
+}
+
+bool noodle_i8_tensor_file_1d(NoodleTensor *t, uint16_t C, uint16_t W,
+                              float scale, int32_t zp) {
+  if (!t || !t->file_path || !C || !W || !(scale > 0.0f) ||
+      zp < -128 || zp > 127) return false;
+  t->C = C;
+  t->W = W;
+  t->rank = NOODLE_TENSOR_1D;
+  t->scale = scale;
+  t->zero_point = zp;
+  return true;
+}
+
+bool noodle_i8_tensor_file_2d(NoodleTensor *t, uint16_t C, uint16_t W,
+                              float scale, int32_t zp) {
+  if (!t || !t->file_path || !C || !W || !(scale > 0.0f) ||
+      zp < -128 || zp > 127) return false;
+  t->C = C;
+  t->W = W;
+  t->rank = NOODLE_TENSOR_2D;
+  t->scale = scale;
+  t->zero_point = zp;
+  return true;
+}
+
+bool noodle_i8_tensor_write_file(const NoodleTensor *t, const int8_t *src, size_t n) {
+  if (!t || !t->file_path || !src || !n || n != noodle_tensor_size(t)) return false;
+  // NOODLE_CASE2_SD_IO_EXPERIMENT_PATCH_V1: SdFat open_write already uses O_TRUNC.
+  // Preserve explicit remove on all other backends.
+#if !defined(NOODLE_USE_SDFAT) || !defined(NOODLE_INT8_SD_NO_PREDELETE) || !NOODLE_INT8_SD_NO_PREDELETE
+  (void)noodle_fs_remove(t->file_path);
+#endif
+  NDL_File f = noodle_fs_open_write(t->file_path);
+  if (!f) return false;
+  const bool ok = noodle_write_raw(f, src, n) == n;
+  f.close();
+  return ok;
+}
+
+bool noodle_i8_tensor_read_file(const NoodleTensor *t, int8_t *dst, size_t n) {
+  if (!t || !t->file_path || !dst || !n || n != noodle_tensor_size(t)) return false;
+  NDL_File f = noodle_fs_open_read(t->file_path);
+  if (!f || f.size() != n) { if (f) f.close(); return false; }
+  const bool ok = noodle_read_raw(f, dst, n) == n;
+  f.close();
+  return ok;
 }
 
 static int8_t *q_tensor_require(NoodleTensor *t, uint16_t C, uint16_t W,
                                 uint8_t rank, float scale, int32_t zp) {
-  if (!t || C == 0 || W == 0 || !(scale > 0.0f) || zp < -128 || zp > 127) {
+  if (!t || t->file_path || C == 0 || W == 0 || !(scale > 0.0f) || zp < -128 || zp > 127) {
     return nullptr;
   }
   size_t n = static_cast<size_t>(C) * W;
@@ -211,6 +297,8 @@ static bool q_same_params(const NoodleTensor *a, const NoodleTensor *b) {
 
 uint16_t noodle_i8_pool2d(NoodleTensor *input, const NoodleI8Pool &pool,
                         NoodleTensor *output) {
+  if ((input && input->file_path) || (output && output->file_path))
+    return noodle_i8_pool2d_file(input, pool, output);
   if (!input || !output || input == output || !input->buffer.data ||
       input->rank != NOODLE_TENSOR_2D || pool.M == 0 || pool.T == 0 ||
       input->W < pool.M) return 0;
@@ -322,6 +410,8 @@ uint16_t noodle_i8_gmp(NoodleTensor *input, NoodleTensor *output) {
 }
 
 uint16_t noodle_i8_flat(NoodleTensor *input, NoodleTensor *output) {
+  if ((input && input->file_path) || (output && output->file_path))
+    return noodle_i8_flat_file(input, output);
   if (!input || !output || input == output || !input->buffer.data ||
       input->rank != NOODLE_TENSOR_2D) return 0;
   const uint32_t plane = static_cast<uint32_t>(input->W) * input->W;

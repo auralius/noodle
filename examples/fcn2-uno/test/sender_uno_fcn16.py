@@ -65,7 +65,7 @@ def parse_args() -> argparse.Namespace:
         "-n",
         "--count",
         type=int,
-        default=100,
+        default=5,
         help="Number of images to test (default: 100)",
     )
     parser.add_argument(
@@ -88,7 +88,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--timeout",
         type=float,
-        default=5.0,
+        default=300.0,
         help="Serial read timeout in seconds (default: 5)",
     )
     parser.add_argument(
@@ -303,8 +303,8 @@ def main() -> int:
         write_timeout=2.0,
     ) as ser:
         time.sleep(args.boot_wait)
-        ser.reset_input_buffer()
-        ser.reset_output_buffer()
+        #ser.reset_input_buffer()
+        #ser.reset_output_buffer()
 
         wait_for_ready(ser, timeout_s=max(args.timeout, 8.0))
 

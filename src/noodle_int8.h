@@ -73,6 +73,19 @@ uint16_t noodle_i8_conv2d(NoodleTensor *input, const ConvMem &layer,
                           NoodleTensor *output);
 uint16_t noodle_i8_conv2d(NoodleTensor *input, const ConvProgmem &layer,
                           NoodleTensor *output);
+// Fused convolution-pooling path, supports SRAM and file-backed activations.
+uint16_t noodle_i8_conv2d_fused(NoodleTensor *input, const Conv &layer,
+                                 const NoodleI8Pool &pool, NoodleTensor *output);
+uint16_t noodle_i8_conv2d_fused(NoodleTensor *input, const ConvMem &layer,
+                                 const NoodleI8Pool &pool, NoodleTensor *output);
+uint16_t noodle_i8_conv2d_fused(NoodleTensor *input, const ConvProgmem &layer,
+                                 const NoodleI8Pool &pool, NoodleTensor *output);
+uint16_t noodle_i8_dwconv2d_fused(NoodleTensor *input, const Conv &layer,
+                                   const NoodleI8Pool &pool, NoodleTensor *output);
+uint16_t noodle_i8_dwconv2d_fused(NoodleTensor *input, const ConvMem &layer,
+                                   const NoodleI8Pool &pool, NoodleTensor *output);
+uint16_t noodle_i8_dwconv2d_fused(NoodleTensor *input, const ConvProgmem &layer,
+                                   const NoodleI8Pool &pool, NoodleTensor *output);
 uint16_t noodle_i8_conv1d(NoodleTensor *input, const Conv &layer,
                           NoodleTensor *output);
 uint16_t noodle_i8_conv1d(NoodleTensor *input, const ConvMem &layer,
@@ -93,6 +106,9 @@ uint16_t noodle_i8_fcn(NoodleTensor *input, const FCNMem &layer,
                        NoodleTensor *output);
 uint16_t noodle_i8_fcn(NoodleTensor *input, const FCNProgmem &layer,
                        NoodleTensor *output);
+uint16_t noodle_i8_pool2d_file(NoodleTensor *input, const NoodleI8Pool &pool,
+                               NoodleTensor *output);
+uint16_t noodle_i8_flat_file(NoodleTensor *input, NoodleTensor *output);
 uint16_t noodle_i8_pool2d(NoodleTensor *input, const NoodleI8Pool &pool,
                           NoodleTensor *output);
 uint16_t noodle_i8_pool1d(NoodleTensor *input, const NoodleI8Pool &pool,

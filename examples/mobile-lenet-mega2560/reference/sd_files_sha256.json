@@ -1,0 +1,287 @@
+{
+  "source_export": "run_20261012_165938",
+  "count": 56,
+  "bytes": 4832,
+  "files": [
+    {
+      "filename": "B01.BIN",
+      "size_bytes": 32,
+      "sha256": "dbb33d0667b5a02b5154b4284207593ad877fa01919159b0f6ccea722c398fed"
+    },
+    {
+      "filename": "B02.BIN",
+      "size_bytes": 32,
+      "sha256": "bbe882a2862cb9fd3fa1dcc4306c4b1c72084d2c8081f85f37a39eb32ce1526f"
+    },
+    {
+      "filename": "B03.BIN",
+      "size_bytes": 32,
+      "sha256": "3b144d45a914ca6910aa926b70a0b7559d4be934dfe949823c224bfadb939ea5"
+    },
+    {
+      "filename": "B04.BIN",
+      "size_bytes": 32,
+      "sha256": "c77f0ea6f738b59822578a7180c62aaed2e383a3fc0342a5b500b361f0344beb"
+    },
+    {
+      "filename": "B05.BIN",
+      "size_bytes": 32,
+      "sha256": "605affd91c98aaad784ac6ecf3f9d8b5c428d43390fdb4ac46d9a835fa13537a"
+    },
+    {
+      "filename": "B06.BIN",
+      "size_bytes": 32,
+      "sha256": "5ce261297f160fed1595bead3f579d916d1019d82aeb0365adc27a7aad68e99e"
+    },
+    {
+      "filename": "B07.BIN",
+      "size_bytes": 64,
+      "sha256": "9f4e370dbe90b2156dad1025be07f394c8df71b53d08af790f2e4bd910bbb9fb"
+    },
+    {
+      "filename": "B08.BIN",
+      "size_bytes": 64,
+      "sha256": "42fb4ce22ca3537dca3d2af98b60eb9487e579502cf153adfc84015719f602c1"
+    },
+    {
+      "filename": "B09.BIN",
+      "size_bytes": 64,
+      "sha256": "dd699df17c8e35b4c652ace6f4342944ebd2a8792372c9468921a709dc3eaf6a"
+    },
+    {
+      "filename": "B10.BIN",
+      "size_bytes": 64,
+      "sha256": "8d1cbde64271a5be10db4a27eb39e24c2f81553fff7a53e7df7c779bb406b0d6"
+    },
+    {
+      "filename": "B11.BIN",
+      "size_bytes": 96,
+      "sha256": "14b2ea429270fe052316b25815e77569d6aad74e39cddaa98fbdc557a52eeb9d"
+    },
+    {
+      "filename": "B12.BIN",
+      "size_bytes": 96,
+      "sha256": "e993eb7835a141e952a7d13c8b96799a65713d868aa33eedf58d6574a2f4ef82"
+    },
+    {
+      "filename": "B13.BIN",
+      "size_bytes": 96,
+      "sha256": "67bf09171bedd57f3fae3b9abf1ebc04bb05d9898b65f1d3b786aae9fe461a6e"
+    },
+    {
+      "filename": "B14.BIN",
+      "size_bytes": 40,
+      "sha256": "ae1c231dc525118c2008952948cdeeaf0c53b255f9e0cba7737be98fa66d49dd"
+    },
+    {
+      "filename": "M01.BIN",
+      "size_bytes": 32,
+      "sha256": "fa8480df82ec43f8250802e19cfaf90b6b5f12b161fce53c697e99b732818dca"
+    },
+    {
+      "filename": "M02.BIN",
+      "size_bytes": 32,
+      "sha256": "5e047016170dd1eda8149c6a9833f72354936bbbcbfe6ae9ea6bbf4a9c5f8e9f"
+    },
+    {
+      "filename": "M03.BIN",
+      "size_bytes": 32,
+      "sha256": "1e1846f76946ef98398893e4849eb55597b1e45a9bd02852df8d79bba1292253"
+    },
+    {
+      "filename": "M04.BIN",
+      "size_bytes": 32,
+      "sha256": "d7bfe8373dcc193962c5ce7edea75f0d1e28bb31a410a366ba39b9531bc55222"
+    },
+    {
+      "filename": "M05.BIN",
+      "size_bytes": 32,
+      "sha256": "ceff09083d6901b44629ca524541e2fe3a12228504c790b9af42e6ee0ee2b0a5"
+    },
+    {
+      "filename": "M06.BIN",
+      "size_bytes": 32,
+      "sha256": "e756d96d085a559201baff87199781edf5d71ab75af8cc6c2a36ee1b2b8d17ad"
+    },
+    {
+      "filename": "M07.BIN",
+      "size_bytes": 64,
+      "sha256": "3b4ed503280f9de4676fb363da549bb34127a692af6cde99d71c5b843758850e"
+    },
+    {
+      "filename": "M08.BIN",
+      "size_bytes": 64,
+      "sha256": "6b5d11d0bd65faf7bb27541808effe270bab52db98afc45fd177ad5762a5c703"
+    },
+    {
+      "filename": "M09.BIN",
+      "size_bytes": 64,
+      "sha256": "a5734de1ea65869c260c9ec768cc306eaf49969ddde6e24ebd9af071632f7890"
+    },
+    {
+      "filename": "M10.BIN",
+      "size_bytes": 64,
+      "sha256": "6830abd2b1c166f9756c3daa98158015609aa108909dc87a8f24d4ea88139391"
+    },
+    {
+      "filename": "M11.BIN",
+      "size_bytes": 96,
+      "sha256": "570e8756f141d30b09d2eb8601803fa908f0000cc5c8e74f394c45f77849e4a6"
+    },
+    {
+      "filename": "M12.BIN",
+      "size_bytes": 96,
+      "sha256": "d7cf489c8f3f32759acbdd8a36876428d539aca87c0366a0902357451a7a3916"
+    },
+    {
+      "filename": "M13.BIN",
+      "size_bytes": 96,
+      "sha256": "6cb9ef9cb8507de39e4041519e01a0ac79fbcde561710cc585a779d7a0fc8e95"
+    },
+    {
+      "filename": "M14.BIN",
+      "size_bytes": 40,
+      "sha256": "d4c7ef9996a68632c8bdccfb592811ffe7f911096d171e32e27d403258d9701f"
+    },
+    {
+      "filename": "S01.BIN",
+      "size_bytes": 32,
+      "sha256": "23477e7253aaa226fdbdc59faf5ee419d02c0d3e123f600773407827914df5f5"
+    },
+    {
+      "filename": "S02.BIN",
+      "size_bytes": 32,
+      "sha256": "571e302b199e3499bd65e6a6a5845182eb42c79b825378b68edce0f8c900d88a"
+    },
+    {
+      "filename": "S03.BIN",
+      "size_bytes": 32,
+      "sha256": "53bb84b48fd2cf999fa92980dcabf73d01c449f39ac42d67853d9d6d0f251da6"
+    },
+    {
+      "filename": "S04.BIN",
+      "size_bytes": 32,
+      "sha256": "5c39f4e67cf4e440559001dc3fc737860b6ee13662a8bfd3954ab1521d0dbad3"
+    },
+    {
+      "filename": "S05.BIN",
+      "size_bytes": 32,
+      "sha256": "fef619e0d9b813e4a6a4d8251ce0f47bc5395e0e0183e0702b6b80a583f1af76"
+    },
+    {
+      "filename": "S06.BIN",
+      "size_bytes": 32,
+      "sha256": "9cb072d417f33e6976d102ebaa07530ef5e184b0216117a5cde214ee40bf8e03"
+    },
+    {
+      "filename": "S07.BIN",
+      "size_bytes": 64,
+      "sha256": "aba7e7b30d8d5d980eecbce02f8cd7f1384f23f6c85a73304d171f33e6be08d4"
+    },
+    {
+      "filename": "S08.BIN",
+      "size_bytes": 64,
+      "sha256": "d8f3f4986997f941623e1b5a8ff404bb8d0c4be7968eb2d2c6f7e7d5e4d0acb0"
+    },
+    {
+      "filename": "S09.BIN",
+      "size_bytes": 64,
+      "sha256": "2347096ddcf9c68260e32bd79deb0162a9e6bf5c9fc334dba4e1a48dab9c4019"
+    },
+    {
+      "filename": "S10.BIN",
+      "size_bytes": 64,
+      "sha256": "3a20f3c4e4894f46b87ada067885b5c30e00599748a24a05c1be2782528d7eb3"
+    },
+    {
+      "filename": "S11.BIN",
+      "size_bytes": 96,
+      "sha256": "ce0f1c2e75d282516d3dcab4b551a385e0b5d3f5017adce786024cd81117e829"
+    },
+    {
+      "filename": "S12.BIN",
+      "size_bytes": 96,
+      "sha256": "327472969054aac10804e441c35f551f146e571ee7719891918cb6ffa4e50e55"
+    },
+    {
+      "filename": "S13.BIN",
+      "size_bytes": 96,
+      "sha256": "3e168ef87c553b60a404a51ed3108d79ffc33d90f3af372d2cf111715f342f68"
+    },
+    {
+      "filename": "S14.BIN",
+      "size_bytes": 40,
+      "sha256": "25fdf9a98b782fb773d50e7515be7ce90fb5ab3d752f5506631c0542b43489db"
+    },
+    {
+      "filename": "W01.BIN",
+      "size_bytes": 72,
+      "sha256": "fd373fae2ebb25ff5fea13f0038df9a1be30281b7a0ffe278088eebb90ca8742"
+    },
+    {
+      "filename": "W02.BIN",
+      "size_bytes": 72,
+      "sha256": "05c196f5769b164fced9c19d4307042e24ec4ace1cb23d0e8fcd0d3e09770386"
+    },
+    {
+      "filename": "W03.BIN",
+      "size_bytes": 64,
+      "sha256": "fb8d1d7b606fcd99fd41a0d4c97abe3343fe8d8c3dff6e8beb84ab82419ee34d"
+    },
+    {
+      "filename": "W04.BIN",
+      "size_bytes": 72,
+      "sha256": "cea90d6fcf02df82d4945c07a36b364c065786f3db1abfca3b5b0416ed9e12bb"
+    },
+    {
+      "filename": "W05.BIN",
+      "size_bytes": 64,
+      "sha256": "d5e6bbf1fd0891137718f8c7fe1a1452b3331b18e8ba678d7cc677bdff73a7e5"
+    },
+    {
+      "filename": "W06.BIN",
+      "size_bytes": 72,
+      "sha256": "bb8e59e040cfec91ff5b2bc434a3035c3851046c9063d34fac3c07c634a19dd3"
+    },
+    {
+      "filename": "W07.BIN",
+      "size_bytes": 128,
+      "sha256": "461e18bba2dfaa041f54b71af5d2b59dc8a59b69ccd9e494b119fcdacd5260db"
+    },
+    {
+      "filename": "W08.BIN",
+      "size_bytes": 144,
+      "sha256": "aeaa426195720634c1916faed9d764514e1452f29d400820319c6e765c35a971"
+    },
+    {
+      "filename": "W09.BIN",
+      "size_bytes": 256,
+      "sha256": "c3d207762628c025d662c1ee09c33c41bde9bda9002bcd65e5b060050f93c94e"
+    },
+    {
+      "filename": "W10.BIN",
+      "size_bytes": 144,
+      "sha256": "c1723f608c5f0a34b65ba112ad02eda95ffd02bc729bfe9c139deff3cf41b533"
+    },
+    {
+      "filename": "W11.BIN",
+      "size_bytes": 384,
+      "sha256": "e5bb71e22d897ea1f34566e8e28f334fbdd416f7b4b944ba368698e3231e2880"
+    },
+    {
+      "filename": "W12.BIN",
+      "size_bytes": 216,
+      "sha256": "f894588d753498d1dd76b945a6b71da9c8c01136fa11dc26b325a1acdba6a4a2"
+    },
+    {
+      "filename": "W13.BIN",
+      "size_bytes": 576,
+      "sha256": "8057474ed47d8c214ba7a221feb6735b3ae94261655a7324e7f764de166c06ea"
+    },
+    {
+      "filename": "W14.BIN",
+      "size_bytes": 240,
+      "sha256": "c75902f3c6f5acc45507b2b20a036b794af4b7fd071a934aab3c1201661895f6"
+    }
+  ]
+}

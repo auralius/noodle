@@ -27,6 +27,9 @@ typedef struct {
 #if defined(NOODLE_USE_INT8)
   float scale;          ///< real = (q - zero_point) * scale
   int32_t zero_point;
+  // Optional externally owned filename; no heap allocation for the descriptor.
+  // File contents are raw CHW INT8, independent of NOODLE_FILE_FORMAT.
+  const char *file_path;
 #endif
 } NoodleTensor;
 
@@ -41,6 +44,18 @@ size_t noodle_tensor_capacity_bytes(const NoodleTensor *t);
 
 #if defined(NOODLE_USE_INT8)
 void noodle_tensor_set_quantization(NoodleTensor *t, float scale, int32_t zero_point);
+// Bind file storage for subsequent INT8 layer outputs. Path must remain valid
+// until unbound/freed. Files are caller-managed and are NOT deleted on free.
+// Binding releases any existing SRAM tensor allocation.
+bool noodle_i8_tensor_bind_file(NoodleTensor *t, const char *path);
+void noodle_i8_tensor_unbind_file(NoodleTensor *t);
+bool noodle_i8_tensor_file_1d(NoodleTensor *t, uint16_t C, uint16_t W,
+                              float scale, int32_t zero_point);
+bool noodle_i8_tensor_file_2d(NoodleTensor *t, uint16_t C, uint16_t W,
+                              float scale, int32_t zero_point);
+// Raw binary file helpers, useful for seeding and validating C tensors.
+bool noodle_i8_tensor_write_file(const NoodleTensor *t, const int8_t *src, size_t n);
+bool noodle_i8_tensor_read_file(const NoodleTensor *t, int8_t *dst, size_t n);
 #endif
 
 static inline NoodleData *noodle_tensor_data(NoodleTensor *t) {

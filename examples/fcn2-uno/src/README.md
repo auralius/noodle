@@ -1,3 +1,2 @@
-main1.cpp --> input comes from the touch display.
-
-main2.cpp --> input comes from PC (Python) via serial interface. 
+pio run -e uno-int8-pgm -t usbasp-fullflash-init
+pio run -e uno-int8-pgm -t upload

@@ -269,11 +269,6 @@ def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="spl
     unsupported = []
     for op_i, op in enumerate(ops):
         kind = op.get('op_name', '')
-        if int8_sd_layout == "packed" and kind in supported and kind != "FULLY_CONNECTED":
-            raise ValueError(
-                f"--int8-sd-layout packed currently supports FULLY_CONNECTED only; "
-                f"model contains {kind}. Use split for convolutional models."
-            )
         if kind not in supported:
             unsupported.append({'index': op_i, 'op': kind})
             continue
@@ -361,7 +356,7 @@ def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="spl
         # Keep the b/m/s .h and .txt exports in BOTH modes so existing
         # PROGMEM/header-based examples continue to work. In packed mode only
         # the SD .bin files change: wNN.bin + pNN.bin (no b/m/sNN.bin).
-        split_sd = int8_sd_layout == 'split'
+        split_sd = (int8_sd_layout == 'split' or kind != 'FULLY_CONNECTED')
         files = {
             'weight': _write_i8_parameter(dest, 'w', idx, weights, 'int8_t', notes=notes),
             'bias': _write_i8_parameter(dest, 'b', idx, bias, 'int32_t', notes=notes, emit_bin=split_sd),
@@ -417,7 +412,7 @@ def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="spl
                 'progmem_header': progmem['header'],
                 'progmem_manifest': 'model_progmem_manifest.json',
                 'non_weighted_ops': unsupported,
-                'notes': ['SD layout: split has w/b/m/sNN.bin; packed FCN has wNN.bin + pNN.bin.',
+                'notes': ['SD layout: conv/depthwise split w/b/m/sNN.bin; packed FCN wNN.bin + pNN.bin.',
                           'Packed pNN.bin = 12 bytes per output neuron: bias, multiplier, shift (LE int32).',
                           'File .bin = headerless little-endian int8/int32 (NOODLE_FILE_FORMAT_BIN).',
                           'Input and output activations are TFLite NHWC; Noodle convolution activations are CHW.',
@@ -677,7 +672,7 @@ def main(argv=None):
     parser.add_argument('out_dir', help='New or empty output directory')
     parser.add_argument('--int8-sd-layout', choices=('split', 'packed'), default='split',
                         help='INT8 SD files: split=w/b/m/sNN.bin (default, compatible); '
-                             'packed=wNN.bin+pNN.bin (FULLY_CONNECTED only). '
+                             'packed=FCN wNN.bin+pNN.bin with conv layers remaining split. '
                              'FP32 exports are unchanged.')
     args = parser.parse_args(argv)
     if not args.tflite_path.lower().endswith('.tflite'):

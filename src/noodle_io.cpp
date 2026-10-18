@@ -111,7 +111,11 @@ bool noodle_fs_init(uint8_t cs_pin) {
   pinMode(cs_pin, OUTPUT);
   digitalWrite(cs_pin, HIGH);
 
-  SdSpiConfig cfg(cs_pin, DEDICATED_SPI, SD_SCK_MHZ(4));
+  // NOODLE_CASE2_SD_IO_EXPERIMENT_PATCH_V1: default remains 4 MHz unless overridden.
+#ifndef NOODLE_SD_SCK_MHZ
+#define NOODLE_SD_SCK_MHZ 4
+#endif
+  SdSpiConfig cfg(cs_pin, DEDICATED_SPI, SD_SCK_MHZ(NOODLE_SD_SCK_MHZ));
   return NOODLE_FS.begin(cfg);
 
 #elif defined(NOODLE_USE_SD_MMC)
@@ -283,12 +287,23 @@ void noodle_copy_weight_mem(const NoodleWeight *src, uint32_t start, float *dst,
 }
 
 void noodle_grid_weight_from_file(NDL_File &fi, float *buffer, uint16_t K, float dq_scale, int32_t dq_zp) {
+#if NOODLE_FILE_FORMAT == NOODLE_FILE_FORMAT_BIN && !defined(NOODLE_USE_Q8_WEIGHTS)
+  // One contiguous read per KxK IEEE-754 FP32 kernel (25 floats = 100 bytes
+  // for Case 3). Preserve the original scalar reader for text and Q8 weights.
+  // No extra scratch: caller already provides the KxK float kernel buffer.
+  const size_t count = static_cast<size_t>(K) * K;
+  const size_t got = noodle_read_weight_block(fi, buffer, count, dq_scale, dq_zp);
+  // The original scalar reader returned 0.0f on a missing float. Avoid using
+  // uninitialized buffer entries if the file ends before a complete kernel.
+  for (size_t i = got; i < count; ++i) buffer[i] = 0.0f;
+#else
   for (uint16_t i = 0; i < K; i++) {
     const uint16_t row = i * K;
     for (uint16_t j = 0; j < K; j++) {
       buffer[row + j] = noodle_read_weight(fi, dq_scale, dq_zp);
     }
   }
+#endif
 }
 
 void noodle_delete_file(const char *fn) {

@@ -67,9 +67,10 @@ uint16_t noodle_reshape(const float *src_hwc,
 uint16_t noodle_gap(float *inout, uint16_t C, uint16_t W) {
   const uint16_t n = (uint16_t)(W * W);
 
-  // Always safe in-place if we write outputs from high->low channel index.
-  // This avoids needing temp_buff1 even when n < C.
-  for (int32_t c = (int32_t)C - 1; c >= 0; --c) {
+  // In-place CHW reduction must proceed from low to high channel index.
+  // At channel c, output index c lies in already-consumed data (c <= c*n).
+  // Backward traversal can overwrite pixels of channels not yet averaged.
+  for (uint16_t c = 0; c < C; ++c) {
     const float *plane = inout + (uint32_t)c * n;
     double acc = 0.0;
     for (uint16_t i = 0; i < n; i++) acc += (double)plane[i];

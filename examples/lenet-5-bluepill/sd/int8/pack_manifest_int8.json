@@ -1,0 +1,88 @@
+{
+  "format": "case3_int8_conv_split_fcn_packed",
+  "layout": {
+    "01": "conv_split",
+    "02": "conv_split",
+    "03": "fcn_packed",
+    "04": "fcn_packed",
+    "05": "fcn_packed"
+  },
+  "parameter_files": {
+    "b01.bin": {
+      "size_bytes": 24,
+      "sha256": "8f841aa7461e951a78672f895474f26e855e1ad4c1cdab2c01896e0fa853e7d7"
+    },
+    "b02.bin": {
+      "size_bytes": 64,
+      "sha256": "85cdfe84123b9939b3fc7663c7024cedd681cefc8708d058b8e51ac125d73959"
+    },
+    "m01.bin": {
+      "size_bytes": 24,
+      "sha256": "d2e5abd205f1dca58e9f226c86eec920ca7f49149cb3398ad8c558add12d702c"
+    },
+    "m02.bin": {
+      "size_bytes": 64,
+      "sha256": "ea1db4f8133b2f947316dd706ec4f7131cc15b00a8422e786c5214bbf4b19391"
+    },
+    "p03.bin": {
+      "size_bytes": 1440,
+      "sha256": "daf662ac8902db483b3c2d1dd48c6fed14d3cee8a1b2b90e8581205f95d9c8bb"
+    },
+    "p04.bin": {
+      "size_bytes": 1008,
+      "sha256": "2fc6081647a0da344d2ee024e2997de262b62b90410420a7c91c11009b6fc1f9"
+    },
+    "p05.bin": {
+      "size_bytes": 120,
+      "sha256": "e57a6be7cbcd40c31f71316ced1f5729c9d871ae3cfd2d173b2c25fd55767162"
+    },
+    "s01.bin": {
+      "size_bytes": 24,
+      "sha256": "0b4562a0406f3bb80f6b82b7e6fe8ffb94b05ab353829ec02004bad6125ac2d8"
+    },
+    "s02.bin": {
+      "size_bytes": 64,
+      "sha256": "09d97b496b2117e4fa39bd16fda5c29cbdf3581fb3a7e0a0d1ed949cf9ff04f9"
+    },
+    "w01.bin": {
+      "size_bytes": 150,
+      "sha256": "45a2b0223b4f020554cf1f77a38c4e78744005137afea448b3874510b4e2a6ec"
+    },
+    "w02.bin": {
+      "size_bytes": 2400,
+      "sha256": "2b3cdd41022376d5cdbcf9ff602273b55397d15605f3dbbd0b3d2c05634f6a92"
+    },
+    "w03.bin": {
+      "size_bytes": 48000,
+      "sha256": "8cde91a30b65ebbd9d64aa32c2976bf1b8b2656a176782358cf235a911e540e1"
+    },
+    "w04.bin": {
+      "size_bytes": 10080,
+      "sha256": "a194d3bb49b5dc080da846d594594a87a43c88854298bca20260b777058273de"
+    },
+    "w05.bin": {
+      "size_bytes": 840,
+      "sha256": "2fc75920ee7641cfe6de96285faa5ae11261541e09b6338f67616742ec4d484f"
+    }
+  },
+  "split_metadata_sha256": {
+    "b01.bin": "8f841aa7461e951a78672f895474f26e855e1ad4c1cdab2c01896e0fa853e7d7",
+    "m01.bin": "d2e5abd205f1dca58e9f226c86eec920ca7f49149cb3398ad8c558add12d702c",
+    "s01.bin": "0b4562a0406f3bb80f6b82b7e6fe8ffb94b05ab353829ec02004bad6125ac2d8",
+    "b02.bin": "85cdfe84123b9939b3fc7663c7024cedd681cefc8708d058b8e51ac125d73959",
+    "m02.bin": "ea1db4f8133b2f947316dd706ec4f7131cc15b00a8422e786c5214bbf4b19391",
+    "s02.bin": "09d97b496b2117e4fa39bd16fda5c29cbdf3581fb3a7e0a0d1ed949cf9ff04f9",
+    "b03.bin": "d0622b04382e1d1717d65928a9eeb3d8248976d44e958fb4dd2963430ef751eb",
+    "m03.bin": "8a1b4ebcbb75b3a5fd5bd5b59f27fbc5eee4acb429708956e9ac112fb64b1803",
+    "s03.bin": "b4280dc981b4cb011a1b1e01969c9d78370541a33b693db3f400eac843eeed2e",
+    "b04.bin": "b32bafe92bbeda54099d10fc4cdebbefaaf8f65d0ed6987e3eabb3290c000f54",
+    "m04.bin": "1b978fc831acf3992daf46b82020f75eab38699b8fd526e735e6fb4cd95215fb",
+    "s04.bin": "2fab9b637f05854b8ff6fc9a2b9dd22f3ac40dc5baf9456f35ed463665723dc4",
+    "b05.bin": "b7e0da86170dbd79d390bc8d1cfbb4610c56ad220b845b0356b59dec2774c9d4",
+    "m05.bin": "c2c00ebd922f04cda0eaa6b9bbbd9c67d1ae23aa7b789e4ffdf2c0946b15bb4d",
+    "s05.bin": "d656c0bc419c92fe6195f93135a24b4703d39446685627586824c38bc34af3b0"
+  },
+  "parameter_total_bytes": 64302,
+  "parameter_file_count": 14,
+  "note": "Copy only *.bin to SD. Packed pNN stores LE int32 triples (bias,multiplier,shift) by output neuron."
+}
