@@ -18,6 +18,8 @@ from pathlib import Path
 
 import numpy as np
 
+from noodle_layer_codegen import generate_layer_headers, read_tflite_operator_options
+
 # Supported weighted op types have their parameter arrays extracted.
 WEIGHTED_OPS = {"CONV_2D", "DEPTHWISE_CONV_2D", "FULLY_CONNECTED", "TRANSPOSE_CONV"}
 # Listed in the manifest but NOT turned into firmware code by this tool.
@@ -250,7 +252,7 @@ def _i8_activation_q(details, index):
         raise ValueError(f"{d.get('name')}: invalid signed int8 zero point")
     return float(s[0]), int(zp[0])
 
-def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="split"):
+def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="split", layer_options=None):
     """Export full-INT8 TFLite model, with optional FCN packed SD metadata."""
     if int8_sd_layout not in ("split", "packed"):
         raise ValueError("int8_sd_layout must be split or packed")
@@ -385,6 +387,7 @@ def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="spl
         entries.append(layer)
     if not entries:
         raise ValueError('No INT8 weighted ops found in model')
+    factories = generate_layer_headers(dest, entries, precision='int8', operator_options=layer_options or {})
     with open(dest / 'noodle_export_storage.h', 'w', encoding='utf-8') as f:
         f.write('#pragma once\n')
         f.write('#if defined(__AVR__)\n#include <avr/pgmspace.h>\n#define NOODLE_EXPORT_STORAGE PROGMEM\n')
@@ -412,12 +415,13 @@ def _export_tflite_int8_interpreter(interpreter, out_dir, *, int8_sd_layout="spl
                 'progmem_header': progmem['header'],
                 'progmem_manifest': 'model_progmem_manifest.json',
                 'non_weighted_ops': unsupported,
+                'layer_factories': factories,
                 'notes': ['SD layout: conv/depthwise split w/b/m/sNN.bin; packed FCN wNN.bin + pNN.bin.',
                           'Packed pNN.bin = 12 bytes per output neuron: bias, multiplier, shift (LE int32).',
                           'File .bin = headerless little-endian int8/int32 (NOODLE_FILE_FORMAT_BIN).',
                           'Input and output activations are TFLite NHWC; Noodle convolution activations are CHW.',
                           'Weights use zero-point=0; per-output-channel multipliers/shifts match Noodle C++ algorithm.',
-                          'Layer descriptors (stride, padding, fused activation) must be matched to model manually.',
+                          'Layer descriptor factories use TFLite builtin operator options and remain optional.',
                           'Unsupported or unexported non-weighted operations are listed but NOT converted.',
                           'Do not mix FP32 and INT8 exports in one directory.']}
     with open(dest / 'model_int8_manifest.json', 'w', encoding='utf-8') as f:
@@ -523,7 +527,7 @@ def _float_array(out_dir, prefix, index, values, *, notes=()):
             'header': name+'.h', 'symbol': name, 'elements': int(a.size)}
 
 
-def _export_tflite_float_interpreter(interpreter, out_dir):
+def _export_tflite_float_interpreter(interpreter, out_dir, *, layer_options=None):
     """FP32 extraction in TFLite execution order, preserving existing wNN/bNN names."""
     details, ops = _model_tensors(interpreter)
     out_dir = Path(out_dir)
@@ -591,6 +595,7 @@ def _export_tflite_float_interpreter(interpreter, out_dir):
                         'output_shape_nhwc':list(out_shape),'bias_synthesized':bi<0,'files':files})
     if not entries:
         raise ValueError('No weighted operations to export')
+    factories = generate_layer_headers(out_dir, entries, precision='fp32', operator_options=layer_options or {})
     with open(out_dir/'model_weights.h','w',encoding='utf-8') as f:
         f.write('#pragma once\n')
         for layer in entries:
@@ -602,13 +607,14 @@ def _export_tflite_float_interpreter(interpreter, out_dir):
                  'progmem_header':progmem['header'],
                  'progmem_manifest':'model_progmem_manifest.json',
                 'non_weighted_ops':[{'index':i,'op':op['op_name']}
-                                    for i,op in enumerate(ops) if op['op_name'] not in WEIGHTED_OPS]}
+                                    for i,op in enumerate(ops) if op['op_name'] not in WEIGHTED_OPS],
+                 'layer_factories': factories}
     with open(out_dir/'model_fp32_manifest.json','w',encoding='utf-8') as f:
         json.dump(manifest,f,indent=2)
     return manifest
 
 
-def export_interpreter(interpreter, out_dir, *, int8_sd_layout="split"):
+def export_interpreter(interpreter, out_dir, *, int8_sd_layout="split", layer_options=None):
     """Safe, auto-detected TFLite export. Default SD layout stays legacy split."""
     if int8_sd_layout not in ("split", "packed"):
         raise ValueError("int8_sd_layout must be split or packed")
@@ -626,10 +632,10 @@ def export_interpreter(interpreter, out_dir, *, int8_sd_layout="split"):
         staging.mkdir()
         if precision == 'int8':
             manifest = _export_tflite_int8_interpreter(
-                interpreter, str(staging), int8_sd_layout=int8_sd_layout)
+                interpreter, str(staging), int8_sd_layout=int8_sd_layout, layer_options=layer_options)
             manifest['precision'] = 'int8'
         else:
-            manifest = _export_tflite_float_interpreter(interpreter,str(staging))
+            manifest = _export_tflite_float_interpreter(interpreter,str(staging), layer_options=layer_options)
         manifest['warning'] = ('Parameter extraction only. Nonweighted ops, convolution stride/padding, '
                                'fused activations and NHWC-to-CHW handling must be reproduced in Noodle firmware.')
         with open(staging/'model_manifest.json','w',encoding='utf-8') as f:
@@ -643,7 +649,7 @@ def export_interpreter(interpreter, out_dir, *, int8_sd_layout="split"):
     return manifest
 
 
-def export_tflite(tflite_path, out_dir, *, int8_sd_layout="split"):
+def export_tflite(tflite_path, out_dir, *, int8_sd_layout="split", layer_options_path=None):
     """One public entry point for both model precisions."""
     try:
         import tensorflow as tf
@@ -660,10 +666,21 @@ def export_tflite(tflite_path, out_dir, *, int8_sd_layout="split"):
         experimental_preserve_all_tensors=True,
     )
 
+    layer_options = read_tflite_operator_options(tflite_path)
+    if layer_options_path is not None:
+        override = json.loads(Path(layer_options_path).read_text(encoding='utf-8'))
+        if not isinstance(override, dict):
+            raise ValueError('--layer-options requires a JSON object keyed by operator index')
+        for raw_index, values in override.items():
+            index = int(raw_index)
+            if not isinstance(values, dict) or index not in layer_options:
+                raise ValueError(f'Invalid layer options override for TFLite operator {raw_index}')
+            layer_options[index] = {**layer_options[index], **values}
     return export_interpreter(
         interpreter,
         out_dir,
         int8_sd_layout=int8_sd_layout,
+        layer_options=layer_options,
     )
 
 def main(argv=None):
@@ -674,11 +691,12 @@ def main(argv=None):
                         help='INT8 SD files: split=w/b/m/sNN.bin (default, compatible); '
                              'packed=FCN wNN.bin+pNN.bin with conv layers remaining split. '
                              'FP32 exports are unchanged.')
+    parser.add_argument('--layer-options', default=None, help='Optional JSON descriptor overrides keyed by zero-based TFLite operator index')
     args = parser.parse_args(argv)
     if not args.tflite_path.lower().endswith('.tflite'):
         parser.error('Input must be a .tflite model.')
     try:
-        manifest = export_tflite(args.tflite_path, args.out_dir, int8_sd_layout=args.int8_sd_layout)
+        manifest = export_tflite(args.tflite_path, args.out_dir, int8_sd_layout=args.int8_sd_layout, layer_options_path=args.layer_options)
     except (ValueError,RuntimeError,FileExistsError,OSError,KeyError,IndexError) as e:
         parser.exit(1, f'ERROR: {e}\n')
     print(f"Noodle {manifest['precision'].upper()} export complete: {manifest['layer_count']} weighted layers -> {args.out_dir}")
@@ -687,6 +705,11 @@ def main(argv=None):
         for layer in manifest['layers']:
             print(f"  Layer {layer['layer']:02d} SD files: {', '.join(layer['sd_files'])}")
     print('PROGMEM header: model_progmem.h (include model_quant.h separately for INT8).')
+    print('Layer factories: model_layers_file.h, model_layers_pgm.h, model_layers_ram.h.')
+    if manifest.get('layer_factories', {}).get('omitted'):
+        print('WARNING: omitted unsupported/unresolved layer factories:')
+        for item in manifest['layer_factories']['omitted']:
+            print(f'  layer {item["layer"]:02d}: {item["reason"]}')
     print('Use model_weights.h for individual arrays or raw .bin files for SD-backed parameters.')
     print('See model_manifest.json for layer shapes, quantization information and nonweighted operations.')
 
