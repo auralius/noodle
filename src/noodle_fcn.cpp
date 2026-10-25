@@ -327,6 +327,31 @@ uint16_t noodle_fcn(const float *input,
                     float *output,
                     const FCNMem &fcn,
                     CBFPtr progress_cb) {
+#if !defined(NOODLE_USE_Q8_WEIGHTS)
+  // Native FP32 FCNMem: direct output-major [O][I] SRAM access.
+  // This is the normal path; no optimization flag is required.
+  // Keep the original accumulation order and preserve optional callbacks.
+  if (!input || !output || !fcn.weight || !n_inputs || !n_outputs) return 0;
+
+  const float progress_step = (n_outputs > 1)
+                                ? 1.0f / static_cast<float>(n_outputs - 1)
+                                : 1.0f;
+  float progress = 0.0f;
+  for (uint16_t k = 0; k < n_outputs; ++k) {
+    const float *row = fcn.weight + static_cast<size_t>(k) * n_inputs;
+    float h = fcn.bias ? fcn.bias[k] : 0.0f;
+    for (uint16_t j = 0; j < n_inputs; ++j) {
+      h += input[j] * row[j];
+    }
+    if (fcn.act == ACT_RELU && h < 0.0f) h = 0.0f;
+    output[k] = h;
+    if (progress_cb) {
+      progress_cb(progress);
+      progress += progress_step;
+    }
+  }
+#else
+  // Legacy Q8-weight FP32-activation path: preserve dequantizing reader.
   float progress = 0;
   float progress_step = 1.0f / (float)(n_outputs - 1);
 
@@ -340,9 +365,9 @@ uint16_t noodle_fcn(const float *input,
     if (progress_cb) progress_cb(progress);
     progress += progress_step;
   }
+#endif
 
   if (fcn.act == ACT_SOFTMAX) noodle_soft_max(output, n_outputs);
-  
   return n_outputs;
 }
 
